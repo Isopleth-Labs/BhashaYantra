@@ -1,0 +1,111 @@
+name: Build Windows Desktop
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: windows-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-windows:
+    name: Build and test Windows app
+    runs-on: windows-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Set up stable Rust
+        shell: pwsh
+        run: |
+          rustup set profile minimal
+          rustup toolchain install stable --no-self-update
+          rustup default stable
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Check TypeScript
+        run: npm run typecheck
+
+      - name: Run converter tests
+        run: npm run test
+
+      - name: Build Windows installers
+        run: npm run tauri build
+
+      - name: Verify packaged files
+        shell: pwsh
+        run: |
+          $portableApp = "src-tauri/target/release/bhashayantra.exe"
+          $installerPatterns = @(
+            "src-tauri/target/release/bundle/msi/*.msi",
+            "src-tauri/target/release/bundle/nsis/*-setup.exe"
+          )
+
+          if (-not (Test-Path -LiteralPath $portableApp)) {
+            throw "Expected build output was not created: $portableApp"
+          }
+
+          $installers = Get-ChildItem -Path $installerPatterns
+          if ($installers.Count -ne 2) {
+            throw "Expected one MSI and one Setup executable, but found $($installers.Count)."
+          }
+
+          @(Get-Item -LiteralPath $portableApp) + $installers |
+            Select-Object Name, Length, LastWriteTime
+
+      - name: Store Windows downloads
+        uses: actions/upload-artifact@v4
+        with:
+          name: BhashaYantra-Windows
+          path: |
+            src-tauri/target/release/bhashayantra.exe
+            src-tauri/target/release/bundle/msi/*.msi
+            src-tauri/target/release/bundle/nsis/*-setup.exe
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+
+  publish-release:
+    name: Publish tagged release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build-windows
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download Windows packages
+        uses: actions/download-artifact@v5
+        with:
+          name: BhashaYantra-Windows
+          path: release-files
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mapfile -d '' release_files < <(find release-files -type f -print0)
+          gh release create "${GITHUB_REF_NAME}" "${release_files[@]}" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --title "BhashaYantra ${GITHUB_REF_NAME}" \
+            --generate-notes
