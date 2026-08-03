@@ -2,7 +2,7 @@
 
 BhashaYantra is a Windows-first Hindi typing, legacy-font conversion, typing-practice, testing, and stenography desktop application.
 
-> Project status: the React/Tauri foundation, final dashboard UI, local bidirectional text converter, Drizzle schema, Supabase migrations, and repository boundaries are implemented. Typing practice, testing, stenography, and complex document conversion remain roadmap modules.
+> Project status: the React/Tauri foundation, multi-layout typing engine, starter practice/tests, local bidirectional text converter, Drizzle schema, Supabase migrations, and repository boundaries are implemented. Stenography and complex document conversion remain roadmap modules.
 
 ![BhashaYantra implemented UI](docs/assets/bhashayantra-implemented-ui.png)
 
@@ -14,24 +14,29 @@ The approved design source is preserved at [docs/assets/bhashayantra-final-refer
 - Simple Smart and Advanced Classic mode switch.
 - Hindi-first interface with an instant Hindi/English language switch.
 - Fully interactive Start Typing pad with the original BhashaYantra Smart Roman-phonetic engine and familiar Classic/KrutiDev keys.
-- Working Smart/Classic layout selector, separate offline drafts, and live Unicode or KrutiDev output from either input method.
+- Typed Hindi/English profile registry with BhashaYantra Smart, Classic Hindi/KrutiDev, Devanagari INSCRIPT, and English QWERTY ready profiles.
+- Remington Gail/CBI and DevLys/Shree-Lipi appear as validation-pending profiles instead of being falsely advertised as working.
+- Separate offline drafts for every ready layout and live Unicode or KrutiDev output where applicable.
 - Automatic short-i matra, reph, conjunct, and Unicode normalization through the shared typing engine.
-- Clickable Classic Hindi on-screen keyboard, Shift layer, word suggestions, and five character-palette groups.
+- Clickable Smart, Classic Hindi, INSCRIPT, and English QWERTY on-screen keyboards, Shift layers, Smart suggestions, and five Hindi character-palette groups.
 - Searchable full character library and full shortcut manager with direct character insertion.
 - Built-in expert shortcuts plus conflict-checked custom shortcuts and physical-key mappings in the working Advanced Classic Manager.
-- Offline draft, mode, output, shortcut, and custom-layout persistence.
+- Offline draft, language, layout, display-font, output, shortcut, and custom-layout persistence.
+- Layout-scoped custom shortcuts and physical-key mappings with JSON import/export.
 - Custom layout import/export, reset, text open, output copy, and `.txt` save/download actions.
 - Live words, characters, lines, elapsed-session WPM, and mapping-warning feedback.
 - Live local KrutiDev 010 ↔ Unicode text conversion in both directions with warnings.
 - Text-file open, paste, clear, copy, and download actions.
+- Selectable Unicode preview fonts: Noto Sans Devanagari, Mangal, Nirmala UI, and Segoe UI for English.
+- Working layout-specific starter practice and 60-second tests with live preview, accuracy, and WPM.
 - Light/dark design tokens and Hindi font fallbacks.
-- Character browser, shortcut search, document drop-zone shell, and test summary.
+- Character browser, shortcut search, honest document-engine readiness card, and test summary.
 - Drizzle PostgreSQL schema for ten application tables.
 - Supabase migrations, Auth ownership constraints, update triggers, and RLS policies.
 - Local and Supabase user-preference repository implementations.
 - Tauri 2 configuration with allowlisted dialog and text-file permissions.
 - Tested Free/Pro/Institution feature-entitlement vocabulary for future secure billing integration.
-- Automated converter/typing/licensing tests, strict TypeScript checking, and production frontend build.
+- Twenty-seven automated converter/typing/training/licensing tests, strict TypeScript checking, and production frontend build.
 
 ## Final product direction
 
@@ -39,7 +44,7 @@ The approved design source is preserved at [docs/assets/bhashayantra-final-refer
 - `Simple Smart Mode`: natural Roman Hindi typing with automatic matra and joint-character composition.
 - `Advanced Classic Mode`: shortcuts, Alt combinations, custom mappings, and expert controls.
 - Central workspace: bidirectional `KrutiDev / Legacy ↔ Unicode` Exchange Converter.
-- Additional modules: document conversion, typing practice, typing tests, stenography, shortcut manager, reports, and user customization.
+- Additional modules: structure-preserving document conversion, extended lesson/test catalog, stenography, reports, and optional cloud sync.
 
 ## Approved technology stack
 
@@ -199,7 +204,7 @@ The first Tauri build can take longer because Rust dependencies must be download
 
 ## Verified build status
 
-The current workspace has passed strict TypeScript checking, eleven converter/typing unit tests, eight database/RLS tests, Drizzle configuration validation, Supabase schema linting, Rust formatting and Clippy checks, frontend production build, browser interaction QA, desktop executable build, and both Windows installer builds.
+The current workspace has passed strict TypeScript checking, twenty-seven converter/typing/training/licensing unit tests, eight database/RLS tests, Drizzle configuration validation, Supabase schema linting, Rust formatting and Clippy checks, frontend production build, browser interaction QA, desktop executable build, and both Windows installer builds.
 
 ## Database workflow
 

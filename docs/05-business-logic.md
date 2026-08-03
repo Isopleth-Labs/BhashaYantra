@@ -110,8 +110,11 @@ The UI cannot pass an arbitrary unrestricted file-system operation to Tauri. Nat
 
 - `BhashaYantra Smart` tokenizes Roman words with longest-match consonant/vowel rules, composes dependent matras and conjuncts, then applies a versioned original word dictionary.
 - Smart input preserves Devanagari and punctuation, so palette insertion and mixed text remain safe.
-- Smart and Classic source drafts are stored independently; changing a layout never reinterprets or destroys the other layout's source.
-- Any future Remington, InScript, DevLys, or language profile implements the same typed layout contract instead of adding UI-only options.
+- Smart, Classic, INSCRIPT, and English QWERTY source drafts are stored independently; changing a layout never reinterprets or destroys another layout's source.
+- Typing language, keyboard layout, legacy encoding profile, Unicode display font, and interface language are separate typed concepts and must never share one dropdown value.
+- Ready profiles are executable. Validation-pending profiles remain visible for roadmap clarity but disabled until a licensed acceptance corpus passes.
+- DevLys and Shree-Lipi are conversion profiles, not keyboard layouts. Mangal, Noto Sans Devanagari, and Nirmala UI are display fonts, not encodings.
+- Custom shortcuts and physical-key mappings belong to one layout ID; importing a layout file cannot overwrite another layout's custom layer.
 - Built-in layout: immutable.
 - User customization: clone, then edit.
 - Mapping identity: physical key plus canonical modifier signature.

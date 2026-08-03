@@ -28,6 +28,20 @@ flowchart TB
     MIGRATIONS --> PG
 ```
 
+### 2.1 Multi-layout engine boundaries
+
+The engine keeps five concerns independent so a product label cannot accidentally select the wrong behavior:
+
+| Concern | Typed examples | Runtime responsibility |
+|---|---|---|
+| Interface language | Hindi, English | UI translations only |
+| Typing language | Hindi, English | Filters valid keyboard layouts and output choices |
+| Keyboard layout | BhashaYantra Smart, Classic Hindi, INSCRIPT, English QWERTY | Converts physical/source keys into Unicode |
+| Legacy encoding profile | Kruti Dev 010, DevLys 010, Shree-Lipi | Converts stored legacy glyph codes to/from Unicode |
+| Unicode display font | Noto Sans Devanagari, Mangal, Nirmala UI, Segoe UI | Changes preview rendering without changing text |
+
+Profile registries include a readiness state. Only `ready` profiles reach an executable engine; `validation` profiles remain disabled until their fixture corpus passes. The same layout ID flows through typing, custom mappings, starter lessons, tests, and future document conversion.
+
 ## 3. Layer responsibilities
 
 ### Presentation layer

@@ -46,6 +46,8 @@ Exit gate: agreed fixtures pass in both directions, with lossy cases reported.
 
 ## Phase 3 — Keyboard modes and customization
 
+Current milestone: Smart, Classic Hindi, INSCRIPT, and English QWERTY are executable; Remington Gail/CBI remain validation-pending. Custom layers are isolated per ready layout.
+
 Deliverables:
 
 - Classic Hindi default profile.
@@ -70,6 +72,8 @@ Deliverables:
 Exit gate: free core value remains useful, paid boundaries are testable, and no client-editable value can grant a paid entitlement.
 
 ## Phase 4 — Practice and testing
+
+Current milestone: starter lessons, live converted preview, 60-second timer, positional accuracy, and WPM are implemented for every ready layout. Persistence, exam-specific mistake rules, KDPH, history, and reports remain.
 
 Deliverables:
 

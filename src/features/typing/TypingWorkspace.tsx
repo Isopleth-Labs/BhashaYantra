@@ -35,18 +35,23 @@ import {
   unicodeToTypingKeys,
   unicodeToTypingSource,
   type CustomKeyMapping,
+  type ReadyTypingLayoutId,
   type ShortcutDefinition,
-  type TypingLayoutId,
   type TypingMode,
   type TypingOutputMode,
 } from "@/domain/typing/typing-engine";
+import {
+  getDisplayFont,
+  type UnicodeDisplayFontId,
+} from "@/domain/typing/typing-profiles";
 import { useI18n } from "@/i18n/I18nProvider";
 
 const SUGGESTIONS = ["नमस्ते", "भारत", "हिंदी", "भाषा", "धन्यवाद"] as const;
 
 interface TypingWorkspaceProps {
   readonly mode: TypingMode;
-  readonly layout: TypingLayoutId;
+  readonly layout: ReadyTypingLayoutId;
+  readonly displayFont: UnicodeDisplayFontId;
   readonly outputMode: TypingOutputMode;
   readonly source: string;
   readonly onSourceChange: (value: string) => void;
@@ -76,6 +81,7 @@ function downloadText(contents: string, filename: string, type = "text/plain;cha
 export function TypingWorkspace({
   mode,
   layout,
+  displayFont,
   outputMode,
   source,
   onSourceChange,
@@ -93,7 +99,10 @@ export function TypingWorkspace({
   const configFileRef = useRef<HTMLInputElement>(null);
   const [shifted, setShifted] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(true);
-  const [status, setStatus] = useState(() => t(layout === "bhashayantra-smart" ? "readySmartTyping" : "readyTyping"));
+  const isEnglish = layout === "english-qwerty";
+  const isSmart = layout === "bhashayantra-smart";
+  const isInscript = layout === "inscript";
+  const [status, setStatus] = useState(() => t(isEnglish ? "readyEnglishTyping" : isSmart ? "readySmartTyping" : isInscript ? "readyInscriptTyping" : "readyTyping"));
   const [startedAt, setStartedAt] = useState<number>();
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [shortcutKey, setShortcutKey] = useState("");
@@ -110,6 +119,7 @@ export function TypingWorkspace({
   const displayedOutput = outputMode === "unicode" ? unicodeResult.output : legacyResult.output;
   const activeWarnings = outputMode === "unicode" ? unicodeResult.warnings : legacyResult.warnings;
   const keyboard = keyboardForLayout(layout);
+  const outputFontStack = getDisplayFont(displayFont).cssStack;
   const metrics = useMemo(() => getTypingMetrics(unicodeResult.output), [unicodeResult.output]);
   const estimatedWpm = useMemo(() => {
     if (!startedAt || elapsedSeconds < 2) return 0;
@@ -125,8 +135,8 @@ export function TypingWorkspace({
   }, [startedAt]);
 
   useEffect(() => {
-    setStatus(t(layout === "bhashayantra-smart" ? "readySmartTyping" : "readyTyping"));
-  }, [layout, t]);
+    setStatus(t(isEnglish ? "readyEnglishTyping" : isSmart ? "readySmartTyping" : isInscript ? "readyInscriptTyping" : "readyTyping"));
+  }, [isEnglish, isInscript, isSmart, layout, t]);
 
   function updateSource(value: string) {
     if (!startedAt && value.length > 0) setStartedAt(Date.now());
@@ -282,14 +292,14 @@ export function TypingWorkspace({
       JSON.stringify(
         {
           schemaVersion: 1,
-          profile: "Classic Hindi Custom",
+          profile: `${layout} Custom`,
           shortcuts: customShortcuts,
           mappings: customMappings,
         },
         null,
         2,
       ),
-      "bhashayantra-classic-hindi-layout.json",
+      `bhashayantra-${layout}-layout.json`,
       "application/json;charset=utf-8",
     );
     setStatus(t("layoutExported"));
@@ -348,11 +358,11 @@ export function TypingWorkspace({
       <div className="typing-heading">
         <div>
           <h1 id="typing-workspace-title">{t("startTyping")}</h1>
-          <p>{t(layout === "bhashayantra-smart" ? "smartTypingIntro" : "typingIntro")}</p>
+          <p>{t(isEnglish ? "englishTypingIntro" : isSmart ? "smartTypingIntro" : isInscript ? "inscriptTypingIntro" : "typingIntro")}</p>
         </div>
         <div className="typing-status-chip">
           <CheckCircle2 aria-hidden="true" />
-          {mode === "simple" ? t("smartCompositionOn") : t("advancedMappingsOn")}
+          {isEnglish ? t("englishTypingOn") : mode === "simple" ? t("smartCompositionOn") : t("advancedMappingsOn")}
         </div>
       </div>
 
@@ -361,9 +371,9 @@ export function TypingWorkspace({
           <div className="typing-panel-heading">
             <span>
               <Keyboard aria-hidden="true" />
-              <strong>{layout === "bhashayantra-smart" ? t("smartPhoneticKeys") : t("familiarKeys")}</strong>
+              <strong>{isEnglish ? t("englishQwerty") : isSmart ? t("smartPhoneticKeys") : isInscript ? t("inscriptKeys") : t("familiarKeys")}</strong>
             </span>
-            <small>{layout === "bhashayantra-smart" ? t("smartPhoneticInput") : t("krutidevInput")}</small>
+            <small>{isEnglish ? t("directEnglishInput") : isSmart ? t("smartPhoneticInput") : isInscript ? t("inscriptInput") : t("krutidevInput")}</small>
           </div>
           <textarea
             ref={sourceRef}
@@ -371,7 +381,7 @@ export function TypingWorkspace({
             value={source}
             onChange={(event) => updateSource(event.target.value)}
             onKeyDown={handleTypingKeyDown}
-            placeholder={layout === "bhashayantra-smart" ? t("smartTypingPlaceholder") : t("typingPlaceholder")}
+            placeholder={isEnglish ? t("englishTypingPlaceholder") : isSmart ? t("smartTypingPlaceholder") : isInscript ? t("inscriptTypingPlaceholder") : t("typingPlaceholder")}
             spellCheck={false}
             autoFocus
           />
@@ -385,13 +395,14 @@ export function TypingWorkspace({
           <div className="typing-panel-heading">
             <span>
               <Sparkles aria-hidden="true" />
-              <strong>{outputMode === "unicode" ? t("unicodeOutput") : t("legacyOutput")}</strong>
+              <strong>{isEnglish ? t("englishOutput") : outputMode === "unicode" ? t("unicodeOutput") : t("legacyOutput")}</strong>
             </span>
             <small>{t("livePreview")}</small>
           </div>
           <textarea
             id="typing-output"
             className={outputMode === "unicode" ? "devanagari" : undefined}
+            style={outputMode === "unicode" ? { fontFamily: outputFontStack } : undefined}
             value={displayedOutput}
             readOnly
             aria-label={`${outputMode} typing output`}
@@ -442,7 +453,7 @@ export function TypingWorkspace({
         </div>
       </div>
 
-      {mode === "simple" && (
+      {mode === "simple" && isSmart && (
         <div className="typing-suggestions" aria-label="Hindi word suggestions">
           <span>{t("quickWords")}</span>
           {SUGGESTIONS.map((suggestion) => (
@@ -454,9 +465,9 @@ export function TypingWorkspace({
       )}
 
       {keyboardVisible && (
-          <div className="virtual-keyboard" aria-label={layout === "bhashayantra-smart" ? t("smartKeyboard") : t("classicKeyboard")}>
+          <div className="virtual-keyboard" aria-label={isEnglish ? t("englishKeyboard") : isSmart ? t("smartKeyboard") : isInscript ? t("inscriptKeyboard") : t("classicKeyboard")}>
           <div className="virtual-keyboard-toolbar">
-            <span><Keyboard aria-hidden="true" /> {layout === "bhashayantra-smart" ? t("smartKeyboard") : t("classicKeyboard")}</span>
+            <span><Keyboard aria-hidden="true" /> {isEnglish ? t("englishKeyboard") : isSmart ? t("smartKeyboard") : isInscript ? t("inscriptKeyboard") : t("classicKeyboard")}</span>
             <button
               type="button"
               className={shifted ? "shift-toggle active" : "shift-toggle"}

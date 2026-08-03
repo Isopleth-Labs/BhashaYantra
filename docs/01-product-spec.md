@@ -49,7 +49,7 @@ The start screen contains both typing modes, the Exchange Converter, character b
 - Character search and character palette.
 - Suggestions and optional autocorrection.
 - User can duplicate the default layout and customize the copy.
-- Smart and Classic drafts remain separate when switching layouts.
+- Smart, Classic, INSCRIPT, and English QWERTY drafts remain separate when switching layouts.
 
 ### 5.2 Advanced Classic Mode
 
@@ -62,7 +62,17 @@ The start screen contains both typing modes, the Exchange Converter, character b
 - Import/export of custom keyboard profiles.
 - Reset to protected system defaults.
 
-### 5.3 Exchange Converter
+### 5.3 Multi-profile boundaries
+
+- Typing languages: Hindi and English.
+- Ready keyboard layouts: BhashaYantra Smart, Classic Hindi/KrutiDev, Devanagari INSCRIPT, and English QWERTY.
+- Validation-pending keyboard layouts: Remington Gail and Remington CBI.
+- Ready legacy encoding profile: Kruti Dev 010.
+- Validation-pending legacy encoding profiles: DevLys 010 and Shree-Lipi.
+- Unicode display fonts: Noto Sans Devanagari, Mangal, Nirmala UI, and Segoe UI for English.
+- A profile cannot be enabled until deterministic fixtures validate representative typing and round-trip conversion cases.
+
+### 5.4 Exchange Converter
 
 - Two editors: `KrutiDev / Legacy` and `Unicode`.
 - Bidirectional conversion.
@@ -74,7 +84,7 @@ The start screen contains both typing modes, the Exchange Converter, character b
 - Conversion works locally without account login.
 - Conversion history is opt-in.
 
-### 5.4 Document Converter
+### 5.5 Document Converter
 
 - Initial supported inputs: `.txt`, `.rtf`, `.doc`, and `.docx`, subject to the selected conversion engine's capabilities.
 - Drag-and-drop or file picker.
@@ -83,7 +93,7 @@ The start screen contains both typing modes, the Exchange Converter, character b
 - Save to a new filename and show a conversion report.
 - Batch conversion is a post-MVP extension unless separately approved.
 
-### 5.5 Typing Practice
+### 5.6 Typing Practice
 
 - Guided lessons and custom text.
 - Hindi Unicode-aware comparison.
@@ -91,7 +101,7 @@ The start screen contains both typing modes, the Exchange Converter, character b
 - Weak-key and repeated-error reporting.
 - Local progress without mandatory login.
 
-### 5.6 Typing Test
+### 5.7 Typing Test
 
 - Configurable duration and passage.
 - Exam profiles with explicit scoring rules.
@@ -99,7 +109,7 @@ The start screen contains both typing modes, the Exchange Converter, character b
 - Immutable completed-result summary.
 - Result history and export.
 
-### 5.7 Stenography
+### 5.8 Stenography
 
 - Local or supplied dictation audio.
 - Playback-speed control.
@@ -108,7 +118,7 @@ The start screen contains both typing modes, the Exchange Converter, character b
 - Unicode-aware transcription comparison.
 - Speed, accuracy, and mistake report.
 
-### 5.8 User customization
+### 5.9 User customization
 
 - Keyboard layouts, shortcuts, suggestions, theme, font size, and output defaults.
 - Layout catalog separates language, physical keyboard layout, encoding profile, display font, and exam rules.
@@ -143,7 +153,8 @@ The start screen contains both typing modes, the Exchange Converter, character b
 - Windows Tauri desktop shell.
 - Final start-screen UI.
 - Simple Smart and Advanced Classic mode switching.
-- BhashaYantra Smart and Classic Hindi profiles with separate offline drafts.
+- BhashaYantra Smart, Classic Hindi, Devanagari INSCRIPT, and English QWERTY profiles with separate offline drafts.
+- Layout-specific starter practice/tests and local custom mapping layers.
 - Text Exchange Converter for KrutiDev 010 and Unicode.
 - Character palette and shortcut manager basics.
 - Basic typing practice and result calculation.

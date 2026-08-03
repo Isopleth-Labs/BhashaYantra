@@ -13,6 +13,13 @@ import {
 import { convertText } from "@/application/use-cases/convert-text";
 import { Button } from "@/components/ui/button";
 import type { ConversionDirection } from "@/domain/conversion/types";
+import {
+  getDisplayFont,
+  LEGACY_ENCODING_PROFILES,
+  UNICODE_DISPLAY_FONTS,
+  type LegacyEncodingId,
+  type UnicodeDisplayFontId,
+} from "@/domain/typing/typing-profiles";
 import { useI18n } from "@/i18n/I18nProvider";
 
 const INITIAL_LEGACY = 'esjk uke Hkk"kk ;a= gS';
@@ -38,12 +45,16 @@ export function ExchangeConverter() {
   const [unicodeText, setUnicodeText] = useState(INITIAL_UNICODE);
   const [direction, setDirection] =
     useState<ConversionDirection>("legacy-to-unicode");
+  const [legacyProfile, setLegacyProfile] = useState<LegacyEncodingId>("krutidev-010");
+  const [unicodeFont, setUnicodeFont] = useState<UnicodeDisplayFontId>("noto-devanagari");
   const [warnings, setWarnings] = useState<readonly string[]>([]);
   const [status, setStatus] = useState(() => t("converterReady"));
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const sourceText =
     direction === "legacy-to-unicode" ? legacyText : unicodeText;
+  const activeLegacyProfile = LEGACY_ENCODING_PROFILES.find((profile) => profile.id === legacyProfile) ?? LEGACY_ENCODING_PROFILES[0];
+  const activeUnicodeFont = getDisplayFont(unicodeFont);
 
   const characterCounts = useMemo(
     () => ({
@@ -210,7 +221,7 @@ export function ExchangeConverter() {
         </div>
         <div className="converter-status-chip">
           <CheckCircle2 aria-hidden="true" />
-          KrutiDev <ArrowLeftRight aria-hidden="true" /> Unicode
+          {activeLegacyProfile.name} <ArrowLeftRight aria-hidden="true" /> Unicode
         </div>
       </div>
 
@@ -219,7 +230,13 @@ export function ExchangeConverter() {
           id="legacy-editor"
           tone="legacy"
           title={t("legacySource")}
-          fontLabel="Kruti Dev 010"
+          selectedOption={legacyProfile}
+          options={LEGACY_ENCODING_PROFILES.map((profile) => ({
+            id: profile.id,
+            label: profile.name,
+            disabled: profile.readiness !== "ready",
+          }))}
+          onOptionChange={(value) => setLegacyProfile(value as LegacyEncodingId)}
           value={legacyText}
           count={characterCounts.legacy}
           isSource={direction === "legacy-to-unicode"}
@@ -243,7 +260,13 @@ export function ExchangeConverter() {
           id="unicode-editor"
           tone="unicode"
           title={t("unicode")}
-          fontLabel="Noto Sans Devanagari"
+          selectedOption={unicodeFont}
+          options={UNICODE_DISPLAY_FONTS.filter((font) => font.language === "hi").map((font) => ({
+            id: font.id,
+            label: font.name,
+          }))}
+          onOptionChange={(value) => setUnicodeFont(value as UnicodeDisplayFontId)}
+          fontFamily={activeUnicodeFont.cssStack}
           value={unicodeText}
           count={characterCounts.unicode}
           isSource={direction === "unicode-to-legacy"}
@@ -303,7 +326,10 @@ interface EditorPanelProps {
   readonly id: string;
   readonly tone: "legacy" | "unicode";
   readonly title: string;
-  readonly fontLabel: string;
+  readonly selectedOption: string;
+  readonly options: readonly { readonly id: string; readonly label: string; readonly disabled?: boolean }[];
+  readonly onOptionChange: (value: string) => void;
+  readonly fontFamily?: string;
   readonly value: string;
   readonly count: number;
   readonly isSource: boolean;
@@ -314,7 +340,10 @@ function EditorPanel({
   id,
   tone,
   title,
-  fontLabel,
+  selectedOption,
+  options,
+  onOptionChange,
+  fontFamily,
   value,
   count,
   isSource,
@@ -330,8 +359,12 @@ function EditorPanel({
       <label className="sr-only" htmlFor={`${id}-font`}>
         {title} font
       </label>
-      <select id={`${id}-font`} defaultValue={fontLabel}>
-        <option>{fontLabel}</option>
+      <select id={`${id}-font`} value={selectedOption} onChange={(event) => onOptionChange(event.target.value)}>
+        {options.map((option) => (
+          <option key={option.id} value={option.id} disabled={option.disabled}>
+            {option.label}{option.disabled ? ` — ${t("validationPending")}` : ""}
+          </option>
+        ))}
       </select>
       <label className="sr-only" htmlFor={id}>
         {title} text
@@ -342,6 +375,7 @@ function EditorPanel({
         onChange={(event) => onChange(event.target.value)}
         spellCheck={false}
         className={tone === "unicode" ? "devanagari" : undefined}
+        style={fontFamily ? { fontFamily } : undefined}
       />
       <div className="editor-meta">
         <span>{count} {t("characters")}</span>

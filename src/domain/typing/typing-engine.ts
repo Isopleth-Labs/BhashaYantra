@@ -1,9 +1,12 @@
 import { convertText } from "@/domain/conversion/convert-text";
+import { directLayoutToUnicode, englishQwertyToUnicode, INSCRIPT_KEY_MAP } from "@/domain/typing/direct-layout-engine";
 import { smartPhoneticToUnicode } from "@/domain/typing/smart-phonetic-engine";
+import type { ReadyTypingLayoutId } from "@/domain/typing/typing-profiles";
+
+export type { ReadyTypingLayoutId, TypingLayoutId } from "@/domain/typing/typing-profiles";
 
 export type TypingMode = "simple" | "advanced";
 export type TypingOutputMode = "unicode" | "legacy";
-export type TypingLayoutId = "bhashayantra-smart" | "classic-hindi";
 
 export interface ShortcutDefinition {
   readonly id: string;
@@ -13,12 +16,14 @@ export interface ShortcutDefinition {
   readonly alt: boolean;
   readonly shift: boolean;
   readonly builtIn: boolean;
+  readonly layoutId?: ReadyTypingLayoutId;
 }
 
 export interface CustomKeyMapping {
   readonly id: string;
   readonly key: string;
   readonly output: string;
+  readonly layoutId?: ReadyTypingLayoutId;
 }
 
 export interface KeyboardKey {
@@ -122,10 +127,52 @@ export const BHASHAYANTRA_SMART_KEYBOARD: readonly (readonly KeyboardKey[])[] = 
   [{ key: " ", label: "स्पेस", width: "space" }],
 ] as const;
 
-export const TYPING_LAYOUTS = [
-  { id: "bhashayantra-smart", mode: "simple", name: "BhashaYantra Smart" },
-  { id: "classic-hindi", mode: "advanced", name: "Classic Hindi" },
-] as const satisfies readonly { readonly id: TypingLayoutId; readonly mode: TypingMode; readonly name: string }[];
+export const INSCRIPT_KEYBOARD: readonly (readonly KeyboardKey[])[] = [
+  [
+    { key: "1", label: "1" }, { key: "2", label: "2" }, { key: "3", label: "3" },
+    { key: "4", label: "4" }, { key: "5", label: "5" }, { key: "6", label: "6" },
+    { key: "7", label: "7" }, { key: "8", label: "8" }, { key: "9", label: "9" },
+    { key: "0", label: "0" }, { key: "-", label: "-" }, { key: "=", label: "=" },
+  ],
+  [
+    { key: "q", label: "ौ", shiftKey: "Q", shiftLabel: "औ" }, { key: "w", label: "ै", shiftKey: "W", shiftLabel: "ऐ" },
+    { key: "e", label: "ा", shiftKey: "E", shiftLabel: "आ" }, { key: "r", label: "ी", shiftKey: "R", shiftLabel: "ई" },
+    { key: "t", label: "ू", shiftKey: "T", shiftLabel: "ऊ" }, { key: "y", label: "ब", shiftKey: "Y", shiftLabel: "भ" },
+    { key: "u", label: "ह", shiftKey: "U", shiftLabel: "ङ" }, { key: "i", label: "ग", shiftKey: "I", shiftLabel: "घ" },
+    { key: "o", label: "द", shiftKey: "O", shiftLabel: "ध" }, { key: "p", label: "ज", shiftKey: "P", shiftLabel: "झ" },
+    { key: "[", label: "ड", shiftKey: "{", shiftLabel: "ढ" }, { key: "]", label: "़", shiftKey: "}", shiftLabel: "ञ" },
+  ],
+  [
+    { key: "a", label: "ो", shiftKey: "A", shiftLabel: "ओ" }, { key: "s", label: "े", shiftKey: "S", shiftLabel: "ए" },
+    { key: "d", label: "्", shiftKey: "D", shiftLabel: "अ" }, { key: "f", label: "ि", shiftKey: "F", shiftLabel: "इ" },
+    { key: "g", label: "ु", shiftKey: "G", shiftLabel: "उ" }, { key: "h", label: "प", shiftKey: "H", shiftLabel: "फ" },
+    { key: "j", label: "र", shiftKey: "J", shiftLabel: "ऱ" }, { key: "k", label: "क", shiftKey: "K", shiftLabel: "ख" },
+    { key: "l", label: "त", shiftKey: "L", shiftLabel: "थ" }, { key: ";", label: "च", shiftKey: ":", shiftLabel: "छ" },
+    { key: "'", label: "ट", shiftKey: "\"", shiftLabel: "ठ" },
+  ],
+  [
+    { key: "x", label: "ं", shiftKey: "X", shiftLabel: "ँ" }, { key: "c", label: "म", shiftKey: "C", shiftLabel: "ण" },
+    { key: "v", label: "न" }, { key: "b", label: "व" },
+    { key: "n", label: "ल", shiftKey: "N", shiftLabel: "ळ" }, { key: "m", label: "स", shiftKey: "M", shiftLabel: "श" },
+    { key: ",", label: ",", shiftKey: "<", shiftLabel: "ष" }, { key: ".", label: ".", shiftKey: ">", shiftLabel: "।" },
+    { key: "/", label: "य", shiftKey: "?", shiftLabel: "य़" },
+  ],
+  [{ key: " ", label: "स्पेस", width: "space" }],
+] as const;
+
+export const ENGLISH_QWERTY_KEYBOARD: readonly (readonly KeyboardKey[])[] = [
+  [
+    { key: "1", label: "1", shiftKey: "!", shiftLabel: "!" }, { key: "2", label: "2", shiftKey: "@", shiftLabel: "@" },
+    { key: "3", label: "3", shiftKey: "#", shiftLabel: "#" }, { key: "4", label: "4", shiftKey: "$", shiftLabel: "$" },
+    { key: "5", label: "5", shiftKey: "%", shiftLabel: "%" }, { key: "6", label: "6", shiftKey: "^", shiftLabel: "^" },
+    { key: "7", label: "7", shiftKey: "&", shiftLabel: "&" }, { key: "8", label: "8", shiftKey: "*", shiftLabel: "*" },
+    { key: "9", label: "9", shiftKey: "(", shiftLabel: "(" }, { key: "0", label: "0", shiftKey: ")", shiftLabel: ")" },
+  ],
+  "qwertyuiop".split("").map((key) => ({ key, label: key.toLocaleUpperCase(), shiftKey: key.toLocaleUpperCase(), shiftLabel: key.toLocaleUpperCase() })),
+  "asdfghjkl".split("").map((key) => ({ key, label: key.toLocaleUpperCase(), shiftKey: key.toLocaleUpperCase(), shiftLabel: key.toLocaleUpperCase() })),
+  "zxcvbnm".split("").map((key) => ({ key, label: key.toLocaleUpperCase(), shiftKey: key.toLocaleUpperCase(), shiftLabel: key.toLocaleUpperCase() })),
+  [{ key: " ", label: "Space", width: "space" }],
+] as const;
 
 export function formatShortcut(shortcut: ShortcutDefinition) {
   return [
@@ -195,22 +242,24 @@ export function typingKeysToUnicode(legacy: string) {
   return convertText(legacy, "legacy-to-unicode");
 }
 
-export function typingSourceToUnicode(source: string, layout: TypingLayoutId) {
-  return layout === "bhashayantra-smart"
-    ? smartPhoneticToUnicode(source)
-    : typingKeysToUnicode(source);
+export function typingSourceToUnicode(source: string, layout: ReadyTypingLayoutId) {
+  if (layout === "bhashayantra-smart") return smartPhoneticToUnicode(source);
+  if (layout === "classic-hindi") return typingKeysToUnicode(source);
+  if (layout === "inscript") return directLayoutToUnicode(source, INSCRIPT_KEY_MAP);
+  return englishQwertyToUnicode(source);
 }
 
-export function unicodeToTypingSource(unicode: string, layout: TypingLayoutId) {
-  return layout === "bhashayantra-smart"
-    ? { output: unicode, warnings: [] as const }
-    : unicodeToTypingKeys(unicode);
+export function unicodeToTypingSource(unicode: string, layout: ReadyTypingLayoutId) {
+  return layout === "classic-hindi"
+    ? unicodeToTypingKeys(unicode)
+    : englishQwertyToUnicode(unicode);
 }
 
-export function keyboardForLayout(layout: TypingLayoutId) {
-  return layout === "bhashayantra-smart"
-    ? BHASHAYANTRA_SMART_KEYBOARD
-    : CLASSIC_HINDI_KEYBOARD;
+export function keyboardForLayout(layout: ReadyTypingLayoutId) {
+  if (layout === "bhashayantra-smart") return BHASHAYANTRA_SMART_KEYBOARD;
+  if (layout === "classic-hindi") return CLASSIC_HINDI_KEYBOARD;
+  if (layout === "inscript") return INSCRIPT_KEYBOARD;
+  return ENGLISH_QWERTY_KEYBOARD;
 }
 
 export function getTypingMetrics(value: string) {

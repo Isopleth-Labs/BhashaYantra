@@ -32,12 +32,21 @@ import {
   formatShortcut,
   unicodeToTypingSource,
   type CustomKeyMapping,
+  type ReadyTypingLayoutId,
   type ShortcutDefinition,
-  type TypingLayoutId,
   type TypingMode,
   type TypingOutputMode,
 } from "@/domain/typing/typing-engine";
+import {
+  displayFontsForLanguage,
+  isReadyTypingLayout,
+  layoutsForLanguage,
+  type TypingLayoutId,
+  type TypingLanguageCode,
+  type UnicodeDisplayFontId,
+} from "@/domain/typing/typing-profiles";
 import { ExchangeConverter } from "@/features/converter/ExchangeConverter";
+import { TypingTraining } from "@/features/training/TypingTraining";
 import { TypingWorkspace } from "@/features/typing/TypingWorkspace";
 import { useI18n } from "@/i18n/I18nProvider";
 
@@ -88,14 +97,16 @@ function isStoredShortcut(value: unknown): value is ShortcutDefinition {
   return (
     typeof item.id === "string" && typeof item.character === "string" &&
     typeof item.key === "string" && item.key.length === 1 &&
-    typeof item.ctrl === "boolean" && typeof item.alt === "boolean" && typeof item.shift === "boolean"
+    typeof item.ctrl === "boolean" && typeof item.alt === "boolean" && typeof item.shift === "boolean" &&
+    (item.layoutId === undefined || (typeof item.layoutId === "string" && isReadyTypingLayout(item.layoutId as TypingLayoutId)))
   );
 }
 
 function isStoredMapping(value: unknown): value is CustomKeyMapping {
   if (!value || typeof value !== "object") return false;
   const item = value as Partial<CustomKeyMapping>;
-  return typeof item.id === "string" && typeof item.key === "string" && item.key.length === 1 && typeof item.output === "string" && item.output.length > 0;
+  return typeof item.id === "string" && typeof item.key === "string" && item.key.length === 1 && typeof item.output === "string" && item.output.length > 0 &&
+    (item.layoutId === undefined || (typeof item.layoutId === "string" && isReadyTypingLayout(item.layoutId as TypingLayoutId)));
 }
 
 function loadJsonArray<T>(key: string, validator: (value: unknown) => value is T): readonly T[] {
@@ -110,16 +121,32 @@ function loadJsonArray<T>(key: string, validator: (value: unknown) => value is T
 export default function App() {
   const { t } = useI18n();
   const [theme, setTheme] = useState<Theme>(() => localStorage.getItem("bhashayantra-theme") === "dark" ? "dark" : "light");
-  const [typingMode, setTypingMode] = useState<TypingMode>(() => localStorage.getItem("bhashayantra-typing-layout") === "classic-hindi" ? "advanced" : "simple");
-  const [typingLayout, setTypingLayout] = useState<TypingLayoutId>(() => localStorage.getItem("bhashayantra-typing-layout") === "classic-hindi" ? "classic-hindi" : "bhashayantra-smart");
-  const [outputMode, setOutputMode] = useState<TypingOutputMode>(() => localStorage.getItem("bhashayantra-output-mode") === "legacy" ? "legacy" : "unicode");
+  const [typingLanguage, setTypingLanguage] = useState<TypingLanguageCode>(() => localStorage.getItem("bhashayantra-typing-layout") === "english-qwerty" ? "en" : "hi");
+  const [typingLayout, setTypingLayout] = useState<ReadyTypingLayoutId>(() => {
+    const stored = localStorage.getItem("bhashayantra-typing-layout");
+    return stored && isReadyTypingLayout(stored as Parameters<typeof isReadyTypingLayout>[0])
+      ? stored as ReadyTypingLayoutId
+      : "bhashayantra-smart";
+  });
+  const [typingMode, setTypingMode] = useState<TypingMode>(() => {
+    const stored = localStorage.getItem("bhashayantra-typing-layout");
+    return stored === "classic-hindi" || stored === "inscript" ? "advanced" : "simple";
+  });
+  const [displayFont, setDisplayFont] = useState<UnicodeDisplayFontId>(() => {
+    if (localStorage.getItem("bhashayantra-typing-layout") === "english-qwerty") return "segoe-ui";
+    const stored = localStorage.getItem("bhashayantra-display-font");
+    return stored === "mangal" || stored === "nirmala-ui" ? stored : "noto-devanagari";
+  });
+  const [outputMode, setOutputMode] = useState<TypingOutputMode>(() => localStorage.getItem("bhashayantra-typing-layout") !== "english-qwerty" && localStorage.getItem("bhashayantra-output-mode") === "legacy" ? "legacy" : "unicode");
   const [activeNav, setActiveNav] = useState<NavId>("start");
   const [startTool, setStartTool] = useState<StartTool>("typing");
   const [shortcutQuery, setShortcutQuery] = useState("");
   const [characterTab, setCharacterTab] = useState<CharacterTab>("स्वर");
-  const [typingDrafts, setTypingDrafts] = useState<Record<TypingLayoutId, string>>(() => ({
+  const [typingDrafts, setTypingDrafts] = useState<Record<ReadyTypingLayoutId, string>>(() => ({
     "bhashayantra-smart": localStorage.getItem("bhashayantra-smart-draft") ?? "",
     "classic-hindi": localStorage.getItem("bhashayantra-classic-draft") ?? localStorage.getItem("bhashayantra-typing-draft") ?? "",
+    inscript: localStorage.getItem("bhashayantra-inscript-draft") ?? "",
+    "english-qwerty": localStorage.getItem("bhashayantra-english-draft") ?? "",
   }));
   const [customShortcuts, setCustomShortcuts] = useState<readonly ShortcutDefinition[]>(() => loadJsonArray("bhashayantra-custom-shortcuts", isStoredShortcut));
   const [customMappings, setCustomMappings] = useState<readonly CustomKeyMapping[]>(() => loadJsonArray("bhashayantra-custom-mappings", isStoredMapping));
@@ -132,14 +159,29 @@ export default function App() {
     localStorage.setItem("bhashayantra-theme", theme);
   }, [theme]);
   useEffect(() => localStorage.setItem("bhashayantra-typing-mode", typingMode), [typingMode]);
+  useEffect(() => localStorage.setItem("bhashayantra-typing-language", typingLanguage), [typingLanguage]);
   useEffect(() => localStorage.setItem("bhashayantra-typing-layout", typingLayout), [typingLayout]);
+  useEffect(() => localStorage.setItem("bhashayantra-display-font", displayFont), [displayFont]);
   useEffect(() => localStorage.setItem("bhashayantra-output-mode", outputMode), [outputMode]);
   useEffect(() => localStorage.setItem("bhashayantra-smart-draft", typingDrafts["bhashayantra-smart"]), [typingDrafts]);
   useEffect(() => localStorage.setItem("bhashayantra-classic-draft", typingDrafts["classic-hindi"]), [typingDrafts]);
+  useEffect(() => localStorage.setItem("bhashayantra-inscript-draft", typingDrafts.inscript), [typingDrafts]);
+  useEffect(() => localStorage.setItem("bhashayantra-english-draft", typingDrafts["english-qwerty"]), [typingDrafts]);
   useEffect(() => localStorage.setItem("bhashayantra-custom-shortcuts", JSON.stringify(customShortcuts)), [customShortcuts]);
   useEffect(() => localStorage.setItem("bhashayantra-custom-mappings", JSON.stringify(customMappings)), [customMappings]);
 
-  const shortcuts = useMemo(() => [...DEFAULT_SHORTCUTS, ...customShortcuts], [customShortcuts]);
+  const activeCustomShortcuts = useMemo(
+    () => customShortcuts.filter((shortcut) => (shortcut.layoutId ?? "classic-hindi") === typingLayout),
+    [customShortcuts, typingLayout],
+  );
+  const activeCustomMappings = useMemo(
+    () => customMappings.filter((mapping) => (mapping.layoutId ?? "classic-hindi") === typingLayout),
+    [customMappings, typingLayout],
+  );
+  const shortcuts = useMemo(
+    () => typingLanguage === "hi" ? [...DEFAULT_SHORTCUTS, ...activeCustomShortcuts] : activeCustomShortcuts,
+    [activeCustomShortcuts, typingLanguage],
+  );
   const typingSource = typingDrafts[typingLayout];
   const filteredShortcuts = useMemo(() => {
     const query = shortcutQuery.trim().toLocaleLowerCase();
@@ -161,8 +203,10 @@ export default function App() {
   }
 
   function chooseTypingMode(mode: TypingMode) {
+    setTypingLanguage("hi");
     setTypingMode(mode);
     setTypingLayout(mode === "simple" ? "bhashayantra-smart" : "classic-hindi");
+    setDisplayFont((current) => current === "segoe-ui" ? "noto-devanagari" : current);
     setStartTool("typing");
     if (mode === "advanced") {
       setAdvancedOpen(true);
@@ -172,9 +216,33 @@ export default function App() {
     }
   }
 
-  function chooseTypingLayout(layout: TypingLayoutId) {
+  function chooseTypingLayout(layout: ReadyTypingLayoutId) {
     setTypingLayout(layout);
-    setTypingMode(layout === "bhashayantra-smart" ? "simple" : "advanced");
+    const language = layout === "english-qwerty" ? "en" : "hi";
+    setTypingLanguage(language);
+    setTypingMode(layout === "bhashayantra-smart" || layout === "english-qwerty" ? "simple" : "advanced");
+    setDisplayFont((current) => {
+      if (language === "en") return "segoe-ui";
+      return current === "segoe-ui" ? "noto-devanagari" : current;
+    });
+    if (language === "en") setOutputMode("unicode");
+    setActiveNav("start");
+    setStartTool("typing");
+    setAdvancedOpen(false);
+  }
+
+  function chooseTypingLanguage(language: TypingLanguageCode) {
+    setTypingLanguage(language);
+    if (language === "en") {
+      setTypingLayout("english-qwerty");
+      setTypingMode("simple");
+      setOutputMode("unicode");
+      setDisplayFont("segoe-ui");
+    } else {
+      setTypingLayout("bhashayantra-smart");
+      setTypingMode("simple");
+      setDisplayFont("noto-devanagari");
+    }
     setActiveNav("start");
     setStartTool("typing");
     setAdvancedOpen(false);
@@ -182,6 +250,16 @@ export default function App() {
 
   function updateTypingSource(value: string) {
     setTypingDrafts((current) => ({ ...current, [typingLayout]: value }));
+  }
+
+  function replaceActiveCustomShortcuts(next: readonly ShortcutDefinition[]) {
+    const inactive = customShortcuts.filter((shortcut) => (shortcut.layoutId ?? "classic-hindi") !== typingLayout);
+    setCustomShortcuts([...inactive, ...next.map((shortcut) => ({ ...shortcut, layoutId: typingLayout }))]);
+  }
+
+  function replaceActiveCustomMappings(next: readonly CustomKeyMapping[]) {
+    const inactive = customMappings.filter((mapping) => (mapping.layoutId ?? "classic-hindi") !== typingLayout);
+    setCustomMappings([...inactive, ...next.map((mapping) => ({ ...mapping, layoutId: typingLayout }))]);
   }
 
   function openAdvancedManager() {
@@ -202,7 +280,9 @@ export default function App() {
     <main className="app-frame">
       <TopBar
         theme={theme} onThemeChange={setTheme}
+        typingLanguage={typingLanguage} onTypingLanguageChange={chooseTypingLanguage}
         typingLayout={typingLayout} onTypingLayoutChange={chooseTypingLayout}
+        displayFont={displayFont} onDisplayFontChange={setDisplayFont}
         outputMode={outputMode} onOutputModeChange={setOutputMode}
       />
 
@@ -227,7 +307,7 @@ export default function App() {
         </aside>
 
         <section className="workspace">
-          {activeNav === "start" && (
+          {activeNav === "start" && typingLanguage === "hi" && (
             <div className="mode-switch" role="group" aria-label={t("advancedMode")}>
               <button type="button" className={typingMode === "simple" ? "mode-card active" : "mode-card"} onClick={() => chooseTypingMode("simple")}>
                 <Sparkles aria-hidden="true" /><span><strong>{t("simpleMode")}</strong><small>{t("simpleModeDescription")}</small></span>
@@ -246,20 +326,22 @@ export default function App() {
               </div>
               {startTool === "typing" ? (
                 <TypingWorkspace
-                  mode={typingMode} layout={typingLayout} outputMode={outputMode} source={typingSource} onSourceChange={updateTypingSource}
-                  shortcuts={shortcuts} customShortcuts={customShortcuts} onCustomShortcutsChange={setCustomShortcuts}
-                  customMappings={customMappings} onCustomMappingsChange={setCustomMappings}
+                  mode={typingMode} layout={typingLayout} displayFont={displayFont} outputMode={outputMode} source={typingSource} onSourceChange={updateTypingSource}
+                  shortcuts={shortcuts} customShortcuts={activeCustomShortcuts} onCustomShortcutsChange={replaceActiveCustomShortcuts}
+                  customMappings={activeCustomMappings} onCustomMappingsChange={replaceActiveCustomMappings}
                   advancedOpen={advancedOpen} onAdvancedOpenChange={setAdvancedOpen}
                 />
               ) : <ExchangeConverter />}
-              <CharacterBrowser activeTab={characterTab} onTabChange={setCharacterTab} onInsertCharacter={insertCharacter} onOpenAll={() => setCharacterLibraryOpen(true)} />
+              {typingLanguage === "hi" && <CharacterBrowser activeTab={characterTab} onTabChange={setCharacterTab} onInsertCharacter={insertCharacter} onOpenAll={() => setCharacterLibraryOpen(true)} />}
             </>
+          ) : activeNav === "practice" || activeNav === "test" ? (
+            <TypingTraining kind={activeNav} layout={typingLayout} displayFont={displayFont} />
           ) : <FeaturePlaceholder title={activeNavLabel} onReturn={() => setActiveNav("start")} />}
         </section>
 
         <aside className="right-rail" aria-label={t("shortcutManager")}>
-          <ShortcutManager query={shortcutQuery} onQueryChange={setShortcutQuery} shortcuts={filteredShortcuts} onInsert={insertCharacter} onOpen={() => setShortcutLibraryOpen(true)} />
-          <DocumentConverter />
+          {typingLanguage === "hi" && <ShortcutManager query={shortcutQuery} onQueryChange={setShortcutQuery} shortcuts={filteredShortcuts} onInsert={insertCharacter} onOpen={() => setShortcutLibraryOpen(true)} />}
+          <DocumentConverter onOpen={() => { setActiveNav("start"); setStartTool("converter"); }} />
           <TypingSummary />
         </aside>
       </div>
@@ -267,8 +349,8 @@ export default function App() {
       {characterLibraryOpen && <CharacterLibraryModal onClose={() => setCharacterLibraryOpen(false)} onInsert={insertCharacter} />}
       {shortcutLibraryOpen && (
         <ShortcutLibraryModal
-          shortcuts={shortcuts} customShortcuts={customShortcuts}
-          onCustomShortcutsChange={setCustomShortcuts} onInsert={insertCharacter}
+          shortcuts={shortcuts} customShortcuts={activeCustomShortcuts}
+          onCustomShortcutsChange={replaceActiveCustomShortcuts} onInsert={insertCharacter}
           onManage={openAdvancedManager} onClose={() => setShortcutLibraryOpen(false)}
         />
       )}
@@ -276,9 +358,11 @@ export default function App() {
   );
 }
 
-function TopBar({ theme, onThemeChange, typingLayout, onTypingLayoutChange, outputMode, onOutputModeChange }: {
+function TopBar({ theme, onThemeChange, typingLanguage, onTypingLanguageChange, typingLayout, onTypingLayoutChange, displayFont, onDisplayFontChange, outputMode, onOutputModeChange }: {
   readonly theme: Theme; readonly onThemeChange: (theme: Theme) => void;
-  readonly typingLayout: TypingLayoutId; readonly onTypingLayoutChange: (layout: TypingLayoutId) => void;
+  readonly typingLanguage: TypingLanguageCode; readonly onTypingLanguageChange: (language: TypingLanguageCode) => void;
+  readonly typingLayout: ReadyTypingLayoutId; readonly onTypingLayoutChange: (layout: ReadyTypingLayoutId) => void;
+  readonly displayFont: UnicodeDisplayFontId; readonly onDisplayFontChange: (font: UnicodeDisplayFontId) => void;
   readonly outputMode: TypingOutputMode; readonly onOutputModeChange: (mode: TypingOutputMode) => void;
 }) {
   const { language, setLanguage, t } = useI18n();
@@ -288,9 +372,12 @@ function TopBar({ theme, onThemeChange, typingLayout, onTypingLayoutChange, outp
       <div className="top-controls">
         <label><span>{t("language")}:</span><select value={language} aria-label={t("language")} onChange={(event) => setLanguage(event.target.value as "hi" | "en")}><option value="hi">{t("hindi")}</option><option value="en">{t("english")}</option></select></label>
         <span className="top-divider" />
-        <label><Keyboard aria-hidden="true" /><span>{t("layout")}:</span><select value={typingLayout} aria-label={t("layout")} onChange={(event) => onTypingLayoutChange(event.target.value as TypingLayoutId)}><option value="bhashayantra-smart">{t("bhashaYantraSmart")}</option><option value="classic-hindi">{t("classicHindi")}</option></select></label>
+        <label><Globe2 aria-hidden="true" /><span>{t("typingLanguage")}:</span><select value={typingLanguage} aria-label={t("typingLanguage")} onChange={(event) => onTypingLanguageChange(event.target.value as TypingLanguageCode)}><option value="hi">{t("hindi")}</option><option value="en">{t("english")}</option></select></label>
         <span className="top-divider" />
-        <label><span>{t("output")}:</span><select value={outputMode} aria-label={t("output")} onChange={(event) => onOutputModeChange(event.target.value as TypingOutputMode)}><option value="unicode">{t("unicode")}</option><option value="legacy">{t("legacy")}</option></select></label>
+        <label><Keyboard aria-hidden="true" /><span>{t("layout")}:</span><select value={typingLayout} aria-label={t("layout")} onChange={(event) => onTypingLayoutChange(event.target.value as ReadyTypingLayoutId)}>{layoutsForLanguage(typingLanguage).map((profile) => <option key={profile.id} value={profile.id} disabled={profile.readiness !== "ready"}>{profile.name}{profile.readiness === "validation" ? ` — ${t("validationPending")}` : ""}</option>)}</select></label>
+        <span className="top-divider" />
+        <label><span>{t("output")}:</span><select value={outputMode} aria-label={t("output")} onChange={(event) => onOutputModeChange(event.target.value as TypingOutputMode)}><option value="unicode">{t("unicode")}</option><option value="legacy" disabled={typingLanguage === "en"}>{t("legacy")}</option></select></label>
+        <label><span>{t("displayFont")}:</span><select value={displayFont} aria-label={t("displayFont")} onChange={(event) => onDisplayFontChange(event.target.value as UnicodeDisplayFontId)}>{displayFontsForLanguage(typingLanguage).map((font) => <option key={font.id} value={font.id}>{font.name}</option>)}</select></label>
         <span className="top-divider" />
         <div className="works-in"><span>{t("worksIn")}:</span><span><FileText aria-hidden="true" /> Word</span><span><FileSpreadsheet aria-hidden="true" /> Excel</span><span><Globe2 aria-hidden="true" /> Browser</span></div>
       </div>
@@ -391,14 +478,12 @@ function ShortcutLibraryModal({ shortcuts, customShortcuts, onCustomShortcutsCha
   );
 }
 
-function DocumentConverter() {
+function DocumentConverter({ onOpen }: { readonly onOpen: () => void }) {
   const { t } = useI18n();
-  const [fileName, setFileName] = useState<string>();
-  const receiveFiles = (files: FileList | null) => { const file = files?.[0]; if (file) setFileName(file.name); };
   return (
     <Card className="rail-card document-card">
       <div className="rail-card-title document-title"><span className="green-icon"><FileText aria-hidden="true" /></span><strong>{t("documentConverter")}</strong></div>
-      <label className="drop-zone" onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); receiveFiles(event.dataTransfer.files); }}><CloudUpload aria-hidden="true" /><span>{fileName ?? t("dropLegacyFile")}</span><small>(.txt, .rtf, .doc, .docx)</small><input type="file" accept=".txt,.rtf,.doc,.docx" hidden onChange={(event) => receiveFiles(event.target.files)} /><span className="document-button"><Sparkles aria-hidden="true" /> {t("convertToUnicode")}</span><small>{t("supportedFonts")}</small></label>
+      <div className="drop-zone"><CloudUpload aria-hidden="true" /><span>{t("documentEnginePlanned")}</span><small>{t("documentFormatsPlanned")}</small><button type="button" className="document-button" onClick={onOpen}><Sparkles aria-hidden="true" /> {t("openExchangeConverter")}</button><small>{t("supportedFonts")}</small></div>
     </Card>
   );
 }

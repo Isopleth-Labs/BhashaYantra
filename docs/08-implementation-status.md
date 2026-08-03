@@ -11,16 +11,20 @@ Updated: 3 August 2026
 - Light and dark semantic theme tokens.
 - Simple Smart / Advanced Classic mode interaction.
 - Original BhashaYantra Smart Roman-phonetic engine with live Unicode and KrutiDev output.
-- Working Smart/Classic top-bar selector and independently persisted layout drafts.
+- Distinct interface-language, typing-language, keyboard-layout, output-encoding, and Unicode display-font selectors.
+- Ready BhashaYantra Smart, Classic Hindi/KrutiDev, Devanagari INSCRIPT, and English QWERTY profiles with independently persisted drafts.
+- Remington Gail/CBI and DevLys/Shree-Lipi catalog entries are explicitly validation-pending and cannot be selected as working engines.
 - Hindi-first UI localization with a persistent Hindi/English interface selector.
 - Complete in-app Start Typing workspace with familiar-key input and live Unicode/Legacy output switching.
 - Automatic matra, reph, conjunct, and normalization behavior shared with the tested conversion engine.
-- Clickable Classic Hindi keyboard with normal/Shift layers and five-group character insertion palette.
+- Clickable Smart, Classic Hindi, INSCRIPT, and English QWERTY keyboards with normal/Shift layers and a five-group Hindi character palette.
 - Searchable complete character and shortcut dialogs with direct insertion into the typing pad.
-- Built-in expert shortcuts, custom shortcut conflict validation, and a working Advanced-mode manager with physical-key overrides.
+- Built-in expert shortcuts, custom shortcut conflict validation, and a working Advanced-mode manager with layout-scoped physical-key overrides.
 - Offline draft/preferences/custom-layout persistence plus import, export, protected-default reset, copy, open, and save flows.
 - Live typing metrics for words, characters, lines, and estimated WPM.
+- Layout-specific starter practice and 60-second tests with target keys, live converted preview, deterministic accuracy, and WPM.
 - Live bidirectional KrutiDev 010 ↔ Unicode text converter.
+- Converter profile selector with KrutiDev ready and DevLys/Shree-Lipi visibly blocked until validation, plus selectable Noto/Mangal/Nirmala Unicode preview fonts.
 - Longest-token mapping, short-i handling, Unicode normalization, and warnings.
 - Text open, paste, clear, copy, and save/download actions with browser fallback.
 - Character browser, complete-library modal, and shortcut search/manager interactions.
@@ -28,7 +32,7 @@ Updated: 3 August 2026
 - Supabase schema migrations, Auth ownership foreign keys, RLS policies, triggers, constraints, seed data, and pgTAP policy tests.
 - Local and Supabase preference repository implementations.
 - Free/Pro/Institution product-entitlement vocabulary and profitability-focused packaging documentation.
-- Strict TypeScript, twenty converter/typing/licensing tests, production web build, and browser visual/interaction QA.
+- Strict TypeScript, twenty-seven converter/typing/training/licensing tests, production web build, and browser visual/interaction QA.
 - Local Supabase reset, eight pgTAP/RLS tests, and schema linting.
 - Rust formatting and Clippy checks.
 - Local development desktop executable, MSI installer, and NSIS setup executable.
@@ -52,9 +56,10 @@ cargo clippy --manifest-path .\src-tauri\Cargo.toml -- -D warnings
 |---|---|---|
 | KrutiDev profile | Common alphabet, matras, conjuncts, digits, and acceptance fixtures | Validate/expand against a licensed full test corpus |
 | Document converter | Drop-zone UI and text-file flow | RTF/DOC/DOCX parsing with structure-preserving native conversion |
-| Keyboard modes | Own Smart phonetic input, Classic familiar-key input, separate drafts, virtual keyboards, and Advanced custom mappings | Add versioned Remington Gail/CBI and InScript profiles, then optional Windows IME integration |
+| Keyboard modes | Own Smart phonetic, Classic familiar-key, initial INSCRIPT, and English QWERTY inputs; per-layout drafts, keyboards, and custom layers | Expand INSCRIPT acceptance fixtures, validate licensed Remington Gail/CBI fixtures, then optional Windows IME integration |
+| Legacy encoding profiles | KrutiDev 010 working; DevLys and Shree-Lipi registered as validation-pending | Add licensed fixtures and round-trip acceptance corpora before enabling each profile |
 | Shortcut manager | Built-in shortcuts, custom creation/deletion, conflict validation, persistence, import/export, and reset | Editing existing custom entries in place and cloud sync |
-| Typing practice/test | Navigation, metrics UI, schema | Live capture, timers, scoring engine, reports |
+| Typing practice/test | Starter lessons for every ready layout, live capture, 60-second timer, accuracy/WPM scoring | Expanded exam catalog, grapheme-aware mistake classes, persistence, history, and reports |
 | Stenography | Navigation and schema | Audio state machine, transcript editor, evaluation |
 | Supabase | Schema, repositories, local configuration | Auth UI and opt-in sync wiring |
 
