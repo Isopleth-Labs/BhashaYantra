@@ -85,7 +85,7 @@ jobs:
             Select-Object Name, Length, LastWriteTime
 
       - name: Store Windows downloads
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: BhashaYantra-Windows
           path: |
@@ -106,7 +106,7 @@ jobs:
 
     steps:
       - name: Download Windows packages
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: BhashaYantra-Windows
           path: release-files
