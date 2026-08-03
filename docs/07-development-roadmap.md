@@ -73,7 +73,7 @@ Exit gate: free core value remains useful, paid boundaries are testable, and no 
 
 ## Phase 4 — Practice and testing
 
-Current milestone: starter lessons, live converted preview, 60-second timer, positional accuracy, and WPM are implemented for every ready layout. Persistence, exam-specific mistake rules, KDPH, history, and reports remain.
+Current milestone: the complete original 1,200-exercise catalog, live converted preview, configurable timers, WPM, KDPH, positional error counts, weak-key analysis, offline persistence, history, and dashboard summaries are implemented for every ready layout. Official full/half-mistake formulas and exportable reports remain.
 
 Deliverables:
 
@@ -82,6 +82,8 @@ Deliverables:
 - Versioned scoring profiles.
 - WPM, KDPH, accuracy, and error reports.
 - Local history and reports UI.
+
+Implemented in this milestone: local history and on-screen summaries. Remaining: signed official-profile versions, full/half-mistake deductions, and PDF/CSV result export.
 
 Exit gate: metrics match manually verified fixtures.
 

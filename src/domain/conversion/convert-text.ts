@@ -31,6 +31,12 @@ function tokenize(
   let pendingIMatra = false;
 
   while (cursor < input.length) {
+    if (direction === "unicode-to-legacy" && input[cursor] === I_MATRA_MARKER) {
+      output += I_MATRA_MARKER;
+      cursor += 1;
+      continue;
+    }
+
     if (direction === "legacy-to-unicode" && input[cursor] === "f") {
       pendingIMatra = true;
       cursor += 1;

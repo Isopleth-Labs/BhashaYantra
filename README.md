@@ -2,7 +2,7 @@
 
 BhashaYantra is a Windows-first Hindi typing, legacy-font conversion, typing-practice, testing, and stenography desktop application.
 
-> Project status: the React/Tauri foundation, multi-layout typing engine, starter practice/tests, local bidirectional text converter, Drizzle schema, Supabase migrations, and repository boundaries are implemented. Stenography and complex document conversion remain roadmap modules.
+> Project status: the React/Tauri foundation, multi-layout typing engine, complete original practice catalog, configurable exam simulator, offline result history, local bidirectional text converter, Drizzle schema, Supabase migrations, and repository boundaries are implemented. Stenography and complex document conversion remain roadmap modules.
 
 ![BhashaYantra implemented UI](docs/assets/bhashayantra-implemented-ui.png)
 
@@ -28,7 +28,12 @@ The approved design source is preserved at [docs/assets/bhashayantra-final-refer
 - Live local KrutiDev 010 ↔ Unicode text conversion in both directions with warnings.
 - Text-file open, paste, clear, copy, and download actions.
 - Selectable Unicode preview fonts: Noto Sans Devanagari, Mangal, Nirmala UI, and Segoe UI for English.
-- Working layout-specific starter practice and 60-second tests with live preview, accuracy, and WPM.
+- Original 1,200-exercise curriculum: 300 exercises for each ready layout, split into Learn Keys (60), Practice Words (90), Sentences (90), and Paragraphs (60).
+- 160 Free exercises and 1,040 Pro-marked exercises. These tier labels are catalog metadata until signed entitlement and billing enforcement are implemented.
+- Guided layout-specific practice with exercise selection, difficulty, target keys, next-key/finger guidance, clickable keyboard, error sound, text-size, and backspace controls.
+- Eight clearly labelled non-official exam simulations covering general Hindi/English, SSC-style, Railway-style, CPCT-style, Court-style, and English data-entry practice.
+- Configurable 1/5/10/15-minute tests with live Unicode preview, accuracy, WPM, KDPH, missing/extra/substituted counts, weak-key analysis, and scoring-rule notice.
+- Versioned offline attempt repository with per-layout history, completed-exercise count, best scores, average accuracy, recent-speed trend, and history deletion.
 - Light/dark design tokens and Hindi font fallbacks.
 - Character browser, shortcut search, honest document-engine readiness card, and test summary.
 - Drizzle PostgreSQL schema for ten application tables.
@@ -36,7 +41,7 @@ The approved design source is preserved at [docs/assets/bhashayantra-final-refer
 - Local and Supabase user-preference repository implementations.
 - Tauri 2 configuration with allowlisted dialog and text-file permissions.
 - Tested Free/Pro/Institution feature-entitlement vocabulary for future secure billing integration.
-- Twenty-seven automated converter/typing/training/licensing tests, strict TypeScript checking, and production frontend build.
+- Thirty-five automated converter/typing/training/repository/licensing tests, strict TypeScript checking, and production frontend build.
 
 ## Final product direction
 
@@ -44,7 +49,7 @@ The approved design source is preserved at [docs/assets/bhashayantra-final-refer
 - `Simple Smart Mode`: natural Roman Hindi typing with automatic matra and joint-character composition.
 - `Advanced Classic Mode`: shortcuts, Alt combinations, custom mappings, and expert controls.
 - Central workspace: bidirectional `KrutiDev / Legacy ↔ Unicode` Exchange Converter.
-- Additional modules: structure-preserving document conversion, extended lesson/test catalog, stenography, reports, and optional cloud sync.
+- Additional modules: structure-preserving document conversion, stenography, exportable reports, signed Pro entitlements, and optional cloud sync.
 
 ## Approved technology stack
 
@@ -204,7 +209,7 @@ The first Tauri build can take longer because Rust dependencies must be download
 
 ## Verified build status
 
-The current workspace has passed strict TypeScript checking, twenty-seven converter/typing/training/licensing unit tests, eight database/RLS tests, Drizzle configuration validation, Supabase schema linting, Rust formatting and Clippy checks, frontend production build, browser interaction QA, desktop executable build, and both Windows installer builds.
+The current workspace has passed strict TypeScript checking, thirty-five converter/typing/training/repository/licensing unit tests, eight database/RLS tests, Drizzle configuration validation, Supabase schema linting, Rust formatting and Clippy checks, frontend production build, browser interaction QA, desktop executable build, and both Windows installer builds.
 
 ## Database workflow
 

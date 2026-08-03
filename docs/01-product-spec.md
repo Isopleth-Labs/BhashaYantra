@@ -95,16 +95,21 @@ The start screen contains both typing modes, the Exchange Converter, character b
 
 ### 5.6 Typing Practice
 
+- Four ready layout courses: BhashaYantra Smart, Classic Hindi/KrutiDev, Devanagari INSCRIPT, and English QWERTY.
+- 300 original exercises per course: 60 key drills, 90 word drills, 90 sentence drills, and 60 paragraph drills.
+- 1,200 exercises in catalog version 1, with 160 marked Free and 1,040 marked Pro.
 - Guided lessons and custom text.
 - Hindi Unicode-aware comparison.
 - WPM, KDPH, accuracy, and error breakdown.
 - Weak-key and repeated-error reporting.
+- On-screen keyboard, next-key prompt, finger guide, error sound, text-size, and backspace controls.
 - Local progress without mandatory login.
 
 ### 5.7 Typing Test
 
 - Configurable duration and passage.
-- Exam profiles with explicit scoring rules.
+- Exam simulation profiles with explicit duration, target speed, accuracy, backspace, language, and tier rules.
+- Every exam-style profile is labelled as a practice simulation; users must verify the current official notice.
 - Gross speed, net speed, accuracy, full mistakes, half mistakes, missing text, extra text, and backspace count.
 - Immutable completed-result summary.
 - Result history and export.
@@ -154,7 +159,7 @@ The start screen contains both typing modes, the Exchange Converter, character b
 - Final start-screen UI.
 - Simple Smart and Advanced Classic mode switching.
 - BhashaYantra Smart, Classic Hindi, Devanagari INSCRIPT, and English QWERTY profiles with separate offline drafts.
-- Layout-specific starter practice/tests and local custom mapping layers.
+- Complete 1,200-exercise layout-specific curriculum, configurable exam simulations, local attempt history, and custom mapping layers.
 - Text Exchange Converter for KrutiDev 010 and Unicode.
 - Character palette and shortcut manager basics.
 - Basic typing practice and result calculation.
@@ -178,6 +183,8 @@ The start screen contains both typing modes, the Exchange Converter, character b
 3. A user can type a representative Roman Hindi sentence using BhashaYantra Smart and receive correct Unicode output.
 4. A user can switch to the Classic Hindi default mapping without losing either layout's draft.
 5. Advanced Classic Mode can save and use a conflict-free custom shortcut.
-6. A practice attempt produces reproducible metrics.
-7. No source file is overwritten during document conversion.
-8. User-owned cloud data is protected by Row Level Security.
+6. Every ready layout exposes 300 deterministic exercises and converts its source keys to the expected target without catalog warnings.
+7. A practice or test attempt produces reproducible WPM, KDPH, accuracy, character-error, and weak-key metrics and can be persisted offline.
+8. Exam-style presets are never represented as official rules and show a current-notice warning.
+9. No source file is overwritten during document conversion.
+10. User-owned cloud data is protected by Row Level Security.

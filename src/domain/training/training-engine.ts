@@ -9,7 +9,29 @@ export interface TrainingScore {
   readonly accuracy: number;
   readonly correctCharacters: number;
   readonly expectedCharacters: number;
+  readonly typedCharacters: number;
+  readonly missingCharacters: number;
+  readonly extraCharacters: number;
+  readonly substitutedCharacters: number;
   readonly complete: boolean;
+}
+
+export type FingerId =
+  | "left-pinky"
+  | "left-ring"
+  | "left-middle"
+  | "left-index"
+  | "thumb"
+  | "right-index"
+  | "right-middle"
+  | "right-ring"
+  | "right-pinky";
+
+export interface KeyMistake {
+  readonly key: string;
+  readonly attempts: number;
+  readonly errors: number;
+  readonly accuracy: number;
 }
 
 export const TRAINING_LESSONS: Readonly<Record<ReadyTypingLayoutId, readonly TrainingLesson[]>> = {
@@ -40,10 +62,13 @@ export function calculateTrainingScore(expected: string, actual: string): Traini
   const actualCharacters = Array.from(actual);
   const comparedLength = Math.max(expectedCharacters.length, actualCharacters.length);
   let correctCharacters = 0;
+  let substitutedCharacters = 0;
 
   for (let index = 0; index < comparedLength; index += 1) {
     if (expectedCharacters[index] !== undefined && expectedCharacters[index] === actualCharacters[index]) {
       correctCharacters += 1;
+    } else if (expectedCharacters[index] !== undefined && actualCharacters[index] !== undefined) {
+      substitutedCharacters += 1;
     }
   }
 
@@ -51,6 +76,10 @@ export function calculateTrainingScore(expected: string, actual: string): Traini
     accuracy: comparedLength === 0 ? 100 : Math.round((correctCharacters / comparedLength) * 100),
     correctCharacters,
     expectedCharacters: expectedCharacters.length,
+    typedCharacters: actualCharacters.length,
+    missingCharacters: Math.max(0, expectedCharacters.length - actualCharacters.length),
+    extraCharacters: Math.max(0, actualCharacters.length - expectedCharacters.length),
+    substitutedCharacters,
     complete: expected.length > 0 && actual === expected,
   };
 }
@@ -58,4 +87,61 @@ export function calculateTrainingScore(expected: string, actual: string): Traini
 export function calculateWpm(characterCount: number, elapsedSeconds: number) {
   if (characterCount === 0 || elapsedSeconds < 1) return 0;
   return Math.max(0, Math.round((characterCount / 5 / elapsedSeconds) * 60));
+}
+
+export function calculateKdph(keyCount: number, elapsedSeconds: number) {
+  if (keyCount === 0 || elapsedSeconds < 1) return 0;
+  return Math.max(0, Math.round((keyCount / elapsedSeconds) * 3600));
+}
+
+export function analyzeWeakKeys(expected: string, actual: string): readonly KeyMistake[] {
+  const expectedKeys = Array.from(expected);
+  const actualKeys = Array.from(actual);
+  const stats = new Map<string, { attempts: number; errors: number }>();
+
+  expectedKeys.forEach((key, index) => {
+    if (/\s/u.test(key)) return;
+    const normalized = key.toLocaleLowerCase();
+    const current = stats.get(normalized) ?? { attempts: 0, errors: 0 };
+    current.attempts += 1;
+    if (actualKeys[index] !== key) current.errors += 1;
+    stats.set(normalized, current);
+  });
+
+  return [...stats.entries()]
+    .filter(([, value]) => value.errors > 0)
+    .map(([key, value]) => ({
+      key,
+      attempts: value.attempts,
+      errors: value.errors,
+      accuracy: Math.round(((value.attempts - value.errors) / value.attempts) * 100),
+    }))
+    .sort((left, right) => right.errors - left.errors || left.accuracy - right.accuracy || left.key.localeCompare(right.key));
+}
+
+const FINGER_KEYS: Readonly<Record<FingerId, string>> = {
+  "left-pinky": "`1qaz",
+  "left-ring": "2wsx",
+  "left-middle": "3edc",
+  "left-index": "45rftgvb",
+  thumb: " ",
+  "right-index": "67yuhjnm",
+  "right-middle": "8ik,",
+  "right-ring": "9ol.",
+  "right-pinky": "0p;/'-=[]\\",
+};
+
+export function getFingerForKey(key: string): FingerId | undefined {
+  const normalized = key.toLocaleLowerCase();
+  return (Object.entries(FINGER_KEYS) as readonly [FingerId, string][])
+    .find(([, keys]) => keys.includes(normalized))?.[0];
+}
+
+export function getNextExpectedKey(expected: string, actual: string) {
+  const expectedKeys = Array.from(expected);
+  const actualKeys = Array.from(actual);
+  const mismatchIndex = expectedKeys.findIndex((key, index) => actualKeys[index] !== undefined && actualKeys[index] !== key);
+  const nextIndex = mismatchIndex >= 0 ? mismatchIndex : actualKeys.length;
+  const key = expectedKeys[nextIndex];
+  return key === undefined ? undefined : { key, index: nextIndex, finger: getFingerForKey(key) };
 }

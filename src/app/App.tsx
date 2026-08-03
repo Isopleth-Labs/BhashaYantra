@@ -27,6 +27,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { summarizeTrainingAttempts, type TrainingAttempt } from "@/domain/training/training-attempt";
 import {
   DEFAULT_SHORTCUTS,
   formatShortcut,
@@ -49,6 +50,10 @@ import { ExchangeConverter } from "@/features/converter/ExchangeConverter";
 import { TypingTraining } from "@/features/training/TypingTraining";
 import { TypingWorkspace } from "@/features/typing/TypingWorkspace";
 import { useI18n } from "@/i18n/I18nProvider";
+import {
+  LocalTrainingAttemptsRepository,
+  TRAINING_ATTEMPTS_UPDATED_EVENT,
+} from "@/data/repositories/local-training-attempts-repository";
 
 const navItems = [
   { id: "start", labelKey: "startTyping", icon: Home },
@@ -342,7 +347,7 @@ export default function App() {
         <aside className="right-rail" aria-label={t("shortcutManager")}>
           {typingLanguage === "hi" && <ShortcutManager query={shortcutQuery} onQueryChange={setShortcutQuery} shortcuts={filteredShortcuts} onInsert={insertCharacter} onOpen={() => setShortcutLibraryOpen(true)} />}
           <DocumentConverter onOpen={() => { setActiveNav("start"); setStartTool("converter"); }} />
-          <TypingSummary />
+          <TypingSummary onOpen={() => setActiveNav("test")} />
         </aside>
       </div>
 
@@ -488,13 +493,36 @@ function DocumentConverter({ onOpen }: { readonly onOpen: () => void }) {
   );
 }
 
-function TypingSummary() {
+const trainingAttemptsRepository = new LocalTrainingAttemptsRepository();
+
+function TypingSummary({ onOpen }: { readonly onOpen: () => void }) {
   const { t } = useI18n();
+  const [attempts, setAttempts] = useState<readonly TrainingAttempt[]>([]);
+  const summary = useMemo(() => summarizeTrainingAttempts(attempts), [attempts]);
+  const trendPoints = useMemo(() => {
+    if (summary.recentWpm.length < 2) return "";
+    const highest = Math.max(1, ...summary.recentWpm);
+    return summary.recentWpm.map((value, index) => {
+      const x = (index / (summary.recentWpm.length - 1)) * 360;
+      const y = 60 - (value / highest) * 48;
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    }).join(" ");
+  }, [summary.recentWpm]);
+
+  useEffect(() => {
+    function load() {
+      void trainingAttemptsRepository.list().then(setAttempts);
+    }
+    load();
+    window.addEventListener(TRAINING_ATTEMPTS_UPDATED_EVENT, load);
+    return () => window.removeEventListener(TRAINING_ATTEMPTS_UPDATED_EVENT, load);
+  }, []);
+
   return (
     <Card className="rail-card typing-summary">
-      <div className="rail-card-title"><span className="summary-title"><BarChart3 aria-hidden="true" /> {t("typingTest")}</span><button type="button">{t("viewHistory")}</button></div>
-      <div className="metric-grid"><Metric label="WPM" value="42" note={t("good")} /><Metric label="Accuracy" value="96%" note={t("excellent")} /><Metric label="KDPH" value="268" note={t("great")} /></div>
-      <svg className="trend-chart" viewBox="0 0 360 68" role="img" aria-label={t("typingTest")}><defs><linearGradient id="chart-fill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="#0b63f6" stopOpacity="0.2" /><stop offset="100%" stopColor="#22c55e" stopOpacity="0.04" /></linearGradient></defs><path d="M0 51 L36 34 L78 46 L121 29 L164 21 L210 37 L258 45 L311 28 L360 25 L360 68 L0 68 Z" fill="url(#chart-fill)" /><path d="M0 51 L36 34 L78 46 L121 29 L164 21 L210 37 L258 45 L311 28 L360 25" fill="none" stroke="#0b63f6" strokeWidth="2" />{["0,51", "36,34", "78,46", "121,29", "164,21", "210,37", "258,45", "311,28", "360,25"].map((point) => { const [cx, cy] = point.split(","); return <circle key={point} cx={cx} cy={cy} r="3.5" fill="#0b63f6" />; })}</svg>
+      <div className="rail-card-title"><span className="summary-title"><BarChart3 aria-hidden="true" /> {t("attemptHistory")}</span><button type="button" onClick={onOpen}>{t("viewHistory")}</button></div>
+      <div className="metric-grid"><Metric label={t("bestWpm")} value={summary.attemptCount ? String(summary.bestWpm) : "—"} note={`${summary.attemptCount} ${t("attempts")}`} /><Metric label={t("averageAccuracy")} value={summary.attemptCount ? `${summary.averageAccuracy}%` : "—"} note={`${summary.completedExerciseCount} ${t("completedExercises")}`} /><Metric label={t("bestKdph")} value={summary.attemptCount ? String(summary.bestKdph) : "—"} note={t("autosavedOffline")} /></div>
+      {trendPoints ? <svg className="trend-chart" viewBox="0 0 360 68" role="img" aria-label={t("typingTest")}><polyline points={trendPoints} fill="none" stroke="#0b63f6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg> : <p className="summary-empty">{t("noAttempts")}</p>}
     </Card>
   );
 }

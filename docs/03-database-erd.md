@@ -172,6 +172,8 @@ erDiagram
 - Completed results are append-only from the normal user flow.
 - Raw scoring inputs are stored so metrics can be audited.
 - `error_breakdown` records the scoring profile version.
+- Anonymous practice attempts currently use the versioned local `TrainingAttempt` record and are never uploaded automatically.
+- Future authenticated sync maps local attempt IDs to `practice_attempts`; reconciliation is idempotent by attempt ID and never replaces a newer completed result.
 
 ## 4. Row Level Security matrix
 

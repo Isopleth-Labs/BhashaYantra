@@ -195,10 +195,30 @@ sequenceDiagram
     UC-->>UI: show success/warnings
 ```
 
+### Practice and exam attempts
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant UI as Training UI
+    participant Catalog as Curriculum / exam catalog
+    participant Engine as Typing and scoring engines
+    participant Repo as TrainingAttemptsRepository
+    User->>UI: Select layout, stage, exercise, or exam profile
+    UI->>Catalog: Load deterministic source and target
+    User->>UI: Type source keys
+    UI->>Engine: Convert source and compare result
+    Engine-->>UI: WPM, KDPH, accuracy, errors, weak keys
+    UI->>Repo: Save completed attempt
+    Repo-->>UI: Updated layout history and summary
+```
+
+The curriculum catalog and scoring engine are domain modules and do not import React or browser storage. The UI depends on the `TrainingAttemptsRepository` port; the current adapter uses versioned local storage and can later be composed with a Supabase adapter.
+
 ## 7. Local-first behavior
 
 - Conversion rules and keyboard profiles ship with the application.
-- Anonymous users can type, convert text, and run basic practice offline.
+- Anonymous users can type, convert text, complete the full locally shipped curriculum, run exam simulations, and review local attempt history offline.
 - Local settings are authoritative while offline.
 - Cloud sync is optional and reconciles only syncable records.
 - Source documents do not enter the sync queue.

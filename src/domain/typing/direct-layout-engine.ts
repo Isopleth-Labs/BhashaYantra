@@ -13,6 +13,10 @@ function isPassThrough(value: string) {
   return /[\s0-9!@#$%^&*()_+={}\[\]:;"'<>.,?/~`\-–—|\\]/u.test(value) || /[\u0900-\u097f]/u.test(value);
 }
 
+function isInversePassThrough(value: string) {
+  return /[\s0-9!@#$%^&*()_+={}\[\]:;"'<>.,?/~`\-–—|\\]/u.test(value);
+}
+
 export function directLayoutToUnicode(input: string, keyMap: Readonly<Record<string, string>>): ConversionResult {
   const normalizedInput = input.replace(/\r\n?/g, "\n");
   const warnings: ConversionWarning[] = [];
@@ -51,6 +55,43 @@ export function englishQwertyToUnicode(input: string): ConversionResult {
     output,
     warnings: [],
     inputCharacters: Array.from(output).length,
+    outputCharacters: Array.from(output).length,
+  };
+}
+
+export function unicodeToDirectLayout(input: string, keyMap: Readonly<Record<string, string>>): ConversionResult {
+  const inverseMap = new Map<string, string>();
+  for (const [key, value] of Object.entries(keyMap)) {
+    if (!inverseMap.has(value)) inverseMap.set(value, key);
+  }
+
+  const normalizedInput = input.replace(/\r\n?/g, "\n").normalize("NFD");
+  const warnings: ConversionWarning[] = [];
+  let output = "";
+  let index = 0;
+
+  for (const value of Array.from(normalizedInput)) {
+    const mapped = inverseMap.get(value);
+    if (mapped !== undefined) {
+      output += mapped;
+    } else {
+      output += value;
+      if (!isInversePassThrough(value)) {
+        warnings.push({
+          code: "unsupported-character",
+          index,
+          input: value,
+          message: `No inverse direct-layout mapping is available for “${value}”.`,
+        });
+      }
+    }
+    index += value.length;
+  }
+
+  return {
+    output,
+    warnings,
+    inputCharacters: Array.from(normalizedInput).length,
     outputCharacters: Array.from(output).length,
   };
 }

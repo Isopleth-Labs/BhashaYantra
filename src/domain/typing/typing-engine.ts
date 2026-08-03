@@ -1,5 +1,5 @@
 import { convertText } from "@/domain/conversion/convert-text";
-import { directLayoutToUnicode, englishQwertyToUnicode, INSCRIPT_KEY_MAP } from "@/domain/typing/direct-layout-engine";
+import { directLayoutToUnicode, englishQwertyToUnicode, INSCRIPT_KEY_MAP, unicodeToDirectLayout } from "@/domain/typing/direct-layout-engine";
 import { smartPhoneticToUnicode } from "@/domain/typing/smart-phonetic-engine";
 import type { ReadyTypingLayoutId } from "@/domain/typing/typing-profiles";
 
@@ -250,9 +250,9 @@ export function typingSourceToUnicode(source: string, layout: ReadyTypingLayoutI
 }
 
 export function unicodeToTypingSource(unicode: string, layout: ReadyTypingLayoutId) {
-  return layout === "classic-hindi"
-    ? unicodeToTypingKeys(unicode)
-    : englishQwertyToUnicode(unicode);
+  if (layout === "classic-hindi") return unicodeToTypingKeys(unicode);
+  if (layout === "inscript") return unicodeToDirectLayout(unicode, INSCRIPT_KEY_MAP);
+  return englishQwertyToUnicode(unicode);
 }
 
 export function keyboardForLayout(layout: ReadyTypingLayoutId) {

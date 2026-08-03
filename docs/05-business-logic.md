@@ -147,6 +147,22 @@ Exam-specific full/half-mistake rules must be stored in a versioned scoring prof
 
 Comparison uses Unicode normalization and grapheme-aware segmentation so a visually equivalent character sequence is not incorrectly penalized merely because of code-point composition.
 
+### Curriculum catalog version 1
+
+- Ready layouts: BhashaYantra Smart, Classic Hindi/KrutiDev, Devanagari INSCRIPT, and English QWERTY.
+- Each layout has 60 key drills, 90 word drills, 90 sentence drills, and 60 paragraph drills.
+- Canonical Hindi targets are generated through the BhashaYantra Smart engine; Classic and INSCRIPT source keys are obtained through deterministic inverse mappings and then round-trip validated.
+- Every exercise has a stable ID, sequence, focus keys, difficulty, estimated duration, tier, and conversion-warning count.
+- The content is original project material. Competitor exercises, logos, and proprietary exam screens are not copied.
+
+### Current attempt analysis
+
+- Positional comparison reports correct, missing, extra, and substituted characters.
+- WPM uses five source characters per word; KDPH uses typed key depressions per elapsed hour.
+- Weak-key analysis ranks expected source keys that were missing or substituted.
+- Completed practice and submitted/expired tests are persisted once with an immutable attempt ID and timestamp.
+- Full/half-mistake deductions and official-exam-specific net-speed formulas remain a later, separately validated scoring-profile version.
+
 ## 8. Stenography state machine
 
 ```mermaid

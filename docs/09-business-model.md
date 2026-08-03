@@ -29,6 +29,15 @@ BhashaYantra will not copy proprietary exercises, mappings, screens, or other pr
 
 The free tier must solve a real problem. Artificial typing delays, intrusive advertising during tests, and locking a user's own text are prohibited. Paid conversion should be driven by saved time, deeper preparation, and continuity.
 
+### Current curriculum packaging
+
+- Catalog v1 contains 1,200 original exercises across four ready layouts.
+- The first 10 exercises in each of four stages are Free: 40 per layout and 160 total.
+- The remaining 1,040 exercises are marked Pro for future packaging.
+- General Hindi and English simulations are marked Free; specialized exam-style simulations are marked Pro.
+- These labels currently explain the planned product boundary only. The development build does not block Pro content because signed entitlements, account recovery, billing, and offline grace are not implemented yet.
+- No payment should be accepted until the monetization release gate below passes.
+
 ## Initial pricing hypotheses
 
 These are experiments, not final published prices:
@@ -78,7 +87,7 @@ Initial operating targets to validate, not promises: 3–7% free-to-paid convers
 
 1. Complete BhashaYantra Smart and the versioned multi-layout engine.
 2. Build original starter lessons and deterministic scoring.
-3. Add exam profiles and advanced analytics.
+3. Add exam profiles and advanced analytics. *(Current development milestone complete for simulations and local history.)*
 4. Complete multi-profile text/document conversion.
 5. Add authentication, signed entitlements, billing, and offline grace behavior.
 6. Pilot Institution management with a small controlled cohort.

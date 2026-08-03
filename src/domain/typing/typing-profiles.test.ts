@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { directLayoutToUnicode, englishQwertyToUnicode, INSCRIPT_KEY_MAP } from "./direct-layout-engine";
+import { directLayoutToUnicode, englishQwertyToUnicode, INSCRIPT_KEY_MAP, unicodeToDirectLayout } from "./direct-layout-engine";
 import {
   displayFontsForLanguage,
   isReadyTypingLayout,
@@ -22,6 +22,7 @@ describe("typing profile registry", () => {
 
   it("matches the documented Hindi keyboard acceptance example", () => {
     expect(directLayoutToUnicode("yir;e", INSCRIPT_KEY_MAP).output).toBe("बगीचा");
+    expect(unicodeToDirectLayout("बगीचा", INSCRIPT_KEY_MAP).output).toBe("yir;e");
   });
 
   it("keeps English QWERTY input unchanged", () => {

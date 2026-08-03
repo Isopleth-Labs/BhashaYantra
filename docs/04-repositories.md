@@ -27,6 +27,7 @@ Domain and application code may import repository interfaces. Repository impleme
 | `ShortcutRepository` | list, add, update, remove, detect conflicts |
 | `ConversionHistoryRepository` | save optional job metadata, list recent jobs, delete history |
 | `PracticeRepository` | list tests, save completed attempt, list attempts, summarize progress |
+| `TrainingAttemptsRepository` | list offline attempts, save one completed attempt, clear all or one layout's history |
 | `StenographyRepository` | save completed session, list sessions, summarize progress |
 | `UserDictionaryRepository` | find suggestions, upsert entry, increment usage, disable entry |
 
@@ -60,6 +61,7 @@ Interfaces return domain models. Supabase row shapes, query builders, and storag
 - Use versioned serialization.
 - Validate all imported/cached records before returning domain models.
 - Never store a Supabase service-role key or direct database credentials.
+- `LocalTrainingAttemptsRepository` stores at most the 500 newest validated attempts under `bhashayantra:training-attempts:v1` and broadcasts a local update event for live dashboard summaries.
 
 ### Composite repositories
 
@@ -82,10 +84,12 @@ src/
 │       ├── shortcut-repository.ts
 │       ├── conversion-history-repository.ts
 │       ├── practice-repository.ts
+│       ├── training-attempts-repository.ts
 │       └── stenography-repository.ts
 └── data/
     ├── repositories/
     │   ├── supabase-user-preferences-repository.ts
+    │   ├── local-training-attempts-repository.ts
     │   ├── supabase-keyboard-layout-repository.ts
     │   └── composite-keyboard-layout-repository.ts
     ├── mappers/
