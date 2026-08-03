@@ -38,6 +38,7 @@ import {
   type TypingMode,
   type TypingOutputMode,
 } from "@/domain/typing/typing-engine";
+import { useI18n } from "@/i18n/I18nProvider";
 
 const SUGGESTIONS = ["नमस्ते", "भारत", "हिंदी", "भाषा", "धन्यवाद"] as const;
 
@@ -82,12 +83,13 @@ export function TypingWorkspace({
   advancedOpen,
   onAdvancedOpenChange,
 }: TypingWorkspaceProps) {
+  const { t } = useI18n();
   const sourceRef = useRef<HTMLTextAreaElement>(null);
   const sourceFileRef = useRef<HTMLInputElement>(null);
   const configFileRef = useRef<HTMLInputElement>(null);
   const [shifted, setShifted] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(true);
-  const [status, setStatus] = useState("Ready — type with familiar KrutiDev keys");
+  const [status, setStatus] = useState(() => t("readyTyping"));
   const [startedAt, setStartedAt] = useState<number>();
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [shortcutKey, setShortcutKey] = useState("");
@@ -122,7 +124,7 @@ export function TypingWorkspace({
       setElapsedSeconds(0);
     }
     onSourceChange(value);
-    setStatus("Draft autosaved locally");
+    setStatus(t("draftSaved"));
   }
 
   function placeCaret(caret: number) {
@@ -144,7 +146,7 @@ export function TypingWorkspace({
   function insertUnicode(unicode: string) {
     const converted = unicodeToTypingKeys(unicode);
     insertTypingKeys(converted.output);
-    setStatus(converted.warnings.length ? "Character inserted with a mapping warning" : `${unicode} inserted`);
+    setStatus(converted.warnings.length ? t("insertedWithWarning") : `${unicode} ${t("inserted")}`);
   }
 
   function handleTypingKeyDown(event: ReactKeyboardEvent<HTMLTextAreaElement>) {
@@ -173,9 +175,9 @@ export function TypingWorkspace({
   async function copyOutput() {
     try {
       await navigator.clipboard.writeText(displayedOutput);
-      setStatus("Output copied — paste it in Word, Excel, or browser");
+      setStatus(t("outputCopied"));
     } catch {
-      setStatus("Clipboard permission was not available");
+      setStatus(t("clipboardUnavailable"));
     }
   }
 
@@ -193,11 +195,11 @@ export function TypingWorkspace({
         });
         if (selected) {
           await writeTextFile(selected, displayedOutput);
-          setStatus("Typing output saved");
+          setStatus(t("outputSaved"));
         }
         return;
       } catch {
-        setStatus("Native save failed; browser download started");
+        setStatus(t("nativeSaveFallback"));
       }
     }
     downloadText(displayedOutput, filename);
@@ -208,9 +210,9 @@ export function TypingWorkspace({
     const reader = new FileReader();
     reader.onload = () => {
       updateSource(typeof reader.result === "string" ? reader.result : "");
-      setStatus(`${file.name} opened`);
+      setStatus(`${file.name} ${t("sourceOpened")}`);
     };
-    reader.onerror = () => setStatus("Could not read the selected file");
+    reader.onerror = () => setStatus(t("fileReadError"));
     reader.readAsText(file);
   }
 
@@ -219,16 +221,16 @@ export function TypingWorkspace({
     const key = shortcutKey.trim().slice(0, 1);
     const character = shortcutOutput.trim();
     if (!key || !character) {
-      setConfigurationError("Shortcut key and output are required.");
+      setConfigurationError(t("shortcutFieldsRequired"));
       return;
     }
     if (!shortcutCtrl && !shortcutAlt) {
-      setConfigurationError("Use Ctrl or Alt so normal typing remains available.");
+      setConfigurationError(t("shortcutModifierRequired"));
       return;
     }
     const candidate = { key, ctrl: shortcutCtrl, alt: shortcutAlt, shift: shortcutShift };
     if (hasShortcutConflict(candidate, shortcuts)) {
-      setConfigurationError("That shortcut is already assigned.");
+      setConfigurationError(t("shortcutConflict"));
       return;
     }
     const next: ShortcutDefinition = {
@@ -248,11 +250,11 @@ export function TypingWorkspace({
     const key = mappingKey.trim().slice(0, 1);
     const output = mappingOutput.trim();
     if (!key || !output) {
-      setConfigurationError("Physical key and Unicode output are required.");
+      setConfigurationError(t("mappingFieldsRequired"));
       return;
     }
     if (hasKeyMappingConflict(key, customMappings)) {
-      setConfigurationError("That physical key already has a custom mapping.");
+      setConfigurationError(t("mappingConflict"));
       return;
     }
     onCustomMappingsChange([
@@ -279,7 +281,7 @@ export function TypingWorkspace({
       "bhashayantra-classic-hindi-layout.json",
       "application/json;charset=utf-8",
     );
-    setStatus("Custom layout exported");
+    setStatus(t("layoutExported"));
   }
 
   function importConfiguration(file: File | undefined) {
@@ -315,9 +317,9 @@ export function TypingWorkspace({
         onCustomShortcutsChange(validShortcuts);
         onCustomMappingsChange(validMappings);
         setConfigurationError("");
-        setStatus(`${file.name} imported`);
+        setStatus(`${file.name} — ${t("layoutImported")}`);
       } catch {
-        setConfigurationError("This layout file is invalid or contains conflicts.");
+        setConfigurationError(t("invalidLayout"));
       }
     };
     reader.readAsText(file);
@@ -327,19 +329,19 @@ export function TypingWorkspace({
     onCustomShortcutsChange([]);
     onCustomMappingsChange([]);
     setConfigurationError("");
-    setStatus("Custom layout reset to protected defaults");
+    setStatus(t("layoutReset"));
   }
 
   return (
     <section className="typing-card" aria-labelledby="typing-workspace-title">
       <div className="typing-heading">
         <div>
-          <h1 id="typing-workspace-title">Start Typing</h1>
-          <p>Type with familiar Classic Hindi keys and get clean Unicode instantly.</p>
+          <h1 id="typing-workspace-title">{t("startTyping")}</h1>
+          <p>{t("typingIntro")}</p>
         </div>
         <div className="typing-status-chip">
           <CheckCircle2 aria-hidden="true" />
-          {mode === "simple" ? "Smart composition on" : "Advanced mappings on"}
+          {mode === "simple" ? t("smartCompositionOn") : t("advancedMappingsOn")}
         </div>
       </div>
 
@@ -348,9 +350,9 @@ export function TypingWorkspace({
           <div className="typing-panel-heading">
             <span>
               <Keyboard aria-hidden="true" />
-              <strong>Familiar Keys</strong>
+              <strong>{t("familiarKeys")}</strong>
             </span>
-            <small>KrutiDev-style input</small>
+            <small>{t("krutidevInput")}</small>
           </div>
           <textarea
             ref={sourceRef}
@@ -358,13 +360,13 @@ export function TypingWorkspace({
             value={source}
             onChange={(event) => updateSource(event.target.value)}
             onKeyDown={handleTypingKeyDown}
-            placeholder={'Start typing… Example: esjk uke Hkk"kk ;a= gS'}
+            placeholder={t("typingPlaceholder")}
             spellCheck={false}
             autoFocus
           />
           <div className="typing-panel-meta">
-            <span>{Array.from(source).length} keys</span>
-            <span>Autosaved offline</span>
+            <span>{Array.from(source).length} {t("keys")}</span>
+            <span>{t("autosavedOffline")}</span>
           </div>
         </div>
 
@@ -372,9 +374,9 @@ export function TypingWorkspace({
           <div className="typing-panel-heading">
             <span>
               <Sparkles aria-hidden="true" />
-              <strong>{outputMode === "unicode" ? "Unicode Output" : "Legacy Output"}</strong>
+              <strong>{outputMode === "unicode" ? t("unicodeOutput") : t("legacyOutput")}</strong>
             </span>
-            <small>Live preview</small>
+            <small>{t("livePreview")}</small>
           </div>
           <textarea
             id="typing-output"
@@ -382,56 +384,56 @@ export function TypingWorkspace({
             value={displayedOutput}
             readOnly
             aria-label={`${outputMode} typing output`}
-            placeholder="Your converted Hindi appears here…"
+            placeholder={t("outputPlaceholder")}
           />
           <div className="typing-panel-meta">
-            <span>{metrics.characters} characters</span>
-            <span>{unicodeResult.warnings.length ? `${unicodeResult.warnings.length} mapping warnings` : "Unicode normalized"}</span>
+            <span>{metrics.characters} {t("characters")}</span>
+            <span>{unicodeResult.warnings.length ? `${unicodeResult.warnings.length} ${t("mappingWarnings")}` : t("unicodeNormalized")}</span>
           </div>
         </div>
       </div>
 
       <div className="typing-metrics" aria-label="Live typing metrics">
-        <TypingMetric label="Words" value={metrics.words} />
-        <TypingMetric label="Characters" value={metrics.characters} />
-        <TypingMetric label="Lines" value={metrics.lines} />
-        <TypingMetric label="Live WPM" value={estimatedWpm} />
+        <TypingMetric label={t("words")} value={metrics.words} />
+        <TypingMetric label={t("characters")} value={metrics.characters} />
+        <TypingMetric label={t("lines")} value={metrics.lines} />
+        <TypingMetric label={t("liveWpm")} value={estimatedWpm} />
         <span className="typing-live-status" aria-live="polite">{status}</span>
       </div>
 
       <div className="typing-actions">
         <div className="action-group">
           <Button variant="outline" onClick={() => sourceFileRef.current?.click()}>
-            <FolderOpen aria-hidden="true" /> Open Text
+            <FolderOpen aria-hidden="true" /> {t("openText")}
           </Button>
           <Button variant="outline" onClick={() => setKeyboardVisible((current) => !current)}>
-            <Keyboard aria-hidden="true" /> {keyboardVisible ? "Hide" : "Show"} Keyboard
+            <Keyboard aria-hidden="true" /> {keyboardVisible ? t("hideKeyboard") : t("showKeyboard")}
           </Button>
           <Button
             variant="danger"
             onClick={() => {
               updateSource("");
-              setStatus("Typing pad cleared");
+              setStatus(t("typingCleared"));
               sourceRef.current?.focus();
             }}
             disabled={!source}
           >
-            <Trash2 aria-hidden="true" /> Clear
+            <Trash2 aria-hidden="true" /> {t("clear")}
           </Button>
         </div>
         <div className="action-group action-group-right">
           <Button variant="success" onClick={copyOutput} disabled={!displayedOutput}>
-            <Copy aria-hidden="true" /> Copy Output
+            <Copy aria-hidden="true" /> {t("copyOutput")}
           </Button>
           <Button variant="success" onClick={saveOutput} disabled={!displayedOutput}>
-            <Download aria-hidden="true" /> Save .txt
+            <Download aria-hidden="true" /> {t("saveText")}
           </Button>
         </div>
       </div>
 
       {mode === "simple" && (
         <div className="typing-suggestions" aria-label="Hindi word suggestions">
-          <span>Quick words</span>
+          <span>{t("quickWords")}</span>
           {SUGGESTIONS.map((suggestion) => (
             <button type="button" key={suggestion} onClick={() => insertUnicode(`${source && !source.endsWith(" ") ? " " : ""}${suggestion}`)}>
               {suggestion}
@@ -443,14 +445,14 @@ export function TypingWorkspace({
       {keyboardVisible && (
         <div className="virtual-keyboard" aria-label="Classic Hindi on-screen keyboard">
           <div className="virtual-keyboard-toolbar">
-            <span><Keyboard aria-hidden="true" /> Classic Hindi Keyboard</span>
+            <span><Keyboard aria-hidden="true" /> {t("classicKeyboard")}</span>
             <button
               type="button"
               className={shifted ? "shift-toggle active" : "shift-toggle"}
               onClick={() => setShifted((current) => !current)}
               aria-pressed={shifted}
             >
-              Shift {shifted ? "On" : "Off"}
+              {t("shift")} {shifted ? t("on") : t("off")}
             </button>
           </div>
           {CLASSIC_HINDI_KEYBOARD.map((row, rowIndex) => (
@@ -470,7 +472,7 @@ export function TypingWorkspace({
                     title={`Type ${key === " " ? "space" : key}`}
                   >
                     <strong>{label}</strong>
-                    <small>{key === " " ? "Space" : key}</small>
+                    <small>{key === " " ? t("space") : key}</small>
                   </button>
                 );
               })}
@@ -483,9 +485,9 @@ export function TypingWorkspace({
         <div className="advanced-toggle-row">
           <Button variant="outline" onClick={() => onAdvancedOpenChange(!advancedOpen)}>
             <Settings2 aria-hidden="true" />
-            {advancedOpen ? "Close Advanced Manager" : "Open Advanced Manager"}
+            {advancedOpen ? t("closeAdvancedManager") : t("openAdvancedManager")}
           </Button>
-          <span>Default layout stays protected; only your custom layer is editable.</span>
+          <span>{t("protectedDefaults")}</span>
         </div>
       )}
 
@@ -493,8 +495,8 @@ export function TypingWorkspace({
         <section className="advanced-manager" aria-labelledby="advanced-manager-title">
           <div className="advanced-manager-heading">
             <div>
-              <h2 id="advanced-manager-title">Advanced Classic Manager</h2>
-              <p>Create conflict-free shortcuts and physical-key overrides.</p>
+              <h2 id="advanced-manager-title">{t("advancedManager")}</h2>
+              <p>{t("advancedManagerDescription")}</p>
             </div>
             <button type="button" aria-label="Close advanced manager" onClick={() => onAdvancedOpenChange(false)}>
               <X aria-hidden="true" />
@@ -505,45 +507,45 @@ export function TypingWorkspace({
 
           <div className="advanced-manager-grid">
             <div className="advanced-form-card">
-              <h3>New shortcut</h3>
+              <h3>{t("newShortcut")}</h3>
               <div className="advanced-inline-fields">
                 <label>
-                  <span>Key</span>
+                  <span>{t("key")}</span>
                   <input value={shortcutKey} maxLength={1} onChange={(event) => setShortcutKey(event.target.value)} placeholder="K" />
                 </label>
                 <label className="advanced-output-field">
-                  <span>Unicode output</span>
+                  <span>{t("unicodeValue")}</span>
                   <input className="devanagari" value={shortcutOutput} onChange={(event) => setShortcutOutput(event.target.value)} placeholder="क्ष" />
                 </label>
               </div>
               <div className="modifier-options">
                 <ModifierCheckbox label="Ctrl" checked={shortcutCtrl} onChange={setShortcutCtrl} />
                 <ModifierCheckbox label="Alt" checked={shortcutAlt} onChange={setShortcutAlt} />
-                <ModifierCheckbox label="Shift" checked={shortcutShift} onChange={setShortcutShift} />
+                <ModifierCheckbox label={t("shift")} checked={shortcutShift} onChange={setShortcutShift} />
               </div>
-              <Button size="sm" onClick={addShortcut}><Save aria-hidden="true" /> Save Shortcut</Button>
+              <Button size="sm" onClick={addShortcut}><Save aria-hidden="true" /> {t("saveShortcut")}</Button>
             </div>
 
             <div className="advanced-form-card">
-              <h3>Custom key mapping</h3>
+              <h3>{t("customKeyMapping")}</h3>
               <div className="advanced-inline-fields">
                 <label>
-                  <span>Physical key</span>
+                  <span>{t("physicalKey")}</span>
                   <input value={mappingKey} maxLength={1} onChange={(event) => setMappingKey(event.target.value)} placeholder="q" />
                 </label>
                 <label className="advanced-output-field">
-                  <span>Unicode output</span>
+                  <span>{t("unicodeValue")}</span>
                   <input className="devanagari" value={mappingOutput} onChange={(event) => setMappingOutput(event.target.value)} placeholder="क" />
                 </label>
               </div>
-              <p className="advanced-hint">Applied only in Advanced Classic Mode.</p>
-              <Button size="sm" onClick={addMapping}><Save aria-hidden="true" /> Save Mapping</Button>
+              <p className="advanced-hint">{t("advancedOnly")}</p>
+              <Button size="sm" onClick={addMapping}><Save aria-hidden="true" /> {t("saveMapping")}</Button>
             </div>
           </div>
 
           <div className="custom-rule-list">
             {[...customShortcuts, ...customMappings].length === 0 ? (
-              <p>No custom rules yet. Protected defaults are active.</p>
+              <p>{t("noCustomRules")}</p>
             ) : (
               <>
                 {customShortcuts.map((shortcut) => (
@@ -568,13 +570,13 @@ export function TypingWorkspace({
 
           <div className="configuration-actions">
             <Button variant="outline" size="sm" onClick={exportConfiguration}>
-              <FileJson aria-hidden="true" /> Export Layout
+              <FileJson aria-hidden="true" /> {t("exportLayout")}
             </Button>
             <Button variant="outline" size="sm" onClick={() => configFileRef.current?.click()}>
-              <Upload aria-hidden="true" /> Import Layout
+              <Upload aria-hidden="true" /> {t("importLayout")}
             </Button>
             <Button variant="danger" size="sm" onClick={resetConfiguration} disabled={!customShortcuts.length && !customMappings.length}>
-              <RotateCcw aria-hidden="true" /> Reset Custom Layer
+              <RotateCcw aria-hidden="true" /> {t("resetCustomLayer")}
             </Button>
           </div>
         </section>

@@ -12,14 +12,16 @@ The approved design source is preserved at [docs/assets/bhashayantra-final-refer
 
 - Responsive desktop dashboard matching the approved reference.
 - Simple Smart and Advanced Classic mode switch.
+- Hindi-first interface with an instant Hindi/English language switch.
 - Fully interactive Start Typing pad with familiar KrutiDev-style keys and live Unicode output.
 - Automatic short-i matra, reph, conjunct, and Unicode normalization through the shared typing engine.
 - Clickable Classic Hindi on-screen keyboard, Shift layer, word suggestions, and five character-palette groups.
-- Built-in expert shortcuts plus conflict-checked custom shortcuts and physical-key mappings.
+- Searchable full character library and full shortcut manager with direct character insertion.
+- Built-in expert shortcuts plus conflict-checked custom shortcuts and physical-key mappings in the working Advanced Classic Manager.
 - Offline draft, mode, output, shortcut, and custom-layout persistence.
 - Custom layout import/export, reset, text open, output copy, and `.txt` save/download actions.
 - Live words, characters, lines, elapsed-session WPM, and mapping-warning feedback.
-- Local KrutiDev 010 ↔ Unicode text conversion with warnings.
+- Live local KrutiDev 010 ↔ Unicode text conversion in both directions with warnings.
 - Text-file open, paste, clear, copy, and download actions.
 - Light/dark design tokens and Hindi font fallbacks.
 - Character browser, shortcut search, document drop-zone shell, and test summary.
@@ -85,19 +87,19 @@ The repository includes [`.github/workflows/build.yml`](.github/workflows/build.
 3. Build the Tauri portable executable, MSI, and Setup executable.
 4. Store them for 14 days in the workflow run under **Artifacts → BhashaYantra-Windows**.
 
-For a permanent GitHub Release, create and push a version tag:
+The repository is private and in active development. Do not create a public GitHub Release or version tag yet. When all release gates are complete, the maintainer can intentionally create a version tag:
 
 ```powershell
 git tag v0.1.0
 git push origin v0.1.0
 ```
 
-The same workflow will create the release automatically and attach all three Windows downloads:
+Only that future version-tag workflow will create a release and attach all three Windows downloads:
 
 | Published item | URL |
 |---|---|
 | Source repository | [github.com/Isopleth-Labs/BhashaYantra](https://github.com/Isopleth-Labs/BhashaYantra) |
-| Release downloads | [Latest release](https://github.com/Isopleth-Labs/BhashaYantra/releases/latest) |
+| Future release downloads | [Releases](https://github.com/Isopleth-Labs/BhashaYantra/releases) |
 
 Developer source download after publication:
 
@@ -106,7 +108,7 @@ git clone https://github.com/Isopleth-Labs/BhashaYantra.git
 cd BhashaYantra
 ```
 
-End users will not need Node.js, Rust, or Docker. They will download the signed Windows installer from the Releases page.
+After production release, end users will not need Node.js, Rust, or Docker. Until then, installers remain private development artifacts.
 
 ## Development prerequisites
 

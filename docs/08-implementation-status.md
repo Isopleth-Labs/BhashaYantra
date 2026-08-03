@@ -10,23 +10,25 @@ Updated: 3 August 2026
 - Final three-column BhashaYantra dashboard matching the approved reference.
 - Light and dark semantic theme tokens.
 - Simple Smart / Advanced Classic mode interaction.
+- Hindi-first UI localization with a persistent Hindi/English interface selector.
 - Complete in-app Start Typing workspace with familiar-key input and live Unicode/Legacy output switching.
 - Automatic matra, reph, conjunct, and normalization behavior shared with the tested conversion engine.
 - Clickable Classic Hindi keyboard with normal/Shift layers and five-group character insertion palette.
-- Built-in expert shortcuts, custom shortcut conflict validation, and Advanced-mode physical-key overrides.
+- Searchable complete character and shortcut dialogs with direct insertion into the typing pad.
+- Built-in expert shortcuts, custom shortcut conflict validation, and a working Advanced-mode manager with physical-key overrides.
 - Offline draft/preferences/custom-layout persistence plus import, export, protected-default reset, copy, open, and save flows.
 - Live typing metrics for words, characters, lines, and estimated WPM.
-- Bidirectional KrutiDev 010 ↔ Unicode text converter.
+- Live bidirectional KrutiDev 010 ↔ Unicode text converter.
 - Longest-token mapping, short-i handling, Unicode normalization, and warnings.
 - Text open, paste, clear, copy, and save/download actions with browser fallback.
-- Character browser and shortcut search interactions.
+- Character browser, complete-library modal, and shortcut search/manager interactions.
 - Drizzle schema for profiles, preferences, layouts, mappings, shortcuts, history, practice, stenography, and dictionary data.
 - Supabase schema migrations, Auth ownership foreign keys, RLS policies, triggers, constraints, seed data, and pgTAP policy tests.
 - Local and Supabase preference repository implementations.
 - Strict TypeScript, eleven converter/typing tests, production web build, and browser visual/interaction QA.
 - Local Supabase reset, eight pgTAP/RLS tests, and schema linting.
 - Rust formatting and Clippy checks.
-- Release desktop executable, MSI installer, and NSIS setup executable.
+- Local development desktop executable, MSI installer, and NSIS setup executable.
 
 ## Current verification commands
 

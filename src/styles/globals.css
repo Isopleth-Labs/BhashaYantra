@@ -53,6 +53,10 @@ body {
   color: var(--foreground);
 }
 
+html[lang="hi"] body {
+  font-family: "Noto Sans Devanagari", "Nirmala UI", Mangal, "Segoe UI", sans-serif;
+}
+
 button,
 input,
 select,
@@ -1364,6 +1368,224 @@ label svg,
   line-height: 1.7;
 }
 
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
+  background: rgb(15 23 42 / 58%);
+  backdrop-filter: blur(4px);
+}
+
+.library-modal {
+  width: min(980px, 100%);
+  max-height: min(850px, 88vh);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow: hidden;
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: 0 28px 80px rgb(15 23 42 / 32%);
+}
+
+.shortcut-library-modal {
+  width: min(820px, 100%);
+}
+
+.library-modal-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.library-modal-heading h2 {
+  margin: 0 0 5px;
+  font-size: 22px;
+}
+
+.library-modal-heading p {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 13px;
+}
+
+.library-modal-heading > button,
+.delete-rule-button {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border: 0;
+  color: var(--muted-foreground);
+  background: transparent;
+}
+
+.library-modal-heading > button {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+}
+
+.library-modal-heading > button:hover,
+.delete-rule-button:hover {
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
+}
+
+.library-search {
+  width: 100%;
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: 9px;
+  color: var(--foreground);
+  background: var(--surface-muted);
+  outline: none;
+}
+
+.library-search:focus {
+  border-color: var(--focus);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus) 16%, transparent);
+}
+
+.library-filters {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.library-filters button {
+  flex: 0 0 auto;
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted-foreground);
+  background: var(--surface);
+}
+
+.library-filters button.active,
+.library-filters button:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.full-character-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(86px, 1fr));
+  gap: 9px;
+  overflow-y: auto;
+  padding: 2px 4px 4px 2px;
+}
+
+.full-character-grid button {
+  min-height: 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  color: var(--foreground);
+  background: var(--surface-muted);
+}
+
+.full-character-grid button:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.full-character-grid strong,
+.shortcut-character-button {
+  font-family: "Noto Sans Devanagari", "Nirmala UI", Mangal, sans-serif;
+}
+
+.full-character-grid strong {
+  font-size: 24px;
+}
+
+.full-character-grid small {
+  color: var(--muted-foreground);
+  font-size: 10px;
+}
+
+.full-shortcut-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  overflow-y: auto;
+  padding: 2px 4px 4px 2px;
+}
+
+.full-shortcut-row {
+  display: grid;
+  grid-template-columns: 72px minmax(150px, 1fr) 100px 38px;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface-muted);
+}
+
+.shortcut-character-button {
+  min-height: 36px;
+  border: 1px solid var(--border-strong);
+  border-radius: 7px;
+  color: var(--foreground);
+  background: var(--surface);
+  font-size: 20px;
+}
+
+.shortcut-character-button:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.rule-badge {
+  justify-self: start;
+  padding: 4px 8px;
+  border-radius: 999px;
+  color: var(--primary);
+  background: var(--primary-soft);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.rule-badge.custom {
+  color: var(--success);
+  background: color-mix(in srgb, var(--success) 12%, transparent);
+}
+
+.delete-rule-button {
+  width: 34px;
+  height: 34px;
+  border-radius: 7px;
+}
+
+.library-empty {
+  margin: 24px 0;
+  color: var(--muted-foreground);
+  text-align: center;
+}
+
+.library-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 2px;
+}
+
 @media (max-width: 1450px) {
   .topbar {
     grid-template-columns: 250px 1fr auto;
@@ -1507,5 +1729,24 @@ label svg,
 
   .character-grid {
     grid-template-columns: repeat(7, 1fr);
+  }
+
+  .modal-backdrop {
+    align-items: flex-end;
+    padding: 10px;
+  }
+
+  .library-modal {
+    max-height: 92vh;
+    padding: 16px;
+    border-radius: 15px 15px 8px 8px;
+  }
+
+  .full-shortcut-row {
+    grid-template-columns: 58px 1fr 34px;
+  }
+
+  .full-shortcut-row .rule-badge {
+    display: none;
   }
 }

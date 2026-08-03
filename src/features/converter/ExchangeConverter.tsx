@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeftRight,
   CheckCircle2,
@@ -13,6 +13,7 @@ import {
 import { convertText } from "@/application/use-cases/convert-text";
 import { Button } from "@/components/ui/button";
 import type { ConversionDirection } from "@/domain/conversion/types";
+import { useI18n } from "@/i18n/I18nProvider";
 
 const INITIAL_LEGACY = 'esjk uke Hkk"kk ;a= gS';
 const INITIAL_UNICODE = "मेरा नाम भाषा यंत्र है";
@@ -32,12 +33,13 @@ function downloadInBrowser(contents: string, filename: string) {
 }
 
 export function ExchangeConverter() {
+  const { t } = useI18n();
   const [legacyText, setLegacyText] = useState(INITIAL_LEGACY);
   const [unicodeText, setUnicodeText] = useState(INITIAL_UNICODE);
   const [direction, setDirection] =
     useState<ConversionDirection>("legacy-to-unicode");
   const [warnings, setWarnings] = useState<readonly string[]>([]);
-  const [status, setStatus] = useState("Ready for local conversion");
+  const [status, setStatus] = useState(() => t("converterReady"));
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const sourceText =
@@ -51,6 +53,17 @@ export function ExchangeConverter() {
     [legacyText, unicodeText],
   );
 
+  useEffect(() => {
+    const result = convertText({ input: sourceText, direction });
+    if (direction === "legacy-to-unicode") {
+      setUnicodeText((current) => current === result.output ? current : result.output);
+    } else {
+      setLegacyText((current) => current === result.output ? current : result.output);
+    }
+    setWarnings(result.warnings.map((warning) => warning.message));
+    setStatus(t("converterLive"));
+  }, [direction, sourceText, t]);
+
   function runConversion() {
     const result = convertText({ input: sourceText, direction });
 
@@ -63,8 +76,8 @@ export function ExchangeConverter() {
     setWarnings(result.warnings.map((warning) => warning.message));
     setStatus(
       result.warnings.length > 0
-        ? `Converted with ${result.warnings.length} warning${result.warnings.length === 1 ? "" : "s"}`
-        : "Conversion completed",
+        ? t("convertedWithWarnings", { count: result.warnings.length })
+        : t("converterComplete"),
     );
   }
 
@@ -75,7 +88,7 @@ export function ExchangeConverter() {
         : "legacy-to-unicode",
     );
     setWarnings([]);
-    setStatus("Conversion direction changed");
+    setStatus(t("directionChanged"));
   }
 
   async function pasteSource() {
@@ -86,9 +99,9 @@ export function ExchangeConverter() {
       } else {
         setUnicodeText(text);
       }
-      setStatus("Clipboard text pasted");
+      setStatus(t("clipboardPasted"));
     } catch {
-      setStatus("Clipboard permission was not available");
+      setStatus(t("clipboardUnavailable"));
     }
   }
 
@@ -97,9 +110,9 @@ export function ExchangeConverter() {
       direction === "legacy-to-unicode" ? unicodeText : legacyText;
     try {
       await navigator.clipboard.writeText(output);
-      setStatus("Output copied to clipboard");
+      setStatus(t("outputCopied"));
     } catch {
-      setStatus("Could not copy output");
+      setStatus(t("outputCopyFailed"));
     }
   }
 
@@ -110,7 +123,7 @@ export function ExchangeConverter() {
       setUnicodeText("");
     }
     setWarnings([]);
-    setStatus("Source cleared");
+    setStatus(t("sourceCleared"));
   }
 
   async function openTextFile() {
@@ -132,11 +145,11 @@ export function ExchangeConverter() {
           } else {
             setUnicodeText(contents);
           }
-          setStatus("Text file opened");
+          setStatus(t("textFileOpened"));
         }
         return;
       } catch {
-        setStatus("Native file dialog failed; use the browser picker");
+        setStatus(t("nativeFileFallback"));
       }
     }
 
@@ -161,11 +174,11 @@ export function ExchangeConverter() {
         });
         if (selected) {
           await writeTextFile(selected, output);
-          setStatus("Output file saved");
+          setStatus(t("outputFileSaved"));
         }
         return;
       } catch {
-        setStatus("Native save failed; browser download started");
+        setStatus(t("nativeSaveFallback"));
       }
     }
 
@@ -182,9 +195,9 @@ export function ExchangeConverter() {
       } else {
         setUnicodeText(value);
       }
-      setStatus(`${file.name} opened`);
+      setStatus(`${file.name} ${t("sourceOpened")}`);
     };
-    reader.onerror = () => setStatus("Could not read the selected file");
+    reader.onerror = () => setStatus(t("fileReadError"));
     reader.readAsText(file);
   }
 
@@ -192,8 +205,8 @@ export function ExchangeConverter() {
     <section className="converter-card" aria-labelledby="converter-title">
       <div className="converter-heading">
         <div>
-          <h1 id="converter-title">Exchange Converter</h1>
-          <p>KrutiDev and Unicode conversion</p>
+          <h1 id="converter-title">{t("exchangeConverter")}</h1>
+          <p>{t("converterSubtitle")}</p>
         </div>
         <div className="converter-status-chip">
           <CheckCircle2 aria-hidden="true" />
@@ -205,7 +218,7 @@ export function ExchangeConverter() {
         <EditorPanel
           id="legacy-editor"
           tone="legacy"
-          title="KrutiDev / Legacy"
+          title={t("legacySource")}
           fontLabel="Kruti Dev 010"
           value={legacyText}
           count={characterCounts.legacy}
@@ -218,8 +231,8 @@ export function ExchangeConverter() {
             type="button"
             className="swap-button"
             onClick={swapDirection}
-            aria-label="Change conversion direction"
-            title="Change conversion direction"
+            aria-label={t("directionChanged")}
+            title={t("directionChanged")}
           >
             <ArrowLeftRight aria-hidden="true" />
           </button>
@@ -229,7 +242,7 @@ export function ExchangeConverter() {
         <EditorPanel
           id="unicode-editor"
           tone="unicode"
-          title="Unicode"
+          title={t("unicode")}
           fontLabel="Noto Sans Devanagari"
           value={unicodeText}
           count={characterCounts.unicode}
@@ -241,26 +254,26 @@ export function ExchangeConverter() {
       <div className="converter-actions">
         <div className="action-group">
           <Button variant="outline" onClick={openTextFile}>
-            <FolderOpen aria-hidden="true" /> Open File
+            <FolderOpen aria-hidden="true" /> {t("openFile")}
           </Button>
           <Button variant="outline" onClick={pasteSource}>
-            <Clipboard aria-hidden="true" /> Paste
+            <Clipboard aria-hidden="true" /> {t("paste")}
           </Button>
           <Button variant="danger" onClick={clearSource}>
-            <Trash2 aria-hidden="true" /> Clear
+            <Trash2 aria-hidden="true" /> {t("clear")}
           </Button>
         </div>
 
         <Button className="convert-button" onClick={runConversion}>
-          <ArrowLeftRight aria-hidden="true" /> Convert
+          <ArrowLeftRight aria-hidden="true" /> {t("convert")}
         </Button>
 
         <div className="action-group action-group-right">
           <Button variant="success" onClick={copyOutput}>
-            <Copy aria-hidden="true" /> Copy
+            <Copy aria-hidden="true" /> {t("copy")}
           </Button>
           <Button variant="success" onClick={saveOutput}>
-            <Download aria-hidden="true" /> Download
+            <Download aria-hidden="true" /> {t("download")}
           </Button>
         </div>
       </div>
@@ -307,11 +320,12 @@ function EditorPanel({
   isSource,
   onChange,
 }: EditorPanelProps) {
+  const { t } = useI18n();
   return (
     <div className={`editor-panel editor-panel-${tone}`}>
       <div className="editor-title-row">
         <h2>{title}</h2>
-        {isSource && <span className="source-badge">Source</span>}
+        {isSource && <span className="source-badge">{t("source")}</span>}
       </div>
       <label className="sr-only" htmlFor={`${id}-font`}>
         {title} font
@@ -330,8 +344,8 @@ function EditorPanel({
         className={tone === "unicode" ? "devanagari" : undefined}
       />
       <div className="editor-meta">
-        <span>{count} characters</span>
-        <span>{isSource ? "Editable source" : "Converted output"}</span>
+        <span>{count} {t("characters")}</span>
+        <span>{isSource ? t("editableSource") : t("convertedOutput")}</span>
       </div>
     </div>
   );
