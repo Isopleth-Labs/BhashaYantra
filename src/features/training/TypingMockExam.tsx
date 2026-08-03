@@ -5,8 +5,10 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock3,
+  ExternalLink,
   FileText,
   History,
+  Landmark,
   Minus,
   Pause,
   Play,
@@ -37,7 +39,7 @@ import {
   type PassageHighlightMode,
 } from "@/domain/training/mock-exam-engine";
 import type { TrainingAttempt } from "@/domain/training/training-attempt";
-import { analyzeWeakKeys, calculateKdph, calculateTrainingScore, calculateWpm } from "@/domain/training/training-engine";
+import { analyzeWeakKeys, calculateKdph, calculateTrainingScore, calculateWordSpeed, calculateWpm } from "@/domain/training/training-engine";
 import { typingSourceToUnicode, unicodeToTypingSource } from "@/domain/typing/typing-engine";
 import { getDisplayFont, TYPING_LAYOUT_PROFILES, type ReadyTypingLayoutId, type UnicodeDisplayFontId } from "@/domain/typing/typing-profiles";
 import { LocalTrainingAttemptsRepository, TRAINING_ATTEMPTS_UPDATED_EVENT } from "@/data/repositories/local-training-attempts-repository";
@@ -116,14 +118,26 @@ export function TypingMockExam({ layout, displayFont }: TypingMockExamProps) {
   const remainingSeconds = Math.max(0, testDuration - elapsedSeconds);
   const finished = status === "submitted" || status === "expired";
   const measuredSeconds = Math.max(1, elapsedSeconds);
-  const wpm = calculateWpm(Array.from(source).length, measuredSeconds);
-  const kdph = calculateKdph(Array.from(source).length, measuredSeconds);
+  const grossWpm = calculateWpm(Array.from(source).length, measuredSeconds);
+  const wpm = calculateWpm(score.correctCharacters, measuredSeconds);
+  const kdph = calculateKdph(score.correctCharacters, measuredSeconds);
+  const wordSpeed = useMemo(() => calculateWordSpeed(expected, actual, measuredSeconds), [actual, expected, measuredSeconds]);
   const weakKeys = useMemo(() => analyzeWeakKeys(expectedKeys, source), [expectedKeys, source]);
-  const passed = finished && wpm >= selectedProfile.targetWpm && score.accuracy >= selectedProfile.minimumAccuracy;
+  const measuredProfileSpeed = selectedProfile.scoringModel === "net-wpm" ? wordSpeed.netWpm : selectedProfile.scoringModel === "kdph" ? kdph : wpm;
+  const requiredProfileSpeed = selectedProfile.scoringModel === "kdph" ? selectedProfile.targetKdph ?? 0 : selectedProfile.targetWpm;
+  const passed = finished && measuredProfileSpeed >= requiredProfileSpeed && (selectedProfile.minimumAccuracy === 0 || score.accuracy >= selectedProfile.minimumAccuracy);
   const layoutAttempts = attempts.filter((attempt) => attempt.layoutId === layout && attempt.kind === "test");
   const canConfigure = status === "ready";
   const fontStack = getDisplayFont(displayFont).cssStack;
   const layoutName = TYPING_LAYOUT_PROFILES.find((profile) => profile.id === layout)?.name ?? layout;
+  const requiredLayoutName = selectedProfile.requiredLayoutId
+    ? TYPING_LAYOUT_PROFILES.find((profile) => profile.id === selectedProfile.requiredLayoutId)?.name ?? selectedProfile.requiredLayoutId
+    : undefined;
+  const requiredFontName = selectedProfile.requiredDisplayFontId
+    ? getDisplayFont(selectedProfile.requiredDisplayFontId).name
+    : undefined;
+  const profileEnvironmentReady = (!selectedProfile.requiredLayoutId || selectedProfile.requiredLayoutId === layout)
+    && (!selectedProfile.requiredDisplayFontId || selectedProfile.requiredDisplayFontId === displayFont);
 
   function loadAttempts() {
     void attemptsRepository.list().then(setAttempts);
@@ -155,6 +169,9 @@ export function TypingMockExam({ layout, displayFont }: TypingMockExamProps) {
     setExamProfileId(profile?.id ?? "");
     setTestDuration(profile?.durationSeconds ?? 300);
     setBackspacePolicy(profile?.backspacePolicy ?? "full");
+    setApplyLimit(true);
+    setWordLimit(profile?.expectedWords ?? 600);
+    setAllowCorrection(profile?.backspacePolicy !== "disabled");
     setPaperIndex(0);
     resetToReady();
   }, [course.id, examProfiles]);
@@ -207,25 +224,14 @@ export function TypingMockExam({ layout, displayFont }: TypingMockExamProps) {
     void attemptsRepository.save(attempt);
   }, [attemptSaved, backspaceCount, builtInPassage.id, finished, kdph, layout, measuredSeconds, score, selectedProfile.id, weakKeys, wpm]);
 
-  function examProfileName(profileId: string) {
-    switch (profileId) {
-      case "general-english": return t("generalEnglishExam");
-      case "general-hindi": return t("generalHindiExam");
-      case "ssc-english-style": return t("sscEnglishExam");
-      case "ssc-hindi-style": return t("sscHindiExam");
-      case "railway-style": return t("railwayExam");
-      case "cpct-hindi-style": return t("cpctHindiExam");
-      case "court-hindi-style": return t("courtHindiExam");
-      case "data-entry-english": return t("dataEntryExam");
-      default: return profileId;
-    }
-  }
-
   function chooseProfile(profileId: string) {
     const profile = examProfiles.find((item) => item.id === profileId) ?? examProfiles[0];
     setExamProfileId(profile.id);
     setTestDuration(profile.durationSeconds);
     setBackspacePolicy(profile.backspacePolicy);
+    setApplyLimit(true);
+    setWordLimit(profile.expectedWords);
+    setAllowCorrection(profile.backspacePolicy !== "disabled");
     resetToReady();
   }
 
@@ -337,13 +343,30 @@ export function TypingMockExam({ layout, displayFont }: TypingMockExamProps) {
 
       <div className="mock-exam-grid">
         <main className="mock-exam-workstation">
-          <section className="mock-exam-profilebar">
-            <label>{t("examProfile")}<select disabled={!canConfigure} value={selectedProfile.id} onChange={(event) => chooseProfile(event.target.value)}>{examProfiles.map((profile) => <option key={profile.id} value={profile.id}>{examProfileName(profile.id)} · {profile.tier === "free" ? t("free") : t("pro")}</option>)}</select></label>
-            <div><span>{t("targetWpm")}</span><strong>{selectedProfile.targetWpm}</strong></div>
-            <div><span>{t("minimumAccuracy")}</span><strong>{selectedProfile.minimumAccuracy}%</strong></div>
+          <section className="mock-exam-profilebar verified-profilebar">
+            <label>{t("examProfile")}<select disabled={!canConfigure} value={selectedProfile.id} onChange={(event) => chooseProfile(event.target.value)}>{examProfiles.map((profile) => <option key={profile.id} value={profile.id}>{profile.name} · {profile.tier === "free" ? t("free") : t("pro")}</option>)}</select></label>
+            <div><span>Time</span><strong>{selectedProfile.durationSeconds / 60} min</strong></div>
+            <div><span>Qualifying speed</span><strong>{selectedProfile.scoringModel === "kdph" ? `${selectedProfile.targetKdph} KDPH` : `${selectedProfile.targetWpm} ${selectedProfile.scoringModel === "net-wpm" ? "NWPM" : "WPM"}`}</strong></div>
             <Button variant="outline" size="sm" disabled={!canConfigure} onClick={() => window.print()}><Printer aria-hidden="true" /> {t("printPassage")}</Button>
-            <p><AlertTriangle aria-hidden="true" /> {t("examDisclaimer")}</p>
+            <p><AlertTriangle aria-hidden="true" /> {selectedProfile.disclaimer}</p>
           </section>
+
+          <section className="official-rule-strip" aria-label="Exam rule reference">
+            <div><Landmark aria-hidden="true" /><span>{selectedProfile.verification === "official-reference" ? "Official-reference profile" : "Practice profile"}</span><strong>{selectedProfile.authority}</strong><small>Checked {selectedProfile.verifiedOn}</small></div>
+            <ul>{selectedProfile.rules.map((rule) => <li key={rule}>{rule}</li>)}</ul>
+            {selectedProfile.requiredLayoutLabel && <p><strong>Layout:</strong> {selectedProfile.requiredLayoutLabel}</p>}
+            {selectedProfile.officialSourceUrl && <a href={selectedProfile.officialSourceUrl} target="_blank" rel="noreferrer">{selectedProfile.officialSourceLabel ?? "Open official notice"} <ExternalLink aria-hidden="true" /></a>}
+          </section>
+
+          {!profileEnvironmentReady && (
+            <div className="exam-environment-warning" role="alert">
+              <AlertTriangle aria-hidden="true" />
+              <div>
+                <strong>Exam environment mismatch</strong>
+                <span>Select {requiredLayoutName}{requiredFontName ? ` with ${requiredFontName}` : ""} from the top bar before starting this official simulation.</span>
+              </div>
+            </div>
+          )}
 
           <section className="mock-passage-card">
             <div className="mock-card-header">
@@ -356,11 +379,11 @@ export function TypingMockExam({ layout, displayFont }: TypingMockExamProps) {
           </section>
 
           <div className="mock-control-strip">
-            <label>{t("duration")}<select disabled={!canConfigure} value={testDuration} onChange={(event) => { setTestDuration(Number(event.target.value)); resetToReady(); }}>{TEST_DURATIONS.map((seconds) => <option key={seconds} value={seconds}>{seconds / 60} {t("minutes")}</option>)}</select></label>
+            <label>{t("duration")}<select disabled={!canConfigure || selectedProfile.verification === "official-reference"} value={testDuration} onChange={(event) => { setTestDuration(Number(event.target.value)); resetToReady(); }}>{TEST_DURATIONS.map((seconds) => <option key={seconds} value={seconds}>{seconds / 60} {t("minutes")}</option>)}</select></label>
             <div className="paper-picker"><button type="button" disabled={!canConfigure} aria-label={t("previousPaper")} onClick={() => choosePaper(paperIndex - 1)}><ChevronLeft aria-hidden="true" /></button><label>{t("questionPaper")}<select disabled={!canConfigure} value={paperIndex} onChange={(event) => choosePaper(Number(event.target.value))}>{Array.from({ length: PAPER_COUNT }, (_, index) => <option key={index} value={index}>{t("testPaper")} {index + 1}/{PAPER_COUNT}</option>)}</select></label><button type="button" disabled={!canConfigure} aria-label={t("nextPaper")} onClick={() => choosePaper(paperIndex + 1)}><ChevronRight aria-hidden="true" /></button></div>
             <div className="mock-primary-actions">
-              {status === "ready" && <Button onClick={startExam}><Play aria-hidden="true" /> {t("startExam")}</Button>}
-              {status === "running" && <Button variant="outline" onClick={pauseExam}><Pause aria-hidden="true" /> {t("pauseExam")}</Button>}
+              {status === "ready" && <Button disabled={!profileEnvironmentReady} onClick={startExam}><Play aria-hidden="true" /> {t("startExam")}</Button>}
+              {status === "running" && selectedProfile.verification === "practice" && <Button variant="outline" onClick={pauseExam}><Pause aria-hidden="true" /> {t("pauseExam")}</Button>}
               {status === "paused" && <Button variant="outline" onClick={resumeExam}><Play aria-hidden="true" /> {t("resumeExam")}</Button>}
               {(status === "running" || status === "paused") && <Button variant="danger" onClick={submitExam}><Square aria-hidden="true" /> {t("submitExam")}</Button>}
               {finished && <Button onClick={resetToReady}><RotateCcw aria-hidden="true" /> {t("newMockTest")}</Button>}
@@ -389,6 +412,8 @@ export function TypingMockExam({ layout, displayFont }: TypingMockExamProps) {
             <section className={`mock-result-card ${passed ? "passed" : "needs-work"}`} aria-live="polite">
               <div><CheckCircle2 aria-hidden="true" /><span>{t("result")}</span><strong>{passed ? t("testPassed") : t("testNeedsPractice")}</strong></div>
               <MockMetric label="WPM" value={String(wpm)} />
+              <MockMetric label="Gross WPM" value={String(grossWpm)} />
+              <MockMetric label="NWPM" value={String(wordSpeed.netWpm)} />
               <MockMetric label="KDPH" value={String(kdph)} />
               <MockMetric label={t("accuracy")} value={`${score.accuracy}%`} />
               <MockMetric label={t("correctCharacters")} value={String(score.correctCharacters)} />
@@ -404,13 +429,13 @@ export function TypingMockExam({ layout, displayFont }: TypingMockExamProps) {
 
           <section className="attempt-history compact" aria-labelledby="mock-history-title">
             <div><h2 id="mock-history-title"><History aria-hidden="true" /> {t("attemptHistory")}</h2>{layoutAttempts.length > 0 && <Button size="sm" variant="danger" onClick={() => void clearHistory()}><Trash2 aria-hidden="true" /> {t("clearHistory")}</Button>}</div>
-            {layoutAttempts.length === 0 ? <p>{t("noAttempts")}</p> : <div className="attempt-table"><div className="attempt-row heading"><span>{t("exercise")}</span><span>{t("accuracy")}</span><span>WPM</span><span>KDPH</span><span>{t("duration")}</span></div>{layoutAttempts.slice(0, 6).map((attempt) => <div className="attempt-row" key={attempt.id}><span><Award aria-hidden="true" /> {examProfileName(attempt.examProfileId ?? "")}<small>{new Date(attempt.completedAt).toLocaleString(language === "hi" ? "hi-IN" : "en-IN")}</small></span><strong>{attempt.accuracy}%</strong><strong>{attempt.wpm}</strong><strong>{attempt.kdph}</strong><strong>{formatTime(attempt.elapsedSeconds)}</strong></div>)}</div>}
+            {layoutAttempts.length === 0 ? <p>{t("noAttempts")}</p> : <div className="attempt-table"><div className="attempt-row heading"><span>{t("exercise")}</span><span>{t("accuracy")}</span><span>WPM</span><span>KDPH</span><span>{t("duration")}</span></div>{layoutAttempts.slice(0, 6).map((attempt) => <div className="attempt-row" key={attempt.id}><span><Award aria-hidden="true" /> {examProfiles.find((profile) => profile.id === attempt.examProfileId)?.shortName ?? attempt.examProfileId}<small>{new Date(attempt.completedAt).toLocaleString(language === "hi" ? "hi-IN" : "en-IN")}</small></span><strong>{attempt.accuracy}%</strong><strong>{attempt.wpm}</strong><strong>{attempt.kdph}</strong><strong>{formatTime(attempt.elapsedSeconds)}</strong></div>)}</div>}
           </section>
         </main>
 
         <aside className="mock-settings" aria-label={t("mockSettings") }>
           <div className="mock-settings-title"><Settings2 aria-hidden="true" /><div><strong>{t("mockSettings")}</strong><small>{canConfigure ? t("configureBeforeStart") : t("lockedAfterStart")}</small></div></div>
-          <fieldset disabled={!canConfigure}>
+          <fieldset disabled={!canConfigure || selectedProfile.verification === "official-reference"}>
             <legend>{t("backspaceOptions")}</legend>
             <RadioOption checked={backspacePolicy === "full"} onChange={() => setBackspacePolicy("full")} label={t("fullBackspace")} />
             <RadioOption checked={backspacePolicy === "current-word"} onChange={() => setBackspacePolicy("current-word")} label={t("currentWordOnly")} />

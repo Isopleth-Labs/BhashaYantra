@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { analyzeWeakKeys, calculateKdph, calculateTrainingScore, calculateWpm, getFingerForKey, getNextExpectedKey, TRAINING_LESSONS } from "@/domain/training/training-engine";
+import { analyzeWeakKeys, calculateKdph, calculateTrainingScore, calculateWordSpeed, calculateWpm, getFingerForKey, getNextExpectedKey, TRAINING_LESSONS } from "@/domain/training/training-engine";
 
 describe("training engine", () => {
   it("provides lessons for every ready layout", () => {
@@ -23,6 +23,17 @@ describe("training engine", () => {
     expect(calculateWpm(50, 60)).toBe(10);
     expect(calculateWpm(0, 60)).toBe(0);
     expect(calculateKdph(300, 60)).toBe(18000);
+  });
+
+  it("calculates CPCT-style gross and net word speed", () => {
+    expect(calculateWordSpeed("one two three four", "one too three", 60)).toEqual({
+      correctWords: 2,
+      incorrectWords: 1,
+      grossWords: 3,
+      grossWpm: 3,
+      netWpm: 2,
+      wordAccuracy: 67,
+    });
   });
 
   it("reports weak keys and next-finger guidance", () => {

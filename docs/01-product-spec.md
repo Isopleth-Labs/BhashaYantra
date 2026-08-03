@@ -97,11 +97,12 @@ The start screen contains both typing modes, the Exchange Converter, character b
 
 - Four ready layout courses: BhashaYantra Smart, Classic Hindi/KrutiDev, Devanagari INSCRIPT, and English QWERTY.
 - 300 original exercises per course: 60 key drills, 90 word drills, 90 sentence drills, and 60 paragraph drills.
-- Twenty key modules progress through three drill modes; professional vocabulary is grouped by real work topics and every word lesson contains at least 28 distinct terms.
+- Twenty key modules progress through Precision, Alternation, and Fluency Review lessons. Each key lesson is divided into Warm-up, Control, Application, and Checkpoint blocks.
+- Professional vocabulary is grouped by real work topics; every word lesson contains at least 28 distinct terms and Recognition, Recall, and Timed Set blocks.
 - Every lesson exposes a name, module, objective, difficulty, mastery-accuracy requirement, recommended WPM, estimated duration, and content size.
 - Sentence lessons contain at least 70 words and paragraph lessons contain at least 180 words in two-paragraph form.
 - 1,200 exercises in catalog version 1, with 160 marked Free and 1,040 marked Pro.
-- Guided lessons require the configured mastery accuracy before the Next Lesson action is unlocked.
+- Lessons unlock sequentially inside each stage. A lesson requires its configured mastery accuracy and one-to-three clean saved passes before Next Lesson unlocks.
 - Hindi Unicode-aware comparison.
 - WPM, KDPH, accuracy, and error breakdown.
 - Weak-key and repeated-error reporting.
@@ -111,13 +112,14 @@ The start screen contains both typing modes, the Exchange Converter, character b
 ### 5.7 Typing Test
 
 - Configurable duration and passage.
-- Exam simulation profiles with explicit duration, target speed, accuracy, backspace, language, and tier rules.
-- Every exam-style profile is labelled as a practice simulation; users must verify the current official notice.
+- Exam simulation profiles with explicit duration, target speed, scoring model, correction policy, language, tier, verification date, and official source where applicable.
+- Official-reference profiles are derived from cited public notices or rules; flexible baselines remain clearly labelled as BhashaYantra practice profiles. Users must still verify their own recruitment cycle.
 - Focused workstation separates the scrollable question passage from the large answer editor and hides unrelated dashboard panels.
 - Explicit `Ready → Running ↔ Paused → Submitted/Expired` lifecycle; typing and configuration stay locked outside their valid states.
 - At least 60 selectable papers per ready layout, with long built-in passages and optional custom Unicode passage input.
 - Full/current-word/disabled backspace, word/error/letter/no-highlight, scrollbar, auto-scroll, 150–1,200 word limit, paragraph, tab, correction, font-size, and print controls.
-- Gross speed, net speed, accuracy, full mistakes, half mistakes, missing text, extra text, and backspace count.
+- Correct WPM, gross WPM, NWPM, KDPH, accuracy, missing text, extra text, substitutions, and backspace count.
+- A verified layout/font requirement blocks Start until the matching environment is selected.
 - Immutable completed-result summary.
 - Result history and export.
 

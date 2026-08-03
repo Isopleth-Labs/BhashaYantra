@@ -34,6 +34,15 @@ export interface KeyMistake {
   readonly accuracy: number;
 }
 
+export interface WordSpeedScore {
+  readonly correctWords: number;
+  readonly incorrectWords: number;
+  readonly grossWords: number;
+  readonly grossWpm: number;
+  readonly netWpm: number;
+  readonly wordAccuracy: number;
+}
+
 export const TRAINING_LESSONS: Readonly<Record<ReadyTypingLayoutId, readonly TrainingLesson[]>> = {
   "bhashayantra-smart": [
     { id: "smart-1", keys: "namaste bharat" },
@@ -92,6 +101,28 @@ export function calculateWpm(characterCount: number, elapsedSeconds: number) {
 export function calculateKdph(keyCount: number, elapsedSeconds: number) {
   if (keyCount === 0 || elapsedSeconds < 1) return 0;
   return Math.max(0, Math.round((keyCount / elapsedSeconds) * 3600));
+}
+
+export function calculateWordSpeed(expected: string, actual: string, elapsedSeconds: number): WordSpeedScore {
+  const expectedWords = expected.trim().split(/\s+/u).filter(Boolean);
+  const actualWords = actual.trim().split(/\s+/u).filter(Boolean);
+  const correctWords = actualWords.reduce(
+    (total, word, index) => total + (word === expectedWords[index] ? 1 : 0),
+    0,
+  );
+  const grossWords = actualWords.length;
+  const incorrectWords = Math.max(0, grossWords - correctWords);
+  const minutes = Math.max(1, elapsedSeconds) / 60;
+  const grossWpm = Math.round(grossWords / minutes);
+  const netWpm = Math.round(correctWords / minutes);
+  return {
+    correctWords,
+    incorrectWords,
+    grossWords,
+    grossWpm,
+    netWpm,
+    wordAccuracy: grossWords === 0 ? 100 : Math.round((correctWords / grossWords) * 100),
+  };
 }
 
 export function analyzeWeakKeys(expected: string, actual: string): readonly KeyMistake[] {

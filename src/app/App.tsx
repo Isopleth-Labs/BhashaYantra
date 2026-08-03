@@ -232,8 +232,7 @@ export default function App() {
       return current === "segoe-ui" ? "noto-devanagari" : current;
     });
     if (language === "en") setOutputMode("unicode");
-    setActiveNav("start");
-    setStartTool("typing");
+    if (activeNav === "start") setStartTool("typing");
     setAdvancedOpen(false);
   }
 
@@ -292,7 +291,7 @@ export default function App() {
         outputMode={outputMode} onOutputModeChange={setOutputMode}
       />
 
-      <div className={activeNav === "test" ? "app-body exam-active" : "app-body"}>
+      <div className={activeNav === "test" || activeNav === "practice" ? "app-body exam-active" : "app-body"}>
         <aside className="sidebar" aria-label={t("menu")}>
           <nav>
             {navItems.map(({ id, labelKey, icon: Icon }) => (
@@ -347,7 +346,7 @@ export default function App() {
           ) : <FeaturePlaceholder title={activeNavLabel} onReturn={() => setActiveNav("start")} />}
         </section>
 
-        {activeNav !== "test" && (
+        {activeNav !== "test" && activeNav !== "practice" && (
           <aside className="right-rail" aria-label={t("shortcutManager")}>
             {typingLanguage === "hi" && <ShortcutManager query={shortcutQuery} onQueryChange={setShortcutQuery} shortcuts={filteredShortcuts} onInsert={insertCharacter} onOpen={() => setShortcutLibraryOpen(true)} />}
             <DocumentConverter onOpen={() => { setActiveNav("start"); setStartTool("converter"); }} />

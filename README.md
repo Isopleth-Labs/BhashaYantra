@@ -29,13 +29,15 @@ The approved design source is preserved at [docs/assets/bhashayantra-final-refer
 - Text-file open, paste, clear, copy, and download actions.
 - Selectable Unicode preview fonts: Noto Sans Devanagari, Mangal, Nirmala UI, and Segoe UI for English.
 - Original 1,200-exercise professional curriculum: 300 exercises for each ready layout, split into Learn Keys (60), Practice Words (90), Sentences (90), and Paragraphs (60).
-- Progressive key modules use Precision, Alternation, and Fluency Review drills; word lessons contain at least 28 distinct professional words; sentence and paragraph lessons provide sustained original material instead of short rotating samples.
+- Academy-style course map with sequential lesson locks, module progress, accuracy gates, and one-to-three required clean passes before mastery.
+- Key lessons use Warm-up, Control, Application, and Checkpoint blocks; word lessons use Recognition, Recall, and Timed Set blocks; sentence and paragraph lessons provide sustained original copy instead of short rotating samples.
 - 160 Free exercises and 1,040 Pro-marked exercises. These tier labels are catalog metadata until signed entitlement and billing enforcement are implemented.
 - Guided layout-specific practice with named lessons, objectives, mastery accuracy, recommended speed, word/character counts, exercise selection, progressive difficulty, target keys, next-key/finger guidance, clickable keyboard, error sound, text-size, and backspace controls.
-- Eight clearly labelled non-official exam simulations covering general Hindi/English, SSC-style, Railway-style, CPCT-style, Court-style, and English data-entry practice.
-- Focused mock-exam workstation with 60 papers per layout, 1,200-word source passages, explicit Start/Pause/Resume/Submit states, and automatic timeout submission.
+- Twelve exam profiles: two flexible BhashaYantra baselines and ten official-reference profiles for SSC CHSL/D.E.S.T., MP CPCT, Rajasthan High Court, and Allahabad High Court.
+- Focused mock-exam workstation with 60 papers per layout, rule-specific duration/speed/backspace controls, official source links, explicit Start/Pause/Resume/Submit states, and automatic timeout submission.
 - Configurable 1/5/10/15-minute tests with backspace rules, word/letter/error highlighting, passage auto-scroll, 150–1,200 word limits, paragraphs/tabs/correction controls, custom Unicode passage input, and print view.
-- Completed mock results include accuracy, WPM, KDPH, correct/missing/extra/substituted characters, correction count, weak-key analysis, and the scoring-rule notice.
+- Completed mock results include accuracy, correct WPM, gross WPM, NWPM, KDPH, correct/missing/extra/substituted characters, correction count, weak-key analysis, and the scoring-rule notice.
+- Official-profile environment guard blocks a test when a verified layout/font requirement is not selected, such as Devanagari INSCRIPT with Mangal for the referenced Allahabad High Court Hindi profile.
 - Versioned offline attempt repository with per-layout history, completed-exercise count, best scores, average accuracy, recent-speed trend, and history deletion.
 - Light/dark design tokens and Hindi font fallbacks.
 - Character browser, shortcut search, honest document-engine readiness card, and test summary.
@@ -44,7 +46,7 @@ The approved design source is preserved at [docs/assets/bhashayantra-final-refer
 - Local and Supabase user-preference repository implementations.
 - Tauri 2 configuration with allowlisted dialog and text-file permissions.
 - Tested Free/Pro/Institution feature-entitlement vocabulary for future secure billing integration.
-- Thirty-eight automated converter/typing/training/repository/licensing tests, strict TypeScript checking, and production frontend build.
+- Forty-two automated converter/typing/training/repository/licensing tests, strict TypeScript checking, and production frontend build.
 
 ## Final product direction
 
@@ -81,6 +83,7 @@ Start with [Documentation Index](docs/00-documentation-index.md).
 - [Development Roadmap](docs/07-development-roadmap.md)
 - [Implementation Status](docs/08-implementation-status.md)
 - [Business Model](docs/09-business-model.md)
+- [Training and Exam Validation](docs/10-training-exam-validation.md)
 
 ## Download
 
@@ -212,7 +215,7 @@ The first Tauri build can take longer because Rust dependencies must be download
 
 ## Verified build status
 
-The current workspace has passed strict TypeScript checking, thirty-eight converter/typing/training/repository/licensing unit tests, eight database/RLS tests, Drizzle configuration validation, Supabase schema linting, Rust formatting and Clippy checks, frontend production build, browser interaction QA, desktop executable build, and both Windows installer builds.
+The current workspace has passed strict TypeScript checking, forty-two converter/typing/training/repository/licensing unit tests, eight database/RLS tests, Drizzle configuration validation, Supabase schema linting, Rust formatting and Clippy checks, frontend production build, browser interaction QA, desktop executable build, and both Windows installer builds.
 
 ## Database workflow
 

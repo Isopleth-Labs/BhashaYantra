@@ -1,9 +1,16 @@
 import { typingSourceToUnicode, unicodeToTypingSource } from "@/domain/typing/typing-engine";
 import { TYPING_LAYOUT_PROFILES, type ReadyTypingLayoutId, type TypingLanguageCode } from "@/domain/typing/typing-profiles";
-import { buildCanonicalLesson } from "@/domain/training/curriculum-content";
+import { buildCanonicalLesson, type LessonPracticeMode } from "@/domain/training/curriculum-content";
 
 export type CurriculumStageId = "learn-keys" | "practice-words" | "sentences" | "paragraphs";
 export type ExerciseTier = "free" | "pro";
+
+export interface CurriculumDrillBlock {
+  readonly label: string;
+  readonly purpose: string;
+  readonly keys: string;
+  readonly target: string;
+}
 
 export interface CurriculumExercise {
   readonly id: string;
@@ -11,9 +18,16 @@ export interface CurriculumExercise {
   readonly stageId: CurriculumStageId;
   readonly sequence: number;
   readonly title: string;
+  readonly phaseTitle: string;
   readonly moduleTitle: string;
+  readonly moduleLesson: number;
+  readonly moduleLessonCount: number;
   readonly drillLabel: string;
   readonly objective: string;
+  readonly competency: string;
+  readonly practiceMode: LessonPracticeMode;
+  readonly requiredPasses: number;
+  readonly drillBlocks: readonly CurriculumDrillBlock[];
   readonly keys: string;
   readonly target: string;
   readonly focusKeys: readonly string[];
@@ -65,6 +79,18 @@ const STAGE_DEFINITIONS: readonly {
   { id: "paragraphs", title: "Type Paragraphs", description: "Prepare for sustained office and exam passages.", count: 60, difficulty: 4 },
 ] as const;
 
+const STAGE_PHASES: Readonly<Record<CurriculumStageId, readonly string[]>> = {
+  "learn-keys": ["Orientation", "Finger Control", "Keyboard Coverage", "Mastery Checkpoints"],
+  "practice-words": ["Core Vocabulary", "Office Operations", "Government & Legal"],
+  sentences: ["Sentence Accuracy", "Administrative Flow", "Timed Composition"],
+  paragraphs: ["Document Copy", "Government Passages", "Exam Readiness"],
+};
+
+function phaseFor(stageId: CurriculumStageId, index: number, count: number) {
+  const phases = STAGE_PHASES[stageId];
+  return phases[Math.min(phases.length - 1, Math.floor(index / Math.ceil(count / phases.length)))];
+}
+
 function focusKeysFor(value: string) {
   return Array.from(new Set(Array.from(value.toLocaleLowerCase()).filter((key) => /[^\s]/u.test(key)))).slice(0, 12);
 }
@@ -87,6 +113,15 @@ function buildExercise(
   const characterCount = Array.from(keys).length;
   const wordCount = keys.trim() ? keys.trim().split(/\s+/u).length : 0;
   const difficulty = Math.min(5, stage.difficulty + Math.floor(index / Math.max(1, stage.count / 3))) as 1 | 2 | 3 | 4 | 5;
+  const moduleLessonCount = stage.id === "learn-keys" ? 3 : stage.id === "paragraphs" ? 4 : 6;
+  const moduleLesson = (index % moduleLessonCount) + 1;
+  const drillBlocks = lesson.drillBlocks.map((block) => {
+    const canonicalBlockTarget = typingSourceToUnicode(block.content, isEnglish ? "english-qwerty" : "bhashayantra-smart").output;
+    const blockSource = layoutId === "bhashayantra-smart" || isEnglish
+      ? block.content
+      : unicodeToTypingSource(canonicalBlockTarget, layoutId).output;
+    return { label: block.label, purpose: block.purpose, keys: blockSource, target: canonicalBlockTarget };
+  });
 
   return {
     id: `${layoutId}-${stage.id}-${String(sequence).padStart(3, "0")}`,
@@ -94,9 +129,16 @@ function buildExercise(
     stageId: stage.id,
     sequence,
     title: lesson.title,
+    phaseTitle: phaseFor(stage.id, index, stage.count),
     moduleTitle: lesson.moduleTitle,
+    moduleLesson,
+    moduleLessonCount,
     drillLabel: lesson.drillLabel,
     objective: lesson.objective,
+    competency: lesson.competency,
+    practiceMode: lesson.practiceMode,
+    requiredPasses: lesson.requiredPasses,
+    drillBlocks,
     keys,
     target: canonicalTarget,
     focusKeys: focusKeysFor(keys),

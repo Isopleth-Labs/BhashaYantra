@@ -153,19 +153,20 @@ Comparison uses Unicode normalization and grapheme-aware segmentation so a visua
 - Each layout has 60 key drills, 90 word drills, 90 sentence drills, and 60 paragraph drills.
 - Canonical Hindi targets are generated through the BhashaYantra Smart engine; Classic and INSCRIPT source keys are obtained through deterministic inverse mappings and then round-trip validated.
 - Every exercise has a stable ID, sequence, focus keys, difficulty, estimated duration, tier, and conversion-warning count.
-- Professional metadata also records the module, drill type, objective, mastery accuracy, recommended WPM, word count, and character count.
-- Key training advances through Precision, Alternation, and Fluency Review. Word lessons reject duplicate terms within the same lesson; sentence and paragraph lessons enforce minimum depth.
-- A completed lesson is counted as mastered only when its saved accuracy meets that lesson's threshold. The learner can reset and repeat a completed-but-unmastered attempt.
+- Professional metadata also records phase, module position, competency, practice mode, drill blocks, mastery accuracy, required clean passes, recommended WPM, word count, and character count.
+- Key training advances through Precision, Alternation, and Fluency Review. Each lesson contains four purposeful drill blocks. Word lessons reject duplicate terms and contain Recognition, Recall, and Timed Set blocks; sentence and paragraph lessons enforce minimum depth.
+- A lesson is mastered only after its saved clean-run count reaches the lesson requirement. Later lessons inside the stage remain locked until the previous lesson is mastered.
 - KrutiDev short-i reordering keeps the matra after the full consonant cluster, including forms such as `स्थिरता`, `पंक्ति`, `प्रविष्टि`, and `प्रक्रिया`.
 - The content is original project material. Competitor exercises, logos, and proprietary exam screens are not copied.
 
 ### Current attempt analysis
 
 - Positional comparison reports correct, missing, extra, and substituted characters.
-- WPM uses five source characters per word; KDPH uses typed key depressions per elapsed hour.
+- Correct WPM uses correct characters divided by five per elapsed minute; gross WPM uses all typed characters; KDPH uses correct key depressions per elapsed hour.
+- CPCT-style NWPM uses correctly matched words per elapsed minute and is evaluated independently of arbitrary accuracy thresholds.
 - Weak-key analysis ranks expected source keys that were missing or substituted.
 - Completed practice and submitted/expired tests are persisted once with an immutable attempt ID and timestamp.
-- Full/half-mistake deductions and official-exam-specific net-speed formulas remain a later, separately validated scoring-profile version.
+- Recruitment-specific full/half-mistake deduction formulas that are not yet independently validated remain a later scoring-profile version; the current profile never invents such deductions.
 
 ### Mock-exam workstation state
 
@@ -177,6 +178,8 @@ Submitted/Expired → Ready (new paper)
 
 - The timer starts only from the explicit Start command, not from the first typed key.
 - Profile, duration, paper, word limit, highlighting, scrolling, correction, and custom-passage settings lock when the exam starts.
+- Official-reference duration and correction policy lock before the exam. Pause is unavailable during official-reference runs.
+- A profile with a verified layout/font requirement cannot start in a mismatched environment.
 - Pause freezes elapsed time and disables typing; Resume continues from the accumulated elapsed time.
 - Submit and timeout both create one immutable test attempt; completing the visible passage early does not silently finish the exam.
 - Passage rendering supports current-word, word-error, letter, and no-highlight modes without changing the scoring text.

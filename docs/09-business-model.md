@@ -32,10 +32,10 @@ The free tier must solve a real problem. Artificial typing delays, intrusive adv
 ### Current curriculum packaging
 
 - Catalog v1 contains 1,200 original exercises across four ready layouts.
-- Curriculum depth is a paid-value differentiator: named progressive modules, at least 28 distinct terms per word lesson, long-form sentence/paragraph practice, and mastery thresholds replace artificial exercise-count inflation.
+- Curriculum depth is a paid-value differentiator: named progressive modules, multi-block drills, at least 28 distinct terms per word lesson, long-form sentence/paragraph practice, sequential locks, and repeated mastery passes replace artificial exercise-count inflation.
 - The first 10 exercises in each of four stages are Free: 40 per layout and 160 total.
 - The remaining 1,040 exercises are marked Pro for future packaging.
-- General Hindi and English simulations are marked Free; specialized exam-style simulations are marked Pro.
+- General Hindi and English baselines are marked Free; ten source-cited official-reference profiles are marked Pro.
 - These labels currently explain the planned product boundary only. The development build does not block Pro content because signed entitlements, account recovery, billing, and offline grace are not implemented yet.
 - No payment should be accepted until the monetization release gate below passes.
 

@@ -1,6 +1,13 @@
 import { HINDI_PROFESSIONAL_LEXICON } from "@/domain/typing/hindi-professional-lexicon";
 
 export type CanonicalCurriculumStageId = "learn-keys" | "practice-words" | "sentences" | "paragraphs";
+export type LessonPracticeMode = "guided" | "accuracy" | "flow" | "exam";
+
+export interface CanonicalDrillBlock {
+  readonly label: string;
+  readonly purpose: string;
+  readonly content: string;
+}
 
 export interface CanonicalLessonSeed {
   readonly title: string;
@@ -8,6 +15,10 @@ export interface CanonicalLessonSeed {
   readonly drillLabel: string;
   readonly objective: string;
   readonly content: string;
+  readonly competency: string;
+  readonly practiceMode: LessonPracticeMode;
+  readonly requiredPasses: number;
+  readonly drillBlocks: readonly CanonicalDrillBlock[];
   readonly minimumAccuracy: number;
   readonly targetWpm: number;
 }
@@ -205,7 +216,7 @@ function buildKeyUnits(current: readonly string[], review: readonly string[], hi
     const group = rotateUnique(active, index, Math.min(5, active.length));
     return hindi ? group.join(" ") : group.join("");
   });
-  return unique([...repeated, ...alternated, ...grouped]);
+  return { repeated, alternated, grouped, all: unique([...repeated, ...alternated, ...grouped]) };
 }
 
 function buildKeyLesson(index: number, english: boolean): CanonicalLessonSeed {
@@ -218,13 +229,39 @@ function buildKeyLesson(index: number, english: boolean): CanonicalLessonSeed {
     ? modules.slice(Math.max(0, moduleIndex - 2), moduleIndex).flatMap((item) => item.keys)
     : [];
   const units = buildKeyUnits(module.keys, previous, !english);
-  const content = fillDrill(units, index * 5 + variation, 240 + moduleIndex * 8 + variation * 30);
+  const drillBlocks: readonly CanonicalDrillBlock[] = [
+    {
+      label: "Warm-up",
+      purpose: "Set finger position and establish a controlled rhythm.",
+      content: fillDrill(units.repeated, index * 3, 72 + moduleIndex * 2),
+    },
+    {
+      label: "Control",
+      purpose: "Alternate the active keys without watching the keyboard.",
+      content: fillDrill(units.alternated, index * 5 + 1, 84 + variation * 12),
+    },
+    {
+      label: "Application",
+      purpose: "Mix the new movement with previously learned keys.",
+      content: fillDrill(units.grouped, index * 7 + 2, 96 + moduleIndex * 3),
+    },
+    {
+      label: "Checkpoint",
+      purpose: "Finish one uninterrupted accuracy run at the lesson target.",
+      content: fillDrill(units.all, index * 11 + 3, 120 + moduleIndex * 4),
+    },
+  ];
+  const content = drillBlocks.map((block) => block.content).join("\n");
   return {
     title: `${module.title} — ${drill.label}`,
     moduleTitle: module.title,
     drillLabel: drill.label,
     objective: `${module.objective} ${drill.objective}`,
     content,
+    competency: variation === 0 ? "Position" : variation === 1 ? "Control" : "Retention",
+    practiceMode: variation === 2 ? "accuracy" : "guided",
+    requiredPasses: variation === 2 ? 2 : 1,
+    drillBlocks,
     minimumAccuracy: Math.min(98, 92 + Math.floor(moduleIndex / 4) + variation),
     targetWpm: 10 + Math.floor(moduleIndex / 2) + variation,
   };
@@ -239,13 +276,24 @@ function buildWordLesson(index: number, english: boolean): CanonicalLessonSeed {
   const previous = modules[(moduleIndex + modules.length - 1) % modules.length];
   const next = modules[(moduleIndex + 1) % modules.length];
   const pool = unique([...module.words, ...next.words, ...previous.words]);
-  const selected = rotateUnique(pool, variation + moduleIndex * 7, 28 + variation);
+  const selected = rotateUnique(pool, variation + moduleIndex * 7, 30 + variation);
+  const firstBreak = Math.ceil(selected.length / 3);
+  const secondBreak = firstBreak * 2;
+  const drillBlocks: readonly CanonicalDrillBlock[] = [
+    { label: "Recognition", purpose: "Read and type the core vocabulary without correction pressure.", content: selected.slice(0, firstBreak).join(" ") },
+    { label: "Recall", purpose: "Type the mixed vocabulary while maintaining clean word spacing.", content: selected.slice(firstBreak, secondBreak).join(" ") },
+    { label: "Timed set", purpose: "Complete the final word group at the recommended speed.", content: selected.slice(secondBreak).join(" ") },
+  ];
   return {
     title: `${module.title} — Word Set ${variation + 1}`,
     moduleTitle: module.title,
     drillLabel: `Word Set ${variation + 1}`,
-    objective: `Type ${selected.length} distinct professional words with clean spacing and no repeated word inside the lesson.`,
-    content: selected.join(" "),
+    objective: `Master ${selected.length} distinct professional words through recognition, recall, and a timed set.`,
+    content: drillBlocks.map((block) => block.content).join("\n"),
+    competency: module.title,
+    practiceMode: variation < 3 ? "accuracy" : "flow",
+    requiredPasses: variation < 4 ? 1 : 2,
+    drillBlocks,
     minimumAccuracy: Math.min(98, 94 + Math.floor(index / 30)),
     targetWpm: 18 + Math.floor(index / 15),
   };
@@ -271,13 +319,24 @@ function buildSentenceLesson(index: number, english: boolean): CanonicalLessonSe
   const count = 7 + Math.floor(index / 30);
   const sentenceBuilder = english ? englishSentence : hindiSentence;
   const sentences = Array.from({ length: count }, (_, offset) => sentenceBuilder(index * 13 + offset * 17));
-  const content = sentences.join(" ");
+  const normalized = sentences.map((sentence) => english ? sentence : sentence.replace(/\./gu, ""));
+  const blockSize = Math.ceil(normalized.length / 3);
+  const drillBlocks: readonly CanonicalDrillBlock[] = [
+    { label: "Short flow", purpose: "Keep word spacing and matra or punctuation placement accurate.", content: normalized.slice(0, blockSize).join(" ") },
+    { label: "Continuous copy", purpose: "Maintain rhythm through a longer uninterrupted sentence group.", content: normalized.slice(blockSize, blockSize * 2).join(" ") },
+    { label: "Accuracy gate", purpose: "Complete the final group above the minimum accuracy target.", content: normalized.slice(blockSize * 2).join(" ") },
+  ];
+  const content = drillBlocks.map((block) => block.content).join("\n");
   return {
     title: `${SENTENCE_TOPICS[topicIndex]} — Sentence Flow ${variation + 1}`,
     moduleTitle: SENTENCE_TOPICS[topicIndex],
     drillLabel: `Sentence Flow ${variation + 1}`,
     objective: `Maintain rhythm across ${count} original sentences while preserving spacing, capitals, and punctuation.`,
-    content: english ? content : content.replace(/\./gu, ""),
+    content,
+    competency: SENTENCE_TOPICS[topicIndex],
+    practiceMode: "flow",
+    requiredPasses: variation < 3 ? 1 : 2,
+    drillBlocks,
     minimumAccuracy: Math.min(98, 95 + Math.floor(index / 30)),
     targetWpm: 24 + Math.floor(index / 15),
   };
@@ -292,13 +351,23 @@ function buildParagraphLesson(index: number, english: boolean): CanonicalLessonS
   const midpoint = Math.ceil(sentences.length / 2);
   const firstParagraph = sentences.slice(0, midpoint).join(" ");
   const secondParagraph = sentences.slice(midpoint).join(" ");
-  const content = `${firstParagraph}\n\n${secondParagraph}`;
+  const normalizedFirst = english ? firstParagraph : firstParagraph.replace(/\./gu, "");
+  const normalizedSecond = english ? secondParagraph : secondParagraph.replace(/\./gu, "");
+  const drillBlocks: readonly CanonicalDrillBlock[] = [
+    { label: "Document copy", purpose: "Copy the first paragraph with formal spacing and punctuation discipline.", content: normalizedFirst },
+    { label: "Exam run", purpose: "Continue without interruption and finish at the target speed.", content: normalizedSecond },
+  ];
+  const content = drillBlocks.map((block) => block.content).join("\n\n");
   return {
     title: `${PARAGRAPH_TOPICS[topicIndex]} — Passage ${variation + 1}`,
     moduleTitle: PARAGRAPH_TOPICS[topicIndex],
     drillLabel: `Passage ${variation + 1}`,
     objective: `Complete a sustained two-paragraph passage with at least ${96 + Math.floor(index / 30)}% accuracy.`,
-    content: english ? content : content.replace(/\./gu, ""),
+    content,
+    competency: PARAGRAPH_TOPICS[topicIndex],
+    practiceMode: "exam",
+    requiredPasses: variation < 3 ? 2 : 3,
+    drillBlocks,
     minimumAccuracy: 96 + Math.floor(index / 30),
     targetWpm: 30 + Math.floor(index / 12),
   };

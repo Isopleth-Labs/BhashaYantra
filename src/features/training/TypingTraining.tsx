@@ -9,6 +9,8 @@ import {
   Gauge,
   History,
   Keyboard,
+  Layers3,
+  LockKeyhole,
   RotateCcw,
   Settings2,
   Target,
@@ -128,20 +130,39 @@ export function TypingTraining({ kind, layout, displayFont }: TypingTrainingProp
   const keyboard = keyboardForLayout(layout);
   const courseExercises = useMemo(() => course.stages.flatMap((stage) => stage.exercises), [course]);
   const exerciseById = useMemo(() => new Map(courseExercises.map((item) => [item.id, item])), [courseExercises]);
+  const masteryPasses = useMemo(() => {
+    const counts = new Map<string, number>();
+    attempts
+      .filter((attempt) => attempt.kind === "practice" && attempt.layoutId === layout)
+      .forEach((attempt) => {
+        const lesson = exerciseById.get(attempt.exerciseId);
+        if (!lesson || attempt.accuracy < lesson.minimumAccuracy) return;
+        counts.set(attempt.exerciseId, (counts.get(attempt.exerciseId) ?? 0) + 1);
+      });
+    return counts;
+  }, [attempts, exerciseById, layout]);
   const completedExerciseIds = useMemo(
     () => new Set(
-      attempts
-        .filter((attempt) => attempt.kind === "practice" && attempt.layoutId === layout)
-        .filter((attempt) => attempt.accuracy >= (exerciseById.get(attempt.exerciseId)?.minimumAccuracy ?? 100))
-        .map((attempt) => attempt.exerciseId),
+      courseExercises
+        .filter((lesson) => (masteryPasses.get(lesson.id) ?? 0) >= lesson.requiredPasses)
+        .map((lesson) => lesson.id),
     ),
-    [attempts, exerciseById, layout],
+    [courseExercises, masteryPasses],
   );
   const layoutAttempts = attempts.filter((attempt) => attempt.layoutId === layout && attempt.kind === "practice");
   const layoutName = TYPING_LAYOUT_PROFILES.find((profile) => profile.id === layout)?.name ?? layout;
   const fontStack = getDisplayFont(displayFont).cssStack;
   const passed = kind === "test" && finished && wpm >= selectedProfile.targetWpm && score.accuracy >= selectedProfile.minimumAccuracy;
   const lessonPassed = kind === "practice" && finished && score.accuracy >= exercise.minimumAccuracy;
+  const currentMasteryPasses = masteryPasses.get(exercise.id) ?? 0;
+  const projectedMasteryPasses = currentMasteryPasses + (lessonPassed && !attemptSaved ? 1 : 0);
+  const lessonMastered = projectedMasteryPasses >= exercise.requiredPasses;
+  const moduleExercises = selectedStage.exercises.filter((item) => item.moduleTitle === exercise.moduleTitle);
+  const activeBlockIndex = exercise.drillBlocks.findIndex((_, blockIndex) => {
+    const previousLength = exercise.drillBlocks.slice(0, blockIndex).reduce((total, block) => total + Array.from(block.keys).length + 1, 0);
+    const blockEnd = previousLength + Array.from(exercise.drillBlocks[blockIndex].keys).length;
+    return Array.from(source).length <= blockEnd;
+  });
 
   function loadAttempts() {
     void attemptsRepository.list().then(setAttempts);
@@ -217,6 +238,8 @@ export function TypingTraining({ kind, layout, displayFont }: TypingTrainingProp
   }
 
   function chooseExercise(nextIndex: number) {
+    const previous = selectedStage.exercises[nextIndex - 1];
+    if (nextIndex > 0 && previous && !completedExerciseIds.has(previous.id)) return;
     setExerciseIndex(nextIndex);
     resetSession();
   }
@@ -303,146 +326,77 @@ export function TypingTraining({ kind, layout, displayFont }: TypingTrainingProp
   }
 
   return (
-    <section className="training-card" aria-labelledby="training-title">
-      <div className="training-heading">
+    <section className="academy" aria-labelledby="training-title">
+      <header className="academy-header">
         <div>
-          <span className="training-kicker">{layoutName} · {course.exerciseCount} {t("exerciseCatalog")}</span>
-          <h1 id="training-title">{kind === "practice" ? t("typingPractice") : t("typingTest")}</h1>
-          <p>{kind === "practice" ? t("practiceIntro") : t("testIntro")}</p>
+          <span>{layoutName} / {exercise.phaseTitle}</span>
+          <h1 id="training-title">{t("typingPractice")}</h1>
+          <p>Structured key training, professional copy work, and exam readiness.</p>
         </div>
-        <div className="training-timer">
-          {kind === "test" ? <><Clock3 aria-hidden="true" /><strong>{remainingSeconds}s</strong><span>{t("timeRemaining")}</span></> : <><Target aria-hidden="true" /><strong>{completedExerciseIds.size}/{course.exerciseCount}</strong><span>{t("courseProgress")}</span></>}
-        </div>
-      </div>
+        <div className="academy-progress"><strong>{completedExerciseIds.size}</strong><span>of {course.exerciseCount} mastered</span><progress value={completedExerciseIds.size} max={course.exerciseCount} /></div>
+      </header>
 
-      {kind === "practice" ? (
-        <>
-          <div className="curriculum-steps" role="tablist" aria-label={t("exerciseCatalog")}>
-            <button type="button" className={showInstructions ? "active" : ""} onClick={() => setShowInstructions((current) => !current)}><BookOpenCheck aria-hidden="true" /> {t("readInstructions")}</button>
-            {course.stages.map((stage) => (
-              <button type="button" role="tab" aria-selected={selectedStage.id === stage.id} className={selectedStage.id === stage.id && !showInstructions ? "active" : ""} key={stage.id} onClick={() => { setShowInstructions(false); chooseStage(stage.id); }}>
-                {stageLabels[stage.id]} <span>{completedExerciseIds.size ? stage.exercises.filter((item) => completedExerciseIds.has(item.id)).length : 0}/{stage.exercises.length}</span>
-              </button>
-            ))}
+      <div className="academy-grid">
+        <aside className="academy-course" aria-label="Course map">
+          <div className="academy-panel-title"><Layers3 aria-hidden="true" /><span>Course map</span></div>
+          <div className="academy-stage-list" role="tablist" aria-label={t("exerciseCatalog")}>
+            {course.stages.map((stage, stageIndex) => {
+              const mastered = stage.exercises.filter((item) => completedExerciseIds.has(item.id)).length;
+              return <button type="button" role="tab" aria-selected={selectedStage.id === stage.id} className={selectedStage.id === stage.id ? "active" : ""} key={stage.id} onClick={() => { setShowInstructions(false); chooseStage(stage.id); }}><span>{String(stageIndex + 1).padStart(2, "0")}</span><div><strong>{stageLabels[stage.id]}</strong><small>{mastered}/{stage.exercises.length} mastered</small></div><em>{Math.round((mastered / stage.exercises.length) * 100)}%</em></button>;
+            })}
           </div>
-          {showInstructions && (
-            <div className="training-instructions">
-              <strong>{t("readInstructions")}</strong>
-              <ol>
-                <li>{t("instructionKeepLayout")}</li>
-                <li>{t("instructionAccuracyFirst")}</li>
-                <li>{t("instructionStageOrder")}</li>
-                <li>{t("instructionVerifyExam")}</li>
-              </ol>
-            </div>
-          )}
-          <div className="exercise-picker">
-            <label>{t("selectExercise")}<select value={exerciseIndex} onChange={(event) => chooseExercise(Number(event.target.value))}>{selectedStage.exercises.map((item, index) => <option key={item.id} value={index}>{completedExerciseIds.has(item.id) ? "✓ " : ""}{String(item.sequence).padStart(2, "0")} · {item.title} · {item.tier === "free" ? t("free") : t("pro")}</option>)}</select></label>
+          <button type="button" className="academy-instruction-link" onClick={() => setShowInstructions((current) => !current)}><BookOpenCheck aria-hidden="true" /> {showInstructions ? "Hide course method" : "View course method"}</button>
+          {showInstructions && <ol className="academy-method"><li>Finish every drill block in order.</li><li>Meet the accuracy gate for each clean run.</li><li>Checkpoint lessons require repeated passes.</li><li>Use Mock Test only after paragraph mastery.</li></ol>}
+          <div className="academy-module">
+            <span>Current module</span><strong>{exercise.moduleTitle}</strong><small>{exercise.phaseTitle}</small>
+            {moduleExercises.map((item) => {
+              const itemIndex = selectedStage.exercises.findIndex((lesson) => lesson.id === item.id);
+              const locked = itemIndex > 0 && !completedExerciseIds.has(selectedStage.exercises[itemIndex - 1].id);
+              return <button type="button" key={item.id} disabled={locked} className={item.id === exercise.id ? "active" : ""} onClick={() => chooseExercise(itemIndex)}>{completedExerciseIds.has(item.id) ? <CheckCircle2 aria-hidden="true" /> : locked ? <LockKeyhole aria-hidden="true" /> : <Target aria-hidden="true" />}<span>{item.drillLabel}<small>{item.minimumAccuracy}% · {item.requiredPasses} clean {item.requiredPasses === 1 ? "run" : "runs"}</small></span></button>;
+            })}
+          </div>
+        </aside>
+
+        <main className="academy-workbench">
+          <div className="academy-lessonbar">
+            <label><span>Lesson</span><select value={exerciseIndex} onChange={(event) => chooseExercise(Number(event.target.value))}>{selectedStage.exercises.map((item, index) => { const locked = index > 0 && !completedExerciseIds.has(selectedStage.exercises[index - 1].id); return <option key={item.id} value={index} disabled={locked}>{completedExerciseIds.has(item.id) ? "✓" : locked ? "🔒" : "○"} {String(item.sequence).padStart(2, "0")} · {item.title}</option>; })}</select></label>
             <span className={`tier-badge ${exercise.tier}`}>{exercise.tier === "free" ? t("free") : t("pro")}</span>
-            <span>{t("difficulty")}: {"●".repeat(exercise.difficulty)}{"○".repeat(5 - exercise.difficulty)}</span>
-            <span>{t("estimatedTime")}: {exercise.estimatedSeconds}s</span>
+            <span>{exercise.practiceMode.toUpperCase()}</span>
+            <span>{exercise.estimatedSeconds}s</span>
           </div>
-          <section className="lesson-overview" aria-labelledby="lesson-overview-title">
-            <div>
-              <span>{exercise.moduleTitle} · {t("lesson")} {exercise.sequence}/{selectedStage.exercises.length}</span>
-              <h2 id="lesson-overview-title">{exercise.title}</h2>
-              <p>{exercise.objective}</p>
-            </div>
-            <dl>
-              <div><dt>{t("minimumAccuracy")}</dt><dd>{exercise.minimumAccuracy}%</dd></div>
-              <div><dt>{t("recommendedSpeed")}</dt><dd>{exercise.targetWpm} WPM</dd></div>
-              <div><dt>{t("words")}</dt><dd>{exercise.wordCount}</dd></div>
-              <div><dt>{t("characters")}</dt><dd>{exercise.characterCount}</dd></div>
-            </dl>
+
+          <section className="academy-brief" aria-labelledby="lesson-overview-title"><div><span>{exercise.phaseTitle} · Module {exercise.moduleLesson}/{exercise.moduleLessonCount}</span><h2 id="lesson-overview-title">{exercise.title}</h2><p>{exercise.objective}</p></div><dl><div><dt>Accuracy gate</dt><dd>{exercise.minimumAccuracy}%</dd></div><div><dt>Target pace</dt><dd>{exercise.targetWpm} WPM</dd></div><div><dt>Clean runs</dt><dd>{currentMasteryPasses}/{exercise.requiredPasses}</dd></div></dl></section>
+
+          <div className="drill-track" aria-label="Lesson drill sequence">{exercise.drillBlocks.map((block, index) => <div key={block.label} className={index < activeBlockIndex || activeBlockIndex < 0 ? "done" : index === activeBlockIndex ? "active" : ""}><span>{index + 1}</span><strong>{block.label}</strong><small>{block.purpose}</small></div>)}</div>
+
+          <section className="academy-copyboard" style={{ fontFamily: fontStack, fontSize }}>
+            <div className="academy-copyboard-title"><span>Source copy</span><small>{exercise.wordCount} words · {exercise.characterCount} characters</small></div>
+            {exercise.drillBlocks.map((block, index) => <div key={block.label} className={index === activeBlockIndex ? "copy-block active" : "copy-block"}><span>{block.label}</span><strong>{block.target}</strong></div>)}
           </section>
-        </>
-      ) : (
-        <div className="exam-profile-panel">
-          <label>{t("examProfile")}<select value={selectedProfile.id} onChange={(event) => selectExamProfile(event.target.value)}>{examProfiles.map((profile) => <option key={profile.id} value={profile.id}>{examProfileName(profile.id)} · {profile.tier === "free" ? t("free") : t("pro")}</option>)}</select></label>
-          <label>{t("duration")}<select value={testDuration} onChange={(event) => { setTestDuration(Number(event.target.value)); resetSession(); }}>{TEST_DURATIONS.map((seconds) => <option key={seconds} value={seconds}>{seconds / 60} {t("minutes")}</option>)}</select></label>
-          <div><span>{t("targetWpm")}</span><strong>{selectedProfile.targetWpm}</strong></div>
-          <div><span>{t("minimumAccuracy")}</span><strong>{selectedProfile.minimumAccuracy}%</strong></div>
-          <p><AlertTriangle aria-hidden="true" /><span><strong>{t("simulationNotice")}:</strong> {t("examDisclaimer")}</span></p>
-        </div>
-      )}
 
-      <details className="training-settings">
-        <summary><Settings2 aria-hidden="true" /> {t("trainingSettings")}</summary>
-        <div>
-          <label>{t("backspacePolicy")}<select value={backspacePolicy} onChange={(event) => setBackspacePolicy(event.target.value as BackspacePolicy)}><option value="full">{t("fullBackspace")}</option><option value="current-word">{t("currentWordOnly")}</option><option value="disabled">{t("disableBackspace")}</option></select></label>
-          <label className="training-checkbox"><input type="checkbox" checked={showKeyboard} onChange={(event) => setShowKeyboard(event.target.checked)} /> <Keyboard aria-hidden="true" /> {t("showCourseKeyboard")}</label>
-          <label className="training-checkbox"><input type="checkbox" checked={soundOnError} onChange={(event) => setSoundOnError(event.target.checked)} /> <Volume2 aria-hidden="true" /> {t("soundOnError")}</label>
-          <label>{t("fontSize")}<input type="range" min="18" max="36" step="2" value={fontSize} onChange={(event) => setFontSize(Number(event.target.value))} /><output>{fontSize}px</output></label>
-        </div>
-      </details>
+          <div className="academy-keyline"><div><span>Layout keystrokes</span><code>{exercise.keys}</code></div><div><span>Next</span><kbd>{nextExpected?.key === " " ? t("space") : nextExpected?.key ?? "—"}</kbd><small>{nextExpected?.finger ? t(nextExpected.finger) : "Ready"}</small></div></div>
 
-      <div className="training-target" style={{ fontFamily: fontStack, fontSize }}>
-        <span>{t("targetText")}</span>
-        <strong>{expected}</strong>
+          <label className="academy-input-label" htmlFor="training-input"><span>{t("yourTyping")}</span><small>Typing starts the timer automatically</small></label>
+          <textarea ref={textareaRef} id="training-input" value={source} onChange={(event) => updateSource(event.target.value)} onKeyDown={handleKeyDown} placeholder={t("trainingPlaceholder")} spellCheck={false} disabled={finished} autoFocus />
+          {layout !== "english-qwerty" && <div className="academy-unicode-preview" style={{ fontFamily: fontStack, fontSize }}><span>Unicode preview</span><strong>{actual || "—"}</strong></div>}
+
+          {showKeyboard && <div className="training-keyboard" aria-label={t("showCourseKeyboard")}>{keyboard.map((row, rowIndex) => <div className="training-keyboard-row" key={rowIndex}>{row.map((keyDefinition) => { const insertion = nextExpected?.key === keyDefinition.shiftKey ? keyDefinition.shiftKey : keyDefinition.key; const highlighted = nextExpected?.key === keyDefinition.key || nextExpected?.key === keyDefinition.shiftKey; return <button type="button" key={keyDefinition.key} className={`${keyDefinition.width ?? ""} ${highlighted ? "next" : ""}`} onClick={() => insertVirtualKey(insertion ?? keyDefinition.key)}><small>{keyDefinition.shiftLabel}</small><strong>{keyDefinition.label}</strong><span>{keyDefinition.key === " " ? t("space") : keyDefinition.key.toLocaleUpperCase()}</span></button>; })}</div>)}</div>}
+        </main>
+
+        <aside className="academy-coach" aria-label="Live coach">
+          <div className="academy-panel-title"><Gauge aria-hidden="true" /><span>Live coach</span></div>
+          <div className="coach-score"><strong>{score.accuracy}%</strong><span>accuracy</span><progress value={score.accuracy} max="100" /></div>
+          <div className="coach-metrics"><TrainingMetric label="WPM" value={String(wpm)} /><TrainingMetric label="KDPH" value={String(kdph)} /><TrainingMetric label="Correct" value={`${score.correctCharacters}/${score.expectedCharacters}`} /><TrainingMetric label="Errors" value={String(score.substitutedCharacters + score.extraCharacters)} /></div>
+          <div className="coach-mastery"><span>Mastery contract</span><strong>{projectedMasteryPasses}/{exercise.requiredPasses} clean runs</strong><small>Each run needs {exercise.minimumAccuracy}% accuracy at {exercise.targetWpm} WPM recommended pace.</small></div>
+          <details className="coach-settings" open><summary><Settings2 aria-hidden="true" /> Session controls</summary><label>{t("backspacePolicy")}<select value={backspacePolicy} onChange={(event) => setBackspacePolicy(event.target.value as BackspacePolicy)}><option value="full">{t("fullBackspace")}</option><option value="current-word">{t("currentWordOnly")}</option><option value="disabled">{t("disableBackspace")}</option></select></label><label><input type="checkbox" checked={showKeyboard} onChange={(event) => setShowKeyboard(event.target.checked)} /> Show keyboard</label><label><input type="checkbox" checked={soundOnError} onChange={(event) => setSoundOnError(event.target.checked)} /> Sound on error</label><label>Text size<input type="range" min="18" max="36" step="2" value={fontSize} onChange={(event) => setFontSize(Number(event.target.value))} /></label></details>
+          {source.length > 0 && weakKeys.length > 0 && <div className="coach-weak"><strong>{t("weakKeys")}</strong>{weakKeys.slice(0, 6).map((item) => <span key={item.key}><kbd>{item.key}</kbd><small>{item.errors}/{item.attempts} errors</small></span>)}</div>}
+          <div className={finished ? lessonMastered ? "coach-status mastered" : "coach-status repeat" : "coach-status"}>{finished ? lessonMastered ? <><CheckCircle2 aria-hidden="true" /><strong>Lesson mastered</strong><span>Next lesson is unlocked.</span></> : lessonPassed ? <><RotateCcw aria-hidden="true" /><strong>Clean run recorded</strong><span>Repeat once more for mastery.</span></> : <><AlertTriangle aria-hidden="true" /><strong>Accuracy gate missed</strong><span>Review errors and repeat.</span></> : <><Target aria-hidden="true" /><strong>Ready to train</strong><span>Start with accuracy; speed follows.</span></>}</div>
+          <div className="academy-actions"><Button variant="outline" onClick={previousExercise} disabled={exerciseIndex === 0}><ChevronLeft aria-hidden="true" /> Previous</Button><Button variant="outline" onClick={resetSession}><RotateCcw aria-hidden="true" /> Reset</Button><Button onClick={nextExercise} disabled={!lessonMastered}>Next <ChevronRight aria-hidden="true" /></Button></div>
+          {attemptSaved && <p className="training-saved"><CheckCircle2 aria-hidden="true" /> {t("trainingSaved")}</p>}
+        </aside>
       </div>
 
-      <div className="training-guide">
-        <span>{t("guideKeys")}</span>
-        <code>{exercise.keys}</code>
-      </div>
-
-      <div className="next-key-guide">
-        <span><Keyboard aria-hidden="true" /> {t("nextKey")}: <kbd>{nextExpected?.key === " " ? t("space") : nextExpected?.key ?? "—"}</kbd></span>
-        <span>{t("useFinger")}: <strong>{nextExpected?.finger ? t(nextExpected.finger) : "—"}</strong></span>
-      </div>
-
-      {showKeyboard && (
-        <div className="training-keyboard" aria-label={t("showCourseKeyboard")}>
-          {keyboard.map((row, rowIndex) => <div className="training-keyboard-row" key={rowIndex}>{row.map((keyDefinition) => {
-            const insertion = nextExpected?.key === keyDefinition.shiftKey ? keyDefinition.shiftKey : keyDefinition.key;
-            const highlighted = nextExpected?.key === keyDefinition.key || nextExpected?.key === keyDefinition.shiftKey;
-            return <button type="button" key={keyDefinition.key} className={`${keyDefinition.width ?? ""} ${highlighted ? "next" : ""}`} onClick={() => insertVirtualKey(insertion ?? keyDefinition.key)}><small>{keyDefinition.shiftLabel}</small><strong>{keyDefinition.label}</strong><span>{keyDefinition.key === " " ? t("space") : keyDefinition.key.toLocaleUpperCase()}</span></button>;
-          })}</div>)}
-        </div>
-      )}
-
-      <label className="training-input-label" htmlFor="training-input">{t("yourTyping")}</label>
-      <textarea
-        ref={textareaRef}
-        id="training-input"
-        value={source}
-        onChange={(event) => updateSource(event.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder={t("trainingPlaceholder")}
-        spellCheck={false}
-        disabled={finished}
-        autoFocus
-      />
-
-      <div className="training-preview" style={{ fontFamily: fontStack, fontSize }}>
-        <span>{t("resultPreview")}</span>
-        <strong>{actual || "—"}</strong>
-      </div>
-
-      <div className="training-results" aria-live="polite">
-        <TrainingMetric label={t("accuracy")} value={`${score.accuracy}%`} />
-        <TrainingMetric label="WPM" value={String(wpm)} />
-        <TrainingMetric label="KDPH" value={String(kdph)} />
-        <TrainingMetric label={t("characters")} value={`${score.correctCharacters}/${score.expectedCharacters}`} />
-        <TrainingMetric label={t("missing")} value={String(score.missingCharacters)} />
-        <TrainingMetric label={t("extra")} value={String(score.extraCharacters)} />
-        <TrainingMetric label={t("substitutions")} value={String(score.substitutedCharacters)} />
-        <div className={finished ? "training-result-status complete" : "training-result-status"}>
-          {finished ? <CheckCircle2 aria-hidden="true" /> : <Gauge aria-hidden="true" />}
-          {finished ? kind === "test" ? passed ? t("testPassed") : t("testNeedsPractice") : lessonPassed ? t("lessonComplete") : t("lessonNeedsAccuracy") : t("trainingInProgress")}
-        </div>
-      </div>
-
-      {source.length > 0 && weakKeys.length > 0 && <div className="weak-key-list"><strong>{t("weakKeys")}</strong>{weakKeys.slice(0, 8).map((item) => <span key={item.key}><kbd>{item.key}</kbd> {item.errors}/{item.attempts}</span>)}</div>}
-      {attemptSaved && <p className="training-saved"><CheckCircle2 aria-hidden="true" /> {t("trainingSaved")}</p>}
-
-      <div className="training-actions">
-        {kind === "practice" && <Button variant="outline" onClick={previousExercise} disabled={exerciseIndex === 0}><ChevronLeft aria-hidden="true" /> {t("previousExercise")}</Button>}
-        <Button variant="outline" onClick={resetSession}><RotateCcw aria-hidden="true" /> {t("reset")}</Button>
-        {kind === "practice" ? <Button onClick={nextExercise} disabled={!lessonPassed}>{t("nextLesson")} <ChevronRight aria-hidden="true" /></Button> : <Button onClick={startNewTest} disabled={!finished}><RotateCcw aria-hidden="true" /> {t("startNewAttempt")}</Button>}
-      </div>
-
-      <section className="attempt-history" aria-labelledby="attempt-history-title">
+      <section className="attempt-history academy-history" aria-labelledby="attempt-history-title">
         <div><h2 id="attempt-history-title"><History aria-hidden="true" /> {t("attemptHistory")}</h2>{layoutAttempts.length > 0 && <Button size="sm" variant="danger" onClick={() => void clearHistory()}><Trash2 aria-hidden="true" /> {t("clearHistory")}</Button>}</div>
         {layoutAttempts.length === 0 ? <p>{t("noAttempts")}</p> : <div className="attempt-table"><div className="attempt-row heading"><span>{t("exercise")}</span><span>{t("accuracy")}</span><span>WPM</span><span>KDPH</span><span>{t("duration")}</span></div>{layoutAttempts.slice(0, 8).map((attempt) => <div className="attempt-row" key={attempt.id}><span><Award aria-hidden="true" /> {attempt.kind === "test" ? t("typingTest") : t("typingPractice")}<small>{new Date(attempt.completedAt).toLocaleString(language === "hi" ? "hi-IN" : "en-IN")}</small></span><strong>{attempt.accuracy}%</strong><strong>{attempt.wpm}</strong><strong>{attempt.kdph}</strong><strong>{attempt.elapsedSeconds}s</strong></div>)}</div>}
       </section>
