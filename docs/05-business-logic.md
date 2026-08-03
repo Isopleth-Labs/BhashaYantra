@@ -163,6 +163,21 @@ Comparison uses Unicode normalization and grapheme-aware segmentation so a visua
 - Completed practice and submitted/expired tests are persisted once with an immutable attempt ID and timestamp.
 - Full/half-mistake deductions and official-exam-specific net-speed formulas remain a later, separately validated scoring-profile version.
 
+### Mock-exam workstation state
+
+```text
+Ready → Running ↔ Paused → Submitted
+                  Running → Expired
+Submitted/Expired → Ready (new paper)
+```
+
+- The timer starts only from the explicit Start command, not from the first typed key.
+- Profile, duration, paper, word limit, highlighting, scrolling, correction, and custom-passage settings lock when the exam starts.
+- Pause freezes elapsed time and disables typing; Resume continues from the accumulated elapsed time.
+- Submit and timeout both create one immutable test attempt; completing the visible passage early does not silently finish the exam.
+- Passage rendering supports current-word, word-error, letter, and no-highlight modes without changing the scoring text.
+- Clearing mock-test history cannot delete practice-course attempts, and clearing practice history cannot delete test attempts.
+
 ## 8. Stenography state machine
 
 ```mermaid

@@ -1,5 +1,5 @@
 import type { TrainingAttemptsRepository } from "@/application/ports/training-attempts-repository";
-import type { TrainingAttempt } from "@/domain/training/training-attempt";
+import type { TrainingAttempt, TrainingAttemptKind } from "@/domain/training/training-attempt";
 import type { ReadyTypingLayoutId } from "@/domain/typing/typing-profiles";
 
 export const TRAINING_ATTEMPTS_STORAGE_KEY = "bhashayantra:training-attempts:v1";
@@ -37,6 +37,7 @@ function isTrainingAttempt(value: unknown): value is TrainingAttempt {
     isFiniteNonNegative(item.missingCharacters) &&
     isFiniteNonNegative(item.extraCharacters) &&
     isFiniteNonNegative(item.substitutedCharacters) &&
+    (item.backspaceCount === undefined || isFiniteNonNegative(item.backspaceCount)) &&
     Array.isArray(item.weakKeys)
   );
 }
@@ -63,13 +64,17 @@ export class LocalTrainingAttemptsRepository implements TrainingAttemptsReposito
     if (typeof window !== "undefined") window.dispatchEvent(new Event(TRAINING_ATTEMPTS_UPDATED_EVENT));
   }
 
-  async clear(layoutId?: ReadyTypingLayoutId): Promise<void> {
-    if (layoutId) {
-      const remaining = (await this.list()).filter((attempt) => attempt.layoutId !== layoutId);
+  async clear(layoutId?: ReadyTypingLayoutId, kind?: TrainingAttemptKind): Promise<void> {
+    if (!layoutId && !kind) {
+      this.storage.removeItem(TRAINING_ATTEMPTS_STORAGE_KEY);
+    } else {
+      const remaining = (await this.list()).filter((attempt) => {
+        const matchesLayout = layoutId ? attempt.layoutId === layoutId : true;
+        const matchesKind = kind ? attempt.kind === kind : true;
+        return !(matchesLayout && matchesKind);
+      });
       if (remaining.length > 0) this.storage.setItem(TRAINING_ATTEMPTS_STORAGE_KEY, JSON.stringify(remaining));
       else this.storage.removeItem(TRAINING_ATTEMPTS_STORAGE_KEY);
-    } else {
-      this.storage.removeItem(TRAINING_ATTEMPTS_STORAGE_KEY);
     }
     if (typeof window !== "undefined") window.dispatchEvent(new Event(TRAINING_ATTEMPTS_UPDATED_EVENT));
   }

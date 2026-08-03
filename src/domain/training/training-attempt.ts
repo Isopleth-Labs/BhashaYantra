@@ -20,6 +20,7 @@ export interface TrainingAttempt {
   readonly missingCharacters: number;
   readonly extraCharacters: number;
   readonly substitutedCharacters: number;
+  readonly backspaceCount?: number;
   readonly weakKeys: readonly KeyMistake[];
 }
 export interface TrainingProgressSummary {

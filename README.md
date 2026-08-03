@@ -32,7 +32,9 @@ The approved design source is preserved at [docs/assets/bhashayantra-final-refer
 - 160 Free exercises and 1,040 Pro-marked exercises. These tier labels are catalog metadata until signed entitlement and billing enforcement are implemented.
 - Guided layout-specific practice with exercise selection, difficulty, target keys, next-key/finger guidance, clickable keyboard, error sound, text-size, and backspace controls.
 - Eight clearly labelled non-official exam simulations covering general Hindi/English, SSC-style, Railway-style, CPCT-style, Court-style, and English data-entry practice.
-- Configurable 1/5/10/15-minute tests with live Unicode preview, accuracy, WPM, KDPH, missing/extra/substituted counts, weak-key analysis, and scoring-rule notice.
+- Focused mock-exam workstation with 60 papers per layout, 1,200-word source passages, explicit Start/Pause/Resume/Submit states, and automatic timeout submission.
+- Configurable 1/5/10/15-minute tests with backspace rules, word/letter/error highlighting, passage auto-scroll, 150–1,200 word limits, paragraphs/tabs/correction controls, custom Unicode passage input, and print view.
+- Completed mock results include accuracy, WPM, KDPH, correct/missing/extra/substituted characters, correction count, weak-key analysis, and the scoring-rule notice.
 - Versioned offline attempt repository with per-layout history, completed-exercise count, best scores, average accuracy, recent-speed trend, and history deletion.
 - Light/dark design tokens and Hindi font fallbacks.
 - Character browser, shortcut search, honest document-engine readiness card, and test summary.
@@ -41,7 +43,7 @@ The approved design source is preserved at [docs/assets/bhashayantra-final-refer
 - Local and Supabase user-preference repository implementations.
 - Tauri 2 configuration with allowlisted dialog and text-file permissions.
 - Tested Free/Pro/Institution feature-entitlement vocabulary for future secure billing integration.
-- Thirty-five automated converter/typing/training/repository/licensing tests, strict TypeScript checking, and production frontend build.
+- Thirty-eight automated converter/typing/training/repository/licensing tests, strict TypeScript checking, and production frontend build.
 
 ## Final product direction
 
@@ -209,7 +211,7 @@ The first Tauri build can take longer because Rust dependencies must be download
 
 ## Verified build status
 
-The current workspace has passed strict TypeScript checking, thirty-five converter/typing/training/repository/licensing unit tests, eight database/RLS tests, Drizzle configuration validation, Supabase schema linting, Rust formatting and Clippy checks, frontend production build, browser interaction QA, desktop executable build, and both Windows installer builds.
+The current workspace has passed strict TypeScript checking, thirty-eight converter/typing/training/repository/licensing unit tests, eight database/RLS tests, Drizzle configuration validation, Supabase schema linting, Rust formatting and Clippy checks, frontend production build, browser interaction QA, desktop executable build, and both Windows installer builds.
 
 ## Database workflow
 

@@ -40,6 +40,9 @@ describe("curriculum catalog", () => {
     expect(getExamProfilesForLayout("english-qwerty").every((profile) => profile.language === "en")).toBe(true);
     expect(getExamProfilesForLayout("inscript").every((profile) => profile.language === "hi")).toBe(true);
     const profile = getExamProfilesForLayout("inscript")[0];
-    expect(getExamPassage(profile, "inscript").layoutId).toBe("inscript");
+    const passage = getExamPassage(profile, "inscript");
+    expect(passage.layoutId).toBe("inscript");
+    expect(passage.target.trim().split(/\s+/u).length).toBeGreaterThanOrEqual(1200);
+    expect(typingSourceToUnicode(passage.keys, "inscript").output).toBe(passage.target);
   });
 });

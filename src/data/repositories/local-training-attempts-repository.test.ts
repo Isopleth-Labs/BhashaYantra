@@ -33,6 +33,7 @@ function attempt(id: string, layoutId: TrainingAttempt["layoutId"]): TrainingAtt
     missingCharacters: 0,
     extraCharacters: 0,
     substitutedCharacters: 1,
+    backspaceCount: 2,
     weakKeys: [],
   };
 }
@@ -45,8 +46,19 @@ describe("local training attempts repository", () => {
     await repository.save(attempt("2", "english-qwerty"));
 
     expect((await repository.list()).map((item) => item.id)).toEqual(["2", "1"]);
+    expect((await repository.list())[0]?.backspaceCount).toBe(2);
     await repository.clear("bhashayantra-smart");
     expect((await repository.list()).map((item) => item.id)).toEqual(["2"]);
+  });
+
+  it("clears one attempt kind without deleting the other kind", async () => {
+    const storage = new MemoryStorage();
+    const repository = new LocalTrainingAttemptsRepository(storage);
+    await repository.save(attempt("1", "bhashayantra-smart"));
+    await repository.save({ ...attempt("2", "bhashayantra-smart"), kind: "test" });
+
+    await repository.clear("bhashayantra-smart", "test");
+    expect((await repository.list()).map((item) => item.id)).toEqual(["1"]);
   });
 
   it("ignores malformed stored values", async () => {

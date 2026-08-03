@@ -47,6 +47,7 @@ import {
   type UnicodeDisplayFontId,
 } from "@/domain/typing/typing-profiles";
 import { ExchangeConverter } from "@/features/converter/ExchangeConverter";
+import { TypingMockExam } from "@/features/training/TypingMockExam";
 import { TypingTraining } from "@/features/training/TypingTraining";
 import { TypingWorkspace } from "@/features/typing/TypingWorkspace";
 import { useI18n } from "@/i18n/I18nProvider";
@@ -291,7 +292,7 @@ export default function App() {
         outputMode={outputMode} onOutputModeChange={setOutputMode}
       />
 
-      <div className="app-body">
+      <div className={activeNav === "test" ? "app-body exam-active" : "app-body"}>
         <aside className="sidebar" aria-label={t("menu")}>
           <nav>
             {navItems.map(({ id, labelKey, icon: Icon }) => (
@@ -339,16 +340,20 @@ export default function App() {
               ) : <ExchangeConverter />}
               {typingLanguage === "hi" && <CharacterBrowser activeTab={characterTab} onTabChange={setCharacterTab} onInsertCharacter={insertCharacter} onOpenAll={() => setCharacterLibraryOpen(true)} />}
             </>
-          ) : activeNav === "practice" || activeNav === "test" ? (
-            <TypingTraining kind={activeNav} layout={typingLayout} displayFont={displayFont} />
+          ) : activeNav === "practice" ? (
+            <TypingTraining kind="practice" layout={typingLayout} displayFont={displayFont} />
+          ) : activeNav === "test" ? (
+            <TypingMockExam layout={typingLayout} displayFont={displayFont} />
           ) : <FeaturePlaceholder title={activeNavLabel} onReturn={() => setActiveNav("start")} />}
         </section>
 
-        <aside className="right-rail" aria-label={t("shortcutManager")}>
-          {typingLanguage === "hi" && <ShortcutManager query={shortcutQuery} onQueryChange={setShortcutQuery} shortcuts={filteredShortcuts} onInsert={insertCharacter} onOpen={() => setShortcutLibraryOpen(true)} />}
-          <DocumentConverter onOpen={() => { setActiveNav("start"); setStartTool("converter"); }} />
-          <TypingSummary onOpen={() => setActiveNav("test")} />
-        </aside>
+        {activeNav !== "test" && (
+          <aside className="right-rail" aria-label={t("shortcutManager")}>
+            {typingLanguage === "hi" && <ShortcutManager query={shortcutQuery} onQueryChange={setShortcutQuery} shortcuts={filteredShortcuts} onInsert={insertCharacter} onOpen={() => setShortcutLibraryOpen(true)} />}
+            <DocumentConverter onOpen={() => { setActiveNav("start"); setStartTool("converter"); }} />
+            <TypingSummary onOpen={() => setActiveNav("test")} />
+          </aside>
+        )}
       </div>
 
       {characterLibraryOpen && <CharacterLibraryModal onClose={() => setCharacterLibraryOpen(false)} onInsert={insertCharacter} />}

@@ -27,7 +27,7 @@ Domain and application code may import repository interfaces. Repository impleme
 | `ShortcutRepository` | list, add, update, remove, detect conflicts |
 | `ConversionHistoryRepository` | save optional job metadata, list recent jobs, delete history |
 | `PracticeRepository` | list tests, save completed attempt, list attempts, summarize progress |
-| `TrainingAttemptsRepository` | list offline attempts, save one completed attempt, clear all or one layout's history |
+| `TrainingAttemptsRepository` | list offline attempts, save one completed attempt, clear all or filter history by layout and practice/test kind |
 | `StenographyRepository` | save completed session, list sessions, summarize progress |
 | `UserDictionaryRepository` | find suggestions, upsert entry, increment usage, disable entry |
 

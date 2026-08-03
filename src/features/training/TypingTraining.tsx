@@ -269,7 +269,7 @@ export function TypingTraining({ kind, layout, displayFont }: TypingTrainingProp
   }
 
   async function clearHistory() {
-    await attemptsRepository.clear(layout);
+    await attemptsRepository.clear(layout, "practice");
     loadAttempts();
   }
 

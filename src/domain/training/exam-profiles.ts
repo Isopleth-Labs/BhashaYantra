@@ -40,5 +40,28 @@ export function getExamPassage(profile: ExamProfile, layoutId: ReadyTypingLayout
   const course = getCurriculumCourse(layoutId);
   const paragraphs = course.stages.find((stage) => stage.id === "paragraphs")?.exercises ?? [];
   if (paragraphs.length === 0) throw new Error(`No paragraph exercises exist for ${layoutId}.`);
-  return paragraphs[(profile.passageOffset + attemptIndex) % paragraphs.length];
+  const selected: CurriculumExercise[] = [];
+  let wordCount = 0;
+  let offset = 0;
+
+  while (wordCount < 1200 && offset < paragraphs.length) {
+    const paragraph = paragraphs[(profile.passageOffset + attemptIndex + offset) % paragraphs.length];
+    selected.push(paragraph);
+    wordCount += paragraph.target.trim().split(/\s+/u).length;
+    offset += 1;
+  }
+
+  const seed = selected[0];
+  return {
+    ...seed,
+    id: `${layoutId}-${profile.id}-mock-${String(attemptIndex + 1).padStart(3, "0")}`,
+    sequence: attemptIndex + 1,
+    title: `${profile.name} Mock ${attemptIndex + 1}`,
+    keys: selected.map((paragraph) => paragraph.keys).join("\n\n"),
+    target: selected.map((paragraph) => paragraph.target).join("\n\n"),
+    focusKeys: Array.from(new Set(selected.flatMap((paragraph) => paragraph.focusKeys))).slice(0, 18),
+    estimatedSeconds: profile.durationSeconds,
+    tier: profile.tier,
+    conversionWarnings: selected.reduce((total, paragraph) => total + paragraph.conversionWarnings, 0),
+  };
 }

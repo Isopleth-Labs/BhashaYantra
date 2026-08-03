@@ -110,6 +110,10 @@ The start screen contains both typing modes, the Exchange Converter, character b
 - Configurable duration and passage.
 - Exam simulation profiles with explicit duration, target speed, accuracy, backspace, language, and tier rules.
 - Every exam-style profile is labelled as a practice simulation; users must verify the current official notice.
+- Focused workstation separates the scrollable question passage from the large answer editor and hides unrelated dashboard panels.
+- Explicit `Ready → Running ↔ Paused → Submitted/Expired` lifecycle; typing and configuration stay locked outside their valid states.
+- At least 60 selectable papers per ready layout, with long built-in passages and optional custom Unicode passage input.
+- Full/current-word/disabled backspace, word/error/letter/no-highlight, scrollbar, auto-scroll, 150–1,200 word limit, paragraph, tab, correction, font-size, and print controls.
 - Gross speed, net speed, accuracy, full mistakes, half mistakes, missing text, extra text, and backspace count.
 - Immutable completed-result summary.
 - Result history and export.
