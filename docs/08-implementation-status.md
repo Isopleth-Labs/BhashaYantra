@@ -1,6 +1,6 @@
 # Implementation Status
 
-Updated: 3 August 2026
+Updated: 4 August 2026
 
 ## Completed
 
@@ -23,12 +23,13 @@ Updated: 3 August 2026
 - Offline draft/preferences/custom-layout persistence plus import, export, protected-default reset, copy, open, and save flows.
 - Live typing metrics for words, characters, lines, and estimated WPM.
 - Original 1,800-exercise professional curriculum across the six ready layouts: 60 progressive key drills, 90 multi-round word drills, 90 sustained sentence drills, and 60 two-paragraph drills per layout.
-- Learn Keys now keeps Hindi units separate through repetition, alternation, application, and checkpoint patterns. Practice Words now contains repeated recognition, a two-round accuracy circuit, and a sustained timed run with at least 28 distinct terms.
-- Fixed-height practice/test shell prevents page-level focus jumps; source copy, answer editor, Unicode preview, and compact keyboard remain in the workstation with independent panel scrolling.
+- Learn Keys now keeps Hindi units separate through repetition, alternation, application, and checkpoint patterns. Practice Words contains 30 professional vocabulary modules per layout with three distinct lessons per module, at least 28 distinct terms, and repeated recognition, accuracy, and sustained-copy rounds.
+- Fixed-height practice/test shell prevents page-level focus jumps; source copy, answer editor, Unicode preview, and compact keyboard remain in the workstation with independent panel scrolling. A running test becomes a distraction-free full-viewport workstation, including at 1280×720.
 - Academy-style staged practice with a course map, sequential lesson locks, phase/module position, multi-block drills, one-to-three clean-pass mastery requirements, named objectives, recommended WPM, Free/Pro labels, next-key/finger guidance, clickable keyboard, error sound, text size, and backspace controls.
-- Twelve mock-test profiles: two flexible baselines and ten official-reference profiles covering SSC CHSL/D.E.S.T., MP CPCT, Rajasthan High Court, and Allahabad High Court, with 60 selectable papers per layout and cited official sources.
+- Eighteen mock-test profiles: two flexible baselines and sixteen official-reference profiles covering SSC CHSL/D.E.S.T., RRB NTPC CBTST, DDA, DSSSB, MP CPCT, Rajasthan High Court, and Allahabad High Court, with 60 selectable papers per layout and cited official sources.
+- Original English and Hindi government-office passage banks cover records, recruitment, railways, courts, audit, health, rural development, disaster response, education, environment, digital services, and election duty; no competitor passage text is shipped.
 - Working exam controls for 1/5/10/15-minute timers, speed/accuracy targets, full/current-word/disabled backspace, word/error/letter highlighting, scrollbar and auto-scroll, 150–1,200 word limits, paragraphs, tabs, corrections, custom Unicode passages, font sizing, and printing.
-- Live correct/gross/net WPM, KDPH, accuracy, missing/extra/substituted counts, weak-key analysis, completion state, and once-only attempt saving.
+- Live correct/gross/net WPM, KDPH, accuracy, missing/extra/substituted counts, weak-key analysis, completion state, RRB published-formula practice estimate, and once-only attempt saving.
 - Verified official duration/correction locking and a layout/font environment guard for profiles with an explicit requirement.
 - Versioned local attempt repository, layout-specific history deletion, real dashboard summaries, and recent-speed trend.
 - Live bidirectional KrutiDev 010 ↔ Unicode text converter.
@@ -40,7 +41,7 @@ Updated: 3 August 2026
 - Supabase schema migrations, Auth ownership foreign keys, RLS policies, triggers, constraints, seed data, and pgTAP policy tests.
 - Local and Supabase preference repository implementations.
 - Free/Pro/Institution product-entitlement vocabulary and profitability-focused packaging documentation.
-- Strict TypeScript, forty-three converter/typing/training/repository/licensing tests, production web build, and browser visual/interaction QA at 1724×986 and 1280×720.
+- Strict TypeScript, forty-four converter/typing/training/repository/licensing tests, production web build, and browser visual/interaction QA at 1724×986 and 1280×720.
 - Local Supabase reset, eight pgTAP/RLS tests, and schema linting.
 - Rust formatting and Clippy checks.
 - Local development desktop executable, MSI installer, and NSIS setup executable.
@@ -67,7 +68,7 @@ cargo clippy --manifest-path .\src-tauri\Cargo.toml -- -D warnings
 | Keyboard modes | Own Smart phonetic, Classic familiar-key, INSCRIPT, Remington GAIL, Remington CBI, and English QWERTY inputs; per-layout drafts, keyboards, round-trip fixtures, and custom layers | Expand INSCRIPT and Remington AltGr/escape-key acceptance corpora, then optional Windows IME integration |
 | Legacy encoding profiles | KrutiDev 010 working; DevLys and Shree-Lipi registered as validation-pending | Add licensed fixtures and round-trip acceptance corpora before enabling each profile |
 | Shortcut manager | Built-in shortcuts, custom creation/deletion, conflict validation, persistence, import/export, and reset | Editing existing custom entries in place and cloud sync |
-| Typing practice/test | 1,800 professional exercises with multi-round patterns, mastery gates, depth checks, a fixed-height workstation, 60 papers/layout, 12 profiles including 10 official-reference profiles, WPM/NWPM/KDPH scoring, weak-key analysis, and local history | Independently validate remaining recruitment-specific deduction rules, then add adaptive lessons and exportable reports |
+| Typing practice/test | 1,800 professional exercises with multi-round patterns, mastery gates, depth checks, a distraction-free fixed-height workstation, 60 original papers/layout, 18 profiles including 16 official-reference profiles, WPM/NWPM/KDPH/RRB practice scoring, weak-key analysis, and local history | Independently validate remaining recruitment-specific deduction rules, then add adaptive lessons and exportable reports |
 | Stenography | Navigation and schema | Audio state machine, transcript editor, evaluation |
 | Supabase | Schema, repositories, local configuration | Auth UI and opt-in sync wiring |
 

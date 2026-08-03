@@ -32,6 +32,7 @@ import { getCurriculumCourse } from "@/domain/training/curriculum-catalog";
 import { getExamPassage, getExamProfilesForLayout, type BackspacePolicy } from "@/domain/training/exam-profiles";
 import {
   applyWordLimit,
+  calculateRrbTypingScore,
   countWords,
   formatExamText,
   getHighlightSegments,
@@ -53,6 +54,17 @@ interface TypingMockExamProps {
 const attemptsRepository = new LocalTrainingAttemptsRepository();
 const TEST_DURATIONS = [60, 300, 600, 900] as const;
 const PAPER_COUNT = 60;
+
+const EXAM_CATEGORY_LABELS = {
+  general: "Practice diagnostics",
+  ssc: "Staff Selection Commission",
+  rrb: "Railway Recruitment Boards",
+  dda: "Delhi Development Authority",
+  dsssb: "Delhi Subordinate Services Selection Board",
+  cpct: "MP CPCT",
+  "rajasthan-court": "Rajasthan High Court",
+  "allahabad-court": "Allahabad High Court",
+} as const;
 
 function createAttemptId() {
   return globalThis.crypto?.randomUUID?.() ?? `attempt-${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -122,8 +134,15 @@ export function TypingMockExam({ layout, displayFont }: TypingMockExamProps) {
   const wpm = calculateWpm(score.correctCharacters, measuredSeconds);
   const kdph = calculateKdph(score.correctCharacters, measuredSeconds);
   const wordSpeed = useMemo(() => calculateWordSpeed(expected, actual, measuredSeconds), [actual, expected, measuredSeconds]);
+  const rrbScore = useMemo(() => calculateRrbTypingScore(expected, actual, measuredSeconds), [actual, expected, measuredSeconds]);
   const weakKeys = useMemo(() => analyzeWeakKeys(expectedKeys, source), [expectedKeys, source]);
-  const measuredProfileSpeed = selectedProfile.scoringModel === "net-wpm" ? wordSpeed.netWpm : selectedProfile.scoringModel === "kdph" ? kdph : wpm;
+  const measuredProfileSpeed = selectedProfile.scoringModel === "net-wpm"
+    ? wordSpeed.netWpm
+    : selectedProfile.scoringModel === "kdph"
+      ? kdph
+      : selectedProfile.scoringModel === "rrb-wpm"
+        ? rrbScore.wpm
+        : wpm;
   const requiredProfileSpeed = selectedProfile.scoringModel === "kdph" ? selectedProfile.targetKdph ?? 0 : selectedProfile.targetWpm;
   const passed = finished && measuredProfileSpeed >= requiredProfileSpeed && (selectedProfile.minimumAccuracy === 0 || score.accuracy >= selectedProfile.minimumAccuracy);
   const layoutAttempts = attempts.filter((attempt) => attempt.layoutId === layout && attempt.kind === "test");
@@ -137,10 +156,24 @@ export function TypingMockExam({ layout, displayFont }: TypingMockExamProps) {
     ? getDisplayFont(selectedProfile.requiredDisplayFontId).name
     : undefined;
   const profileEnvironmentReady = (!selectedProfile.requiredLayoutId || selectedProfile.requiredLayoutId === layout)
+    && (!selectedProfile.allowedLayoutIds || selectedProfile.allowedLayoutIds.includes(layout))
     && (!selectedProfile.requiredDisplayFontId || selectedProfile.requiredDisplayFontId === displayFont);
+  const profileGroups = useMemo(() => {
+    const groups = new Map<string, typeof examProfiles>();
+    for (const profile of examProfiles) {
+      const label = EXAM_CATEGORY_LABELS[profile.category];
+      groups.set(label, [...(groups.get(label) ?? []), profile]);
+    }
+    return [...groups.entries()];
+  }, [examProfiles]);
+  const sessionActive = status === "running" || status === "paused";
 
   function loadAttempts() {
     void attemptsRepository.list().then(setAttempts);
+  }
+
+  function resetPassagePosition() {
+    window.requestAnimationFrame(() => passageRef.current?.scrollTo({ top: 0, behavior: "auto" }));
   }
 
   function resetToReady() {
@@ -151,6 +184,7 @@ export function TypingMockExam({ layout, displayFont }: TypingMockExamProps) {
     setRunStartedAt(undefined);
     setBackspaceCount(0);
     setAttemptSaved(false);
+    resetPassagePosition();
   }
 
   function currentElapsedSeconds() {
@@ -195,7 +229,17 @@ export function TypingMockExam({ layout, displayFont }: TypingMockExamProps) {
     const container = passageRef.current;
     const current = container?.querySelector<HTMLElement>("[data-current='true']");
     if (!container || !current) return;
-    container.scrollTo({ top: Math.max(0, current.offsetTop - container.clientHeight / 2), behavior: "smooth" });
+    const containerRect = container.getBoundingClientRect();
+    const currentRect = current.getBoundingClientRect();
+    const currentTop = currentRect.top - containerRect.top + container.scrollTop;
+    const currentBottom = currentRect.bottom - containerRect.top + container.scrollTop;
+    const safeTop = container.scrollTop + container.clientHeight * 0.18;
+    const safeBottom = container.scrollTop + container.clientHeight * 0.82;
+    if (currentTop >= safeTop && currentBottom <= safeBottom) return;
+    container.scrollTo({
+      top: Math.max(0, currentTop - container.clientHeight * 0.18),
+      behavior: "auto",
+    });
   }, [autoScroll, segments, status]);
 
   useEffect(() => {
@@ -248,7 +292,10 @@ export function TypingMockExam({ layout, displayFont }: TypingMockExamProps) {
     setAttemptSaved(false);
     setStatus("running");
     setRunStartedAt(Date.now());
-    window.requestAnimationFrame(() => textareaRef.current?.focus());
+    window.requestAnimationFrame(() => {
+      passageRef.current?.scrollTo({ top: 0, behavior: "auto" });
+      textareaRef.current?.focus();
+    });
   }
 
   function pauseExam() {
@@ -331,7 +378,7 @@ export function TypingMockExam({ layout, displayFont }: TypingMockExamProps) {
           : t("examSubmitted");
 
   return (
-    <section className="mock-exam-page" aria-labelledby="mock-exam-title">
+    <section className={`mock-exam-page ${sessionActive ? "session-active" : "configuration-active"}`} aria-labelledby="mock-exam-title">
       <header className="mock-exam-heading">
         <div>
           <span>{layoutName} · {t("mockExam")}</span>
@@ -344,7 +391,7 @@ export function TypingMockExam({ layout, displayFont }: TypingMockExamProps) {
       <div className="mock-exam-grid">
         <main className="mock-exam-workstation">
           <section className="mock-exam-profilebar verified-profilebar">
-            <label>{t("examProfile")}<select disabled={!canConfigure} value={selectedProfile.id} onChange={(event) => chooseProfile(event.target.value)}>{examProfiles.map((profile) => <option key={profile.id} value={profile.id}>{profile.name} · {profile.tier === "free" ? t("free") : t("pro")}</option>)}</select></label>
+            <label>{t("examProfile")}<select disabled={!canConfigure} value={selectedProfile.id} onChange={(event) => chooseProfile(event.target.value)}>{profileGroups.map(([label, profiles]) => <optgroup key={label} label={label}>{profiles.map((profile) => <option key={profile.id} value={profile.id}>{profile.name} · {profile.tier === "free" ? t("free") : t("pro")}</option>)}</optgroup>)}</select></label>
             <div><span>Time</span><strong>{selectedProfile.durationSeconds / 60} min</strong></div>
             <div><span>Qualifying speed</span><strong>{selectedProfile.scoringModel === "kdph" ? `${selectedProfile.targetKdph} KDPH` : `${selectedProfile.targetWpm} ${selectedProfile.scoringModel === "net-wpm" ? "NWPM" : "WPM"}`}</strong></div>
             <Button variant="outline" size="sm" disabled={!canConfigure} onClick={() => window.print()}><Printer aria-hidden="true" /> {t("printPassage")}</Button>
@@ -381,6 +428,7 @@ export function TypingMockExam({ layout, displayFont }: TypingMockExamProps) {
           <div className="mock-control-strip">
             <label>{t("duration")}<select disabled={!canConfigure || selectedProfile.verification === "official-reference"} value={testDuration} onChange={(event) => { setTestDuration(Number(event.target.value)); resetToReady(); }}>{TEST_DURATIONS.map((seconds) => <option key={seconds} value={seconds}>{seconds / 60} {t("minutes")}</option>)}</select></label>
             <div className="paper-picker"><button type="button" disabled={!canConfigure} aria-label={t("previousPaper")} onClick={() => choosePaper(paperIndex - 1)}><ChevronLeft aria-hidden="true" /></button><label>{t("questionPaper")}<select disabled={!canConfigure} value={paperIndex} onChange={(event) => choosePaper(Number(event.target.value))}>{Array.from({ length: PAPER_COUNT }, (_, index) => <option key={index} value={index}>{t("testPaper")} {index + 1}/{PAPER_COUNT}</option>)}</select></label><button type="button" disabled={!canConfigure} aria-label={t("nextPaper")} onClick={() => choosePaper(paperIndex + 1)}><ChevronRight aria-hidden="true" /></button></div>
+            {sessionActive && <div className="mock-session-summary"><strong>{selectedProfile.shortName}</strong><span>{requiredProfileSpeed} {selectedProfile.scoringModel === "kdph" ? "KDPH" : "WPM"}</span><span>{countWords(expected)} {t("words")}</span></div>}
             <div className="mock-primary-actions">
               {status === "ready" && <Button disabled={!profileEnvironmentReady} onClick={startExam}><Play aria-hidden="true" /> {t("startExam")}</Button>}
               {status === "running" && selectedProfile.verification === "practice" && <Button variant="outline" onClick={pauseExam}><Pause aria-hidden="true" /> {t("pauseExam")}</Button>}
@@ -414,6 +462,7 @@ export function TypingMockExam({ layout, displayFont }: TypingMockExamProps) {
               <MockMetric label="WPM" value={String(wpm)} />
               <MockMetric label="Gross WPM" value={String(grossWpm)} />
               <MockMetric label="NWPM" value={String(wordSpeed.netWpm)} />
+              {selectedProfile.scoringModel === "rrb-wpm" && <MockMetric label="RRB WPM" value={String(rrbScore.wpm)} />}
               <MockMetric label="KDPH" value={String(kdph)} />
               <MockMetric label={t("accuracy")} value={`${score.accuracy}%`} />
               <MockMetric label={t("correctCharacters")} value={String(score.correctCharacters)} />

@@ -21,7 +21,7 @@ describe("curriculum catalog", () => {
       exerciseCount: 1800,
       freeExerciseCount: 240,
     });
-  });
+  }, 15_000);
 
   it("builds 300 unique and executable exercises for every ready layout", () => {
     for (const layout of READY_LAYOUTS) {
@@ -64,6 +64,8 @@ describe("curriculum catalog", () => {
       expect(exercises.every((exercise) => exercise.targetWpm >= 10)).toBe(true);
       expect(keyLessons.every((exercise) => Array.from(exercise.target).length >= 120)).toBe(true);
       expect(wordLessons.filter((exercise) => exercise.wordCount < 140).map((exercise) => ({ id: exercise.id, words: exercise.wordCount }))).toEqual([]);
+      expect(new Set(wordLessons.map((exercise) => exercise.moduleTitle)).size).toBe(30);
+      expect(wordLessons.every((exercise) => exercise.moduleLessonCount === 3)).toBe(true);
       expect(sentenceLessons.filter((exercise) => exercise.wordCount < 70).map((exercise) => ({ id: exercise.id, words: exercise.wordCount }))).toEqual([]);
       expect(paragraphLessons.filter((exercise) => exercise.wordCount < 180 || !exercise.keys.includes("\n\n")).map((exercise) => ({ id: exercise.id, words: exercise.wordCount }))).toEqual([]);
 
@@ -75,8 +77,8 @@ describe("curriculum catalog", () => {
   });
 
   it("provides verified government-exam profiles and layout-compatible passages", () => {
-    expect(EXAM_PROFILES).toHaveLength(12);
-    expect(EXAM_PROFILES.filter((profile) => profile.verification === "official-reference")).toHaveLength(10);
+    expect(EXAM_PROFILES).toHaveLength(18);
+    expect(EXAM_PROFILES.filter((profile) => profile.verification === "official-reference")).toHaveLength(16);
     expect(EXAM_PROFILES.filter((profile) => profile.verification === "official-reference").every((profile) => profile.officialSourceUrl?.startsWith("https://"))).toBe(true);
     expect(EXAM_PROFILES.filter((profile) => profile.verification === "official-reference").every((profile) => profile.minimumAccuracy === 0)).toBe(true);
     expect(EXAM_PROFILES.some((profile) => profile.scoringModel === "net-wpm")).toBe(true);
@@ -85,13 +87,30 @@ describe("curriculum catalog", () => {
     expect(EXAM_PROFILES.find((profile) => profile.id === "ssc-chsl-hindi")).toMatchObject({ durationSeconds: 600, targetWpm: 30, targetKdph: 9000 });
     expect(EXAM_PROFILES.find((profile) => profile.id === "cpct-english")).toMatchObject({ durationSeconds: 900, targetWpm: 30, scoringModel: "net-wpm" });
     expect(EXAM_PROFILES.find((profile) => profile.id === "cpct-hindi")).toMatchObject({ durationSeconds: 900, targetWpm: 20, scoringModel: "net-wpm" });
+    expect(EXAM_PROFILES.find((profile) => profile.id === "rrb-ntpc-english")).toMatchObject({ durationSeconds: 600, targetWpm: 30, expectedWords: 300, backspacePolicy: "disabled", scoringModel: "rrb-wpm" });
+    expect(EXAM_PROFILES.find((profile) => profile.id === "rrb-ntpc-hindi")).toMatchObject({ durationSeconds: 600, targetWpm: 25, expectedWords: 250, backspacePolicy: "disabled", scoringModel: "rrb-wpm" });
+    expect(EXAM_PROFILES.find((profile) => profile.id === "dda-stenographer-hindi")).toMatchObject({ durationSeconds: 600, targetWpm: 35 });
+    expect(EXAM_PROFILES.find((profile) => profile.id === "dsssb-802-23-hindi")).toMatchObject({ durationSeconds: 600, targetWpm: 30, expectedWords: 300 });
     expect(EXAM_PROFILES.find((profile) => profile.id === "allahabad-hc-hindi")).toMatchObject({ requiredLayoutId: "inscript", requiredDisplayFontId: "mangal" });
     expect(getExamProfilesForLayout("english-qwerty").every((profile) => profile.language === "en")).toBe(true);
     expect(getExamProfilesForLayout("inscript").every((profile) => profile.language === "hi")).toBe(true);
-    const profile = getExamProfilesForLayout("inscript")[0];
-    const passage = getExamPassage(profile, "inscript");
-    expect(passage.layoutId).toBe("inscript");
-    expect(passage.target.trim().split(/\s+/u).length).toBeGreaterThanOrEqual(500);
-    expect(typingSourceToUnicode(passage.keys, "inscript").output).toBe(passage.target);
-  });
+    for (const layout of READY_LAYOUTS.filter((candidate) => candidate !== "bhashayantra-smart")) {
+      for (const profile of getExamProfilesForLayout(layout)) {
+        const passage = getExamPassage(profile, layout);
+        const sourceResult = unicodeToTypingSource(passage.target, layout);
+        const roundTrip = typingSourceToUnicode(passage.keys, layout);
+        expect(passage.layoutId).toBe(layout);
+        expect(passage.target.trim().split(/\s+/u).length, `${layout}/${profile.id}`).toBeGreaterThanOrEqual(profile.expectedWords);
+        expect(roundTrip.output, `${layout}/${profile.id}`).toBe(passage.target);
+        expect({
+          inverse: sourceResult.warnings.map((warning) => warning.input),
+          forward: roundTrip.warnings.map((warning) => warning.input),
+          total: passage.conversionWarnings,
+        }, `${layout}/${profile.id}`).toEqual({ inverse: [], forward: [], total: 0 });
+      }
+    }
+
+    const hindiProfile = getExamProfilesForLayout("inscript")[0];
+    expect(getExamPassage(hindiProfile, "inscript").target).toContain("सरकारी कार्यालय");
+  }, 15_000);
 });

@@ -34,8 +34,9 @@ The approved design source is preserved at [docs/assets/bhashayantra-final-refer
 - 240 Free exercises and 1,560 Pro-marked exercises. These tier labels are catalog metadata until signed entitlement and billing enforcement are implemented.
 - Fixed-height academy workstation keeps the source, typing editor, Unicode preview, and compact keyboard inside the application viewport; the browser page no longer jumps downward when typing.
 - Guided layout-specific practice with named lessons, objectives, mastery accuracy, recommended speed, word/character counts, exercise selection, progressive difficulty, target keys, next-key/finger guidance, clickable keyboard, error sound, text-size, and backspace controls.
-- Twelve exam profiles: two flexible BhashaYantra baselines and ten official-reference profiles for SSC CHSL/D.E.S.T., MP CPCT, Rajasthan High Court, and Allahabad High Court.
-- Focused mock-exam workstation with 60 papers per layout, rule-specific duration/speed/backspace controls, official source links, explicit Start/Pause/Resume/Submit states, and automatic timeout submission.
+- Eighteen exam profiles: two flexible BhashaYantra baselines and sixteen official-reference profiles for SSC CHSL/D.E.S.T., RRB NTPC CBTST, DDA, DSSSB, MP CPCT, Rajasthan High Court, and Allahabad High Court.
+- Focused mock-exam workstation with 60 original government-office-style papers per layout, rule-specific duration/speed/backspace controls, official source links, explicit Start/Pause/Resume/Submit states, and automatic timeout submission.
+- Running exams use a compact distraction-free viewport: navigation and configuration panels collapse, the page position remains fixed, and only the passage/editor panels scroll at their edges.
 - Configurable 1/5/10/15-minute tests with backspace rules, word/letter/error highlighting, passage auto-scroll, 150–1,200 word limits, paragraphs/tabs/correction controls, custom Unicode passage input, and print view.
 - Completed mock results include accuracy, correct WPM, gross WPM, NWPM, KDPH, correct/missing/extra/substituted characters, correction count, weak-key analysis, and the scoring-rule notice.
 - Official-profile environment guard blocks a test when a verified layout/font requirement is not selected, such as Devanagari INSCRIPT with Mangal for the referenced Allahabad High Court Hindi profile.
@@ -47,7 +48,7 @@ The approved design source is preserved at [docs/assets/bhashayantra-final-refer
 - Local and Supabase user-preference repository implementations.
 - Tauri 2 configuration with allowlisted dialog and text-file permissions.
 - Tested Free/Pro/Institution feature-entitlement vocabulary for future secure billing integration.
-- Forty-three automated converter/typing/training/repository/licensing tests, strict TypeScript checking, and production frontend build.
+- Forty-four automated converter/typing/training/repository/licensing tests, strict TypeScript checking, and production frontend build.
 
 ## Final product direction
 

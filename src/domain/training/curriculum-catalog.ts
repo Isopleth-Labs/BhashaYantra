@@ -115,7 +115,11 @@ function buildExercise(
   const characterCount = Array.from(keys).length;
   const wordCount = keys.trim() ? keys.trim().split(/\s+/u).length : 0;
   const difficulty = Math.min(5, stage.difficulty + Math.floor(index / Math.max(1, stage.count / 3))) as 1 | 2 | 3 | 4 | 5;
-  const moduleLessonCount = stage.id === "learn-keys" ? 3 : stage.id === "paragraphs" ? 4 : 6;
+  const moduleLessonCount = stage.id === "learn-keys" || stage.id === "practice-words"
+    ? 3
+    : stage.id === "paragraphs"
+      ? 4
+      : 6;
   const moduleLesson = (index % moduleLessonCount) + 1;
   const drillBlocks = lesson.drillBlocks.map((block) => {
     const canonicalBlockTarget = typingSourceToUnicode(block.content, isEnglish ? "english-qwerty" : "bhashayantra-smart").output;

@@ -1,6 +1,6 @@
 # Training and Exam Validation
 
-Updated: 3 August 2026
+Updated: 4 August 2026
 
 ## Purpose
 
@@ -25,7 +25,9 @@ Each of the six ready layouts has 300 exercises (1,800 total):
 
 Every exercise stores a stable ID, phase, module position, competency, practice mode, focus keys, original source/target copy, accuracy gate, target speed, required clean passes, tier, and conversion-validation result. Lessons unlock sequentially. Checkpoints can require multiple clean attempts; merely opening a lesson never marks it complete.
 
-Hindi Learn Keys content keeps every intended letter or syllable as a separate drill unit. It never concatenates Roman source tokens in a way that silently creates a different Devanagari syllable. The academy uses a fixed-height workstation with independently scrollable source, keyboard, course, and coach panels so typing focus does not move the browser page.
+Hindi Learn Keys content keeps every intended letter or syllable as a separate drill unit. It never concatenates Roman source tokens in a way that silently creates a different Devanagari syllable. Practice Words uses 30 professional vocabulary modules per layout and three distinct lessons per module. The academy uses a fixed-height workstation with independently scrollable source, keyboard, course, and coach panels so typing focus does not move the browser page.
+
+Mock papers are assembled from original English and Hindi administrative passages covering public records, recruitment, railways, courts, accounts and audit, public health, rural development, disaster response, education, environment, digital services, and election duty. They reproduce the size and interaction contract of the selected profile without copying a competitor or an authority's test passage.
 
 ## Remington validation
 
@@ -43,6 +45,9 @@ References: [Hindi Indic Input 3 user guide](https://mpforest.gov.in/img/files/H
 |---|---|---|
 | SSC CHSL English/Hindi | 10 minutes; 35 WPM English or 30 WPM Hindi; 10,500/9,000 KDPH equivalence | [SSC CHSL 2025 notice](https://ssc.gov.in/api/attachment/uploads/masterData/NoticeBoards/Notice_of_adv_chsl_2025.pdf) |
 | SSC Data Entry | 15 minutes; 8,000 or 15,000 KDPH profiles with expected key-depression ranges | [SSC CHSL 2025 notice](https://ssc.gov.in/api/attachment/uploads/masterData/NoticeBoards/Notice_of_adv_chsl_2025.pdf) |
+| RRB NTPC CBTST English/Hindi | One-minute warm-up, 30-second break, then 10 evaluated minutes; 30 WPM English or 25 WPM Hindi; 300/250-word minimum; no editing tools or spell-check; published 5% allowance and mistake formula | [RRB NTPC CBTST instructions dated 22 December 2025](https://www.rrbcdg.gov.in/uploads/2024/05-NTPCG/052024-CBTST_Instructions.pdf) |
+| DDA Stenographer Grade C/PA English/Hindi | 10 minutes; 40 WPM English or 35 WPM Hindi; the circular names the SSC CGL/CHSL Soni module and Remington GAIL/InScript/Remington CBI for Hindi | [DDA Circular 29/2025](https://dda.gov.in/sites/default/files/Personnel/circular_no_2911062025.pdf) |
+| DSSSB Post Code 802/23 English/Hindi | Screen-to-screen 10-minute test; 35 WPM English or 30 WPM Hindi; KrutiDev/Mangal with Remington GAIL/InScript as stated for Hindi | [DSSSB instructions dated 16 July 2026](https://dsssb.delhi.gov.in/dsssb/general-instructions-candidates-typing-skill-test-various-posts-grade-ivjunior-0) |
 | MP CPCT English/Hindi | 15 minutes; 30 NWPM English or 20 NWPM Hindi; unrestricted correction | [CPCT Rule Book v1.4](https://www.cpct.mp.gov.in/per/g01/pub/1172/ASM/WebPortal/1/Hindi/PDF/CPCT_Rule_book-V1.4.pdf) and [assessment formula](https://www.cpct.mp.gov.in/per/g01/pub/1172/ASM/WebPortal/1/Hindi/PDF/CPCT_Assessment_Formula.PDF) |
 | Rajasthan High Court | Speed-test duration, KDPH target, auto-stop, and referenced correction restrictions | [Subordinate-court rules](https://hcraj.nic.in/hcraj/latestupdates/rulessubcourts08022017.pdf) and [speed-test instructions](https://hcraj.nic.in/hcraj/recruitment/Instructions-ldc-26102017.pdf) |
 | Allahabad High Court | Referenced 300-word English or 250-word Hindi ten-minute paper; InScript/Mangal guard for the cited Hindi instruction | [Computer type-test scheme](https://www.allahabadhighcourt.in/event/Admit_card_notice_Stenographer_GrIII.html) and [Hindi type-test instruction](https://www.allahabadhighcourt.in/event/event_5218_26-02-2019.html) |
@@ -55,6 +60,7 @@ Official-reference means the profile records a checked public source and simulat
 - Gross WPM uses all typed characters divided by five and elapsed minutes.
 - KDPH uses correctly matched key depressions and elapsed hours.
 - CPCT-style NWPM uses correctly matched words and elapsed minutes.
+- RRB practice scoring applies the published 5% mistake allowance and penalty formula. Full-versus-half-mistake classification is an explicit practice estimate because the authority's examination software remains the final evaluator.
 - Missing, extra, substituted, and correction counts remain separately visible.
 - No unverified recruitment-specific deduction rule is silently invented.
 
@@ -66,5 +72,5 @@ An official-reference profile is ready only when:
 2. Automated tests assert the core rule values.
 3. The visible workstation locks official duration and correction settings.
 4. A verified environment mismatch blocks Start.
-5. Browser QA confirms responsive layout, focus order, disabled states, timer lifecycle, scoring output, and source-link visibility.
+5. Browser QA confirms responsive layout, focus order, disabled states, timer lifecycle, scoring output, and source-link visibility. A 1280×720 active-session check must keep page scroll at zero with both passage and editor visible.
 6. The current recruitment notice is rechecked before a public content update or marketing claim.

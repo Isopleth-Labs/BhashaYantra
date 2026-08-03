@@ -20,6 +20,7 @@
   --success: #15803d;
   --danger: #dc2626;
   --focus: #2563eb;
+  --app-topbar-height: 82px;
 }
 
 :root[data-theme="dark"] {
@@ -103,8 +104,8 @@ label svg,
   position: sticky;
   top: 0;
   z-index: 10;
-  height: 82px;
-  min-height: 82px;
+  height: var(--app-topbar-height);
+  min-height: var(--app-topbar-height);
   display: grid;
   grid-template-columns: 290px minmax(680px, 1fr) auto;
   align-items: center;
@@ -201,11 +202,11 @@ label svg,
 .app-body {
   display: grid;
   grid-template-columns: 292px minmax(700px, 1fr) 410px;
-  min-height: calc(100vh - 82px);
+  min-height: calc(100vh - var(--app-topbar-height));
 }
 
 .app-body.exam-active {
-  height: calc(100dvh - 82px);
+  height: calc(100dvh - var(--app-topbar-height));
   min-height: 0;
   grid-template-columns: 292px minmax(0, 1fr);
   overflow: hidden;
@@ -214,6 +215,12 @@ label svg,
 .app-body.exam-active > .sidebar {
   min-height: 0;
   overflow-y: auto;
+}
+
+.app-body.exam-active > .workspace {
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
 }
 
 .sidebar {
@@ -3798,6 +3805,10 @@ label svg,
 
 .mock-exam-page {
   overflow: hidden;
+  min-height: 0;
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   padding: 0;
   border: 1px solid var(--border-strong);
   border-radius: 12px;
@@ -3823,10 +3834,15 @@ label svg,
 }
 
 .mock-exam-grid {
+  min-height: 0;
+  height: 100%;
   gap: 0;
+  overflow: hidden;
 }
 
 .mock-exam-workstation {
+  min-height: 0;
+  overflow-y: auto;
   padding: 18px;
   background: #f3f5f7;
 }
@@ -3971,11 +3987,210 @@ label svg,
 }
 
 .mock-settings {
+  min-height: 0;
+  max-height: 100%;
+  overflow-y: auto;
   border-radius: 0;
   border-top: 0;
   border-right: 0;
   border-bottom: 0;
   background: color-mix(in srgb, var(--surface-muted) 80%, var(--surface));
+}
+
+.mock-exam-page.session-active .mock-exam-heading {
+  min-height: 64px;
+  align-items: center;
+  padding: 9px 16px;
+}
+
+.mock-exam-page.session-active .mock-exam-heading > div:first-child > span,
+.mock-exam-page.session-active .mock-exam-heading p,
+.mock-exam-page.session-active .mock-exam-profilebar,
+.mock-exam-page.session-active .official-rule-strip,
+.mock-exam-page.session-active .exam-environment-warning,
+.mock-exam-page.session-active .mock-settings,
+.mock-exam-page.session-active .attempt-history {
+  display: none;
+}
+
+.mock-exam-page.session-active .mock-exam-heading h1 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.mock-exam-page.session-active .mock-status {
+  min-width: 132px;
+  grid-template-columns: auto auto;
+  align-items: center;
+  padding: 6px 10px;
+}
+
+.mock-exam-page.session-active .mock-status strong {
+  font-size: 17px;
+}
+
+.mock-exam-page.session-active .mock-exam-grid {
+  grid-template-columns: minmax(0, 1fr);
+  align-items: stretch;
+}
+
+.mock-exam-page.session-active .mock-exam-workstation {
+  height: 100%;
+  display: grid;
+  grid-template-rows: minmax(110px, 1fr) auto minmax(110px, 1fr);
+  gap: 8px;
+  padding: 10px;
+  overflow: hidden;
+}
+
+.mock-exam-page.session-active .mock-passage-card,
+.mock-exam-page.session-active .mock-control-strip,
+.mock-exam-page.session-active .mock-typing-card {
+  min-height: 0;
+  margin: 0;
+}
+
+.mock-exam-page.session-active .mock-passage-card,
+.mock-exam-page.session-active .mock-typing-card {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.mock-exam-page.session-active .mock-passage,
+.mock-exam-page.session-active .mock-answer-editor,
+.mock-exam-page.session-active .mock-answer-editor.direct textarea {
+  min-height: 0;
+  height: 100%;
+  max-height: none;
+}
+
+.mock-exam-page.session-active .mock-typing-card textarea {
+  resize: none;
+}
+
+.mock-exam-page.session-active .mock-control-strip > label,
+.mock-exam-page.session-active .paper-picker {
+  display: none;
+}
+
+.mock-exam-page.session-active .mock-control-strip {
+  min-height: 42px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 5px 8px;
+}
+
+.mock-session-summary {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--muted-foreground);
+  font-size: 10px;
+}
+
+.mock-session-summary strong {
+  overflow: hidden;
+  color: var(--foreground);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body:has(.mock-exam-page.session-active) .topbar,
+body:has(.mock-exam-page.session-active) .app-body.exam-active > .sidebar {
+  display: none;
+}
+
+body:has(.mock-exam-page.session-active) .app-body.exam-active {
+  height: 100dvh;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+body:has(.mock-exam-page.session-active) .app-body.exam-active > .workspace {
+  padding: 0;
+}
+
+body:has(.mock-exam-page.session-active) .mock-exam-page {
+  border: 0;
+  border-radius: 0;
+}
+
+@media (max-height: 760px) {
+  :root {
+    --app-topbar-height: 62px;
+  }
+
+  .topbar {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 8px;
+    padding: 7px 12px;
+  }
+
+  .brand {
+    gap: 8px;
+  }
+
+  .brand-mark {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    font-size: 27px;
+  }
+
+  .brand strong,
+  .top-controls label > span,
+  .works-in,
+  .top-divider,
+  .top-actions button:nth-child(1),
+  .top-actions button:nth-child(2) {
+    display: none;
+  }
+
+  .top-controls {
+    justify-content: flex-start;
+    gap: 8px;
+    min-width: 0;
+    min-height: 44px;
+    padding: 5px 8px;
+    overflow-x: auto;
+  }
+
+  .top-controls label {
+    flex: 0 0 auto;
+  }
+
+  .workspace {
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .mock-exam-heading {
+    min-height: 58px;
+    align-items: center;
+    padding: 8px 12px;
+  }
+
+  .mock-exam-heading p,
+  .mock-exam-heading > div:first-child > span {
+    display: none;
+  }
+
+  .mock-exam-heading h1 {
+    margin: 0;
+    font-size: 18px;
+  }
+
+  .mock-status {
+    min-width: 122px;
+    padding: 5px 8px;
+  }
+
+  .mock-status strong {
+    font-size: 16px;
+  }
+
+  .mock-exam-workstation {
+    padding: 10px;
+  }
 }
 
 @media (max-height: 800px) and (min-width: 1181px) {
@@ -4322,7 +4537,7 @@ label svg,
   }
 
   .mock-exam-page {
-    padding: 12px;
+    padding: 0;
   }
 
   .mock-exam-heading,

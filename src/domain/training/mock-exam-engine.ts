@@ -13,6 +13,15 @@ export interface ExamTextOptions {
   readonly allowTabs: boolean;
 }
 
+export interface RrbTypingScore {
+  readonly typedWords: number;
+  readonly fullMistakes: number;
+  readonly halfMistakes: number;
+  readonly ignoredMistakes: number;
+  readonly finalMistakes: number;
+  readonly wpm: number;
+}
+
 export function countWords(text: string) {
   return text.trim().length === 0 ? 0 : text.trim().split(/\s+/u).length;
 }
@@ -42,6 +51,74 @@ export function applyWordLimit(text: string, enabled: boolean, requestedLimit: n
   }
 
   return output.trimEnd();
+}
+
+function characterDistance(left: string, right: string) {
+  const a = Array.from(left.toLocaleLowerCase());
+  const b = Array.from(right.toLocaleLowerCase());
+  const row = Array.from({ length: b.length + 1 }, (_, index) => index);
+  for (let leftIndex = 1; leftIndex <= a.length; leftIndex += 1) {
+    let diagonal = row[0];
+    row[0] = leftIndex;
+    for (let rightIndex = 1; rightIndex <= b.length; rightIndex += 1) {
+      const previous = row[rightIndex];
+      row[rightIndex] = Math.min(
+        row[rightIndex] + 1,
+        row[rightIndex - 1] + 1,
+        diagonal + (a[leftIndex - 1] === b[rightIndex - 1] ? 0 : 1),
+      );
+      diagonal = previous;
+    }
+  }
+  return row[b.length];
+}
+
+export function calculateRrbTypingScore(expectedText: string, actualText: string, elapsedSeconds: number): RrbTypingScore {
+  const expected = expectedText.trim().split(/\s+/u).filter(Boolean);
+  const actual = actualText.trim().split(/\s+/u).filter(Boolean);
+  const rows = expected.length + 1;
+  const columns = actual.length + 1;
+  const matrix = Array.from({ length: rows }, () => Array<number>(columns).fill(0));
+  for (let row = 0; row < rows; row += 1) matrix[row][0] = row;
+  for (let column = 0; column < columns; column += 1) matrix[0][column] = column;
+  for (let row = 1; row < rows; row += 1) {
+    for (let column = 1; column < columns; column += 1) {
+      matrix[row][column] = Math.min(
+        matrix[row - 1][column] + 1,
+        matrix[row][column - 1] + 1,
+        matrix[row - 1][column - 1] + (expected[row - 1] === actual[column - 1] ? 0 : 1),
+      );
+    }
+  }
+
+  let row = expected.length;
+  let column = actual.length;
+  let fullMistakes = 0;
+  let halfMistakes = 0;
+  while (row > 0 || column > 0) {
+    if (row > 0 && column > 0 && expected[row - 1] === actual[column - 1]) {
+      row -= 1;
+      column -= 1;
+      continue;
+    }
+    if (row > 0 && column > 0 && matrix[row][column] === matrix[row - 1][column - 1] + 1) {
+      if (characterDistance(expected[row - 1], actual[column - 1]) <= 1) halfMistakes += 1;
+      else fullMistakes += 1;
+      row -= 1;
+      column -= 1;
+      continue;
+    }
+    fullMistakes += 1;
+    if (column > 0 && matrix[row][column] === matrix[row][column - 1] + 1) column -= 1;
+    else row -= 1;
+  }
+
+  const typedWords = actual.length;
+  const ignoredMistakes = typedWords * 0.05;
+  const finalMistakes = Math.max(0, fullMistakes + halfMistakes / 2 - ignoredMistakes);
+  const minutes = Math.max(1 / 60, elapsedSeconds / 60);
+  const wpm = Math.max(0, Math.round((typedWords - finalMistakes * 10) / minutes));
+  return { typedWords, fullMistakes, halfMistakes, ignoredMistakes, finalMistakes, wpm };
 }
 
 function firstProgressIndex(expected: readonly string[], actual: readonly string[]) {

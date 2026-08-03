@@ -1,9 +1,11 @@
 import { getCurriculumCourse, type CurriculumExercise } from "@/domain/training/curriculum-catalog";
+import { buildOfficialStylePassage } from "@/domain/training/exam-passage-bank";
+import { typingSourceToUnicode, unicodeToTypingSource } from "@/domain/typing/typing-engine";
 import type { ReadyTypingLayoutId, TypingLanguageCode, UnicodeDisplayFontId } from "@/domain/typing/typing-profiles";
 
 export type BackspacePolicy = "full" | "current-word" | "disabled";
-export type ExamCategory = "general" | "ssc" | "cpct" | "rajasthan-court" | "allahabad-court";
-export type ExamScoringModel = "correct-wpm" | "net-wpm" | "kdph";
+export type ExamCategory = "general" | "ssc" | "rrb" | "dda" | "dsssb" | "cpct" | "rajasthan-court" | "allahabad-court";
+export type ExamScoringModel = "correct-wpm" | "net-wpm" | "kdph" | "rrb-wpm";
 export type ExamVerification = "practice" | "official-reference";
 
 export interface ExamProfile {
@@ -28,6 +30,7 @@ export interface ExamProfile {
   readonly officialSourceLabel?: string;
   readonly requiredLayoutLabel?: string;
   readonly requiredLayoutId?: ReadyTypingLayoutId;
+  readonly allowedLayoutIds?: readonly ReadyTypingLayoutId[];
   readonly requiredDisplayFontId?: UnicodeDisplayFontId;
   readonly rules: readonly string[];
   readonly disclaimer: string;
@@ -62,10 +65,67 @@ export const EXAM_PROFILES: readonly ExamProfile[] = [
     id: "ssc-chsl-hindi", name: "SSC CHSL LDC/JSA — Hindi", shortName: "SSC CHSL HI", authority: "Staff Selection Commission",
     category: "ssc", language: "hi", durationSeconds: 600, targetWpm: 30, targetKdph: 9000, minimumAccuracy: 0,
     scoringModel: "correct-wpm", backspacePolicy: "full", expectedWords: 300, passageOffset: 9, tier: "pro",
-    verification: "official-reference", verifiedOn: "2026-08-03",
+    verification: "official-reference", verifiedOn: "2026-08-03", allowedLayoutIds: ["classic-hindi", "inscript", "remington-gail", "remington-cbi"],
     officialSourceUrl: "https://ssc.gov.in/api/attachment/uploads/masterData/NoticeBoards/Notice_of_adv_chsl_2025.pdf",
     officialSourceLabel: "SSC CHSL 2025 notice",
     rules: ["10-minute typing test", "30 WPM equals about 9,000 KDPH", "Corrections are allowed within the test time"], disclaimer: RULE_DISCLAIMER,
+  },
+  {
+    id: "rrb-ntpc-english", name: "RRB NTPC CBTST 2025 — English", shortName: "RRB NTPC EN", authority: "Railway Recruitment Boards",
+    category: "rrb", language: "en", durationSeconds: 600, targetWpm: 30, minimumAccuracy: 0,
+    scoringModel: "rrb-wpm", backspacePolicy: "disabled", expectedWords: 300, passageOffset: 11, tier: "pro",
+    verification: "official-reference", verifiedOn: "2026-08-04", allowedLayoutIds: ["english-qwerty"],
+    officialSourceUrl: "https://www.rrbcdg.gov.in/uploads/2024/05-NTPCG/052024-CBTST_Instructions.pdf",
+    officialSourceLabel: "RRB NTPC CBTST instructions dated 22 December 2025",
+    rules: ["One-minute warm-up, 30-second break, then a 10-minute evaluated test", "Type at least 300 English words; the passage may restart after completion", "Editing tools and spell-check are not permitted", "The practice score follows the published formula; official software controls full/half-mistake classification"], disclaimer: RULE_DISCLAIMER,
+  },
+  {
+    id: "rrb-ntpc-hindi", name: "RRB NTPC CBTST 2025 — Hindi", shortName: "RRB NTPC HI", authority: "Railway Recruitment Boards",
+    category: "rrb", language: "hi", durationSeconds: 600, targetWpm: 25, minimumAccuracy: 0,
+    scoringModel: "rrb-wpm", backspacePolicy: "disabled", expectedWords: 250, passageOffset: 12, tier: "pro",
+    verification: "official-reference", verifiedOn: "2026-08-04", allowedLayoutIds: ["classic-hindi", "inscript"],
+    requiredLayoutLabel: "KrutiDev or Mangal, as listed in the RRB notice",
+    officialSourceUrl: "https://www.rrbcdg.gov.in/uploads/2024/05-NTPCG/052024-CBTST_Instructions.pdf",
+    officialSourceLabel: "RRB NTPC CBTST instructions dated 22 December 2025",
+    rules: ["One-minute warm-up, 30-second break, then a 10-minute evaluated test", "Type at least 250 Hindi words; the passage may restart after completion", "Editing tools and spell-check are not permitted", "The practice score follows the published formula; official software controls full/half-mistake classification"], disclaimer: RULE_DISCLAIMER,
+  },
+  {
+    id: "dda-stenographer-english", name: "DDA Stenographer Grade C/PA 2025 — English", shortName: "DDA EN", authority: "Delhi Development Authority",
+    category: "dda", language: "en", durationSeconds: 600, targetWpm: 40, targetKdph: 12000, minimumAccuracy: 0,
+    scoringModel: "correct-wpm", backspacePolicy: "full", expectedWords: 400, passageOffset: 15, tier: "pro",
+    verification: "official-reference", verifiedOn: "2026-08-04", allowedLayoutIds: ["english-qwerty"],
+    officialSourceUrl: "https://dda.gov.in/sites/default/files/Personnel/circular_no_2911062025.pdf",
+    officialSourceLabel: "DDA Circular 29/2025",
+    rules: ["10-minute typing speed test", "English qualifying speed is 40 WPM", "The circular specifies the SSC CGL/CHSL module in Soni Typing Tutor"], disclaimer: RULE_DISCLAIMER,
+  },
+  {
+    id: "dda-stenographer-hindi", name: "DDA Stenographer Grade C/PA 2025 — Hindi", shortName: "DDA HI", authority: "Delhi Development Authority",
+    category: "dda", language: "hi", durationSeconds: 600, targetWpm: 35, targetKdph: 10500, minimumAccuracy: 0,
+    scoringModel: "correct-wpm", backspacePolicy: "full", expectedWords: 350, passageOffset: 16, tier: "pro",
+    verification: "official-reference", verifiedOn: "2026-08-04", allowedLayoutIds: ["remington-gail", "inscript", "remington-cbi"],
+    requiredLayoutLabel: "Remington GAIL, InScript, or Remington CBI",
+    officialSourceUrl: "https://dda.gov.in/sites/default/files/Personnel/circular_no_2911062025.pdf",
+    officialSourceLabel: "DDA Circular 29/2025",
+    rules: ["10-minute typing speed test", "Hindi qualifying speed is 35 WPM", "The circular specifies the SSC CGL/CHSL Soni module and three Hindi keyboard layouts"], disclaimer: RULE_DISCLAIMER,
+  },
+  {
+    id: "dsssb-802-23-english", name: "DSSSB Post Code 802/23 — English", shortName: "DSSSB EN", authority: "Delhi Subordinate Services Selection Board",
+    category: "dsssb", language: "en", durationSeconds: 600, targetWpm: 35, targetKdph: 10500, minimumAccuracy: 0,
+    scoringModel: "correct-wpm", backspacePolicy: "full", expectedWords: 350, passageOffset: 19, tier: "pro",
+    verification: "official-reference", verifiedOn: "2026-08-04", allowedLayoutIds: ["english-qwerty"],
+    officialSourceUrl: "https://dsssb.delhi.gov.in/dsssb/general-instructions-candidates-typing-skill-test-various-posts-grade-ivjunior-0",
+    officialSourceLabel: "DSSSB 802/23 instructions dated 16 July 2026",
+    rules: ["Screen-to-screen computer typing test", "10-minute duration at 35 WPM in English", "DSSSB provides the computer and keyboard; use its live mock to confirm the current interface"], disclaimer: RULE_DISCLAIMER,
+  },
+  {
+    id: "dsssb-802-23-hindi", name: "DSSSB Post Code 802/23 — Hindi", shortName: "DSSSB HI", authority: "Delhi Subordinate Services Selection Board",
+    category: "dsssb", language: "hi", durationSeconds: 600, targetWpm: 30, targetKdph: 9000, minimumAccuracy: 0,
+    scoringModel: "correct-wpm", backspacePolicy: "full", expectedWords: 300, passageOffset: 20, tier: "pro",
+    verification: "official-reference", verifiedOn: "2026-08-04", allowedLayoutIds: ["classic-hindi", "remington-gail", "inscript"],
+    requiredLayoutLabel: "KrutiDev or Mangal using Remington GAIL or InScript",
+    officialSourceUrl: "https://dsssb.delhi.gov.in/dsssb/general-instructions-candidates-typing-skill-test-various-posts-grade-ivjunior-0",
+    officialSourceLabel: "DSSSB 802/23 instructions dated 16 July 2026",
+    rules: ["Screen-to-screen computer typing test", "10-minute duration at 30 WPM in Hindi", "The instructions list KrutiDev/Mangal with Remington GAIL/InScript"], disclaimer: RULE_DISCLAIMER,
   },
   {
     id: "ssc-dest-8000", name: "SSC Data Entry — 8,000 KDPH", shortName: "SSC DEST 8K", authority: "Staff Selection Commission",
@@ -144,17 +204,59 @@ export const EXAM_PROFILES: readonly ExamProfile[] = [
 
 export function getExamProfilesForLayout(layoutId: ReadyTypingLayoutId) {
   const language: TypingLanguageCode = layoutId === "english-qwerty" ? "en" : "hi";
-  return EXAM_PROFILES.filter((profile) => profile.language === language);
+  return EXAM_PROFILES.filter((profile) => (
+    profile.language === language
+    && (layoutId !== "bhashayantra-smart" || profile.verification === "practice")
+    && (!profile.allowedLayoutIds || profile.allowedLayoutIds.includes(layoutId))
+    && (!profile.requiredLayoutId || profile.requiredLayoutId === layoutId)
+  )).sort((left, right) => {
+    if (left.verification !== right.verification) return left.verification === "official-reference" ? -1 : 1;
+    return EXAM_PROFILES.indexOf(left) - EXAM_PROFILES.indexOf(right);
+  });
 }
 
 export function getExamPassage(profile: ExamProfile, layoutId: ReadyTypingLayoutId, attemptIndex = 0): CurriculumExercise {
   const course = getCurriculumCourse(layoutId);
   const paragraphs = course.stages.find((stage) => stage.id === "paragraphs")?.exercises ?? [];
   if (paragraphs.length === 0) throw new Error(`No paragraph exercises exist for ${layoutId}.`);
+  const requiredWords = Math.max(profile.expectedWords + 80, 500);
+  const seed = paragraphs[(profile.passageOffset + attemptIndex) % paragraphs.length];
+
+  if (layoutId !== "bhashayantra-smart") {
+    const rawTarget = buildOfficialStylePassage(profile.language, profile.passageOffset + attemptIndex, requiredWords);
+    // KrutiDev-derived key maps use the physical comma key for ए. Keep official
+    // practice copy limited to punctuation the selected layout can reproduce.
+    const target = layoutId === "classic-hindi" || layoutId === "remington-gail"
+      ? rawTarget.replaceAll(",", "")
+      : rawTarget;
+    const sourceResult = unicodeToTypingSource(target, layoutId);
+    const roundTrip = typingSourceToUnicode(sourceResult.output, layoutId);
+    const keys = sourceResult.output;
+    return {
+      ...seed,
+      id: `${layoutId}-${profile.id}-mock-${String(attemptIndex + 1).padStart(3, "0")}`,
+      sequence: attemptIndex + 1,
+      title: `${profile.name} · Paper ${attemptIndex + 1}`,
+      keys,
+      target,
+      drillBlocks: [{
+        label: "Official-style screen copy",
+        purpose: "Practise an original administrative passage using the selected public exam rule profile.",
+        keys,
+        target,
+      }],
+      focusKeys: Array.from(new Set(Array.from(keys.toLocaleLowerCase()).filter((key) => /[^\s]/u.test(key)))).slice(0, 18),
+      estimatedSeconds: profile.durationSeconds,
+      wordCount: target.trim().split(/\s+/u).length,
+      characterCount: Array.from(keys).length,
+      tier: profile.tier,
+      conversionWarnings: sourceResult.warnings.length + roundTrip.warnings.length + (roundTrip.output === target ? 0 : 1),
+    };
+  }
+
   const selected: CurriculumExercise[] = [];
   let wordCount = 0;
   let offset = 0;
-  const requiredWords = Math.max(profile.expectedWords + 80, 500);
 
   while (wordCount < requiredWords && offset < paragraphs.length) {
     const paragraph = paragraphs[(profile.passageOffset + attemptIndex + offset) % paragraphs.length];
@@ -163,9 +265,9 @@ export function getExamPassage(profile: ExamProfile, layoutId: ReadyTypingLayout
     offset += 1;
   }
 
-  const seed = selected[0];
+  const smartSeed = selected[0];
   return {
-    ...seed,
+    ...smartSeed,
     id: `${layoutId}-${profile.id}-mock-${String(attemptIndex + 1).padStart(3, "0")}`,
     sequence: attemptIndex + 1,
     title: `${profile.name} · Paper ${attemptIndex + 1}`,

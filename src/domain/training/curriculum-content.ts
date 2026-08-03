@@ -106,6 +106,21 @@ const ENGLISH_WORD_MODULES: readonly WordModule[] = [
   { title: "Time and Productivity", words: words("daily weekly timely priority complete efficient organize prepare plan finish") },
   { title: "Quality Control", words: words("inspect compare validate correction mistake missing extra substitution standard benchmark") },
   { title: "Professional Vocabulary", words: words("analysis approval procedure responsibility confidential official development management") },
+  { title: "Citizen Services", words: words("citizen service portal request status certificate grievance assistance access delivery response reference") },
+  { title: "Recruitment Notices", words: words("recruitment vacancy eligibility qualification reservation application candidate examination verification merit appointment") },
+  { title: "Railway Administration", words: words("railway station passenger freight schedule route signal control ticket safety timing restoration") },
+  { title: "Judicial Filing", words: words("petition hearing evidence affidavit annexure judgment registry filing appeal summons order confidential") },
+  { title: "Audit and Sanction", words: words("audit voucher sanction expenditure ledger reconciliation invoice receipt liability grant budget approval") },
+  { title: "Public Health", words: words("health hospital medicine laboratory patient district survey report stock emergency verified confidential") },
+  { title: "Rural Development", words: words("village proposal estimate benefit period community inspection payment measurement project record approval") },
+  { title: "Disaster Response", words: words("disaster control shelter equipment evacuation incident source urgency action restoration review communication") },
+  { title: "Education Records", words: words("education admission scholarship attendance result teacher posting enrolment textbook facility identifier publication") },
+  { title: "Environmental Reports", words: words("environment air water rainfall plantation waste monitoring sample location measurement trend evidence") },
+  { title: "Election Duty", words: words("election polling neutral assignment transport inventory counting reporting authorised transparency instruction") },
+  { title: "Digital Public Service", words: words("digital transaction account password attachment backup access security reference application certificate") },
+  { title: "Statistical Reporting", words: words("statistics total average percentage district category period comparison increase decrease summary source") },
+  { title: "Compliance Review", words: words("compliance rule condition inspection observation response action deadline authority evidence closure") },
+  { title: "Official Correspondence", words: words("subject reference memorandum circular notification enclosure copy signature designation dispatch acknowledgement") },
 ];
 
 const HINDI_WORD_MODULES: readonly WordModule[] = [
@@ -124,6 +139,21 @@ const HINDI_WORD_MODULES: readonly WordModule[] = [
   { title: "Legal and Court", words: words("nyay nyayalay adhikar aadesh nirnay karyavahi praman abhilekh dastavez gopniya satyapan") },
   { title: "Language Control", words: words("matra sanyukt viram chihn anuchchhed vakya shabd akshar shuddh sahi typing hindi unicode") },
   { title: "Professional Vocabulary", words: words("vyavsayik professional dakshata gunavatta prabandhan vishleshan niyantran nirantar sthirata jimmedar mahatvapurn") },
+  { title: "Citizen Services", words: words("nagrik seva sahayata aavedan aavedak panjikaran praman suchana samadhan anumati jankari sandarbh") },
+  { title: "Recruitment Notices", words: words("bharti rikti patrata yogyata aayu seema aarakshan abhyarthi pariksha chayan pravesh adhisuchana") },
+  { title: "Railway Administration", words: words("railway station yatri parivahan samaysaarani marg suraksha niyantran vilamb suchana karmachari report") },
+  { title: "Judicial Filing", words: words("nyayalay yachika sunvai sakshya shapathpatra sanlagna appeal aadesh nirnay abhilekh praman gopniya") },
+  { title: "Audit and Accounts", words: words("lekha jaanch budget bhugtan raseed khata rashi ganana anumati sveekriti satyapan report") },
+  { title: "Public Health", words: words("swasthya aspatal aushadhi prayogshala rogi jila stock sahayata jaanch parinam suraksha suchana") },
+  { title: "Rural Development", words: words("gram gramin prastav lagat labh avadhi samudayik nirikshan bhugtan vikas aayojan abhilekh") },
+  { title: "Disaster Response", words: words("suraksha sahayata niyantran suchana srot sandesh samay vyavasthit jimmedari karyavahi samiksha nuksan") },
+  { title: "Education Records", words: words("shiksha vidyarthi pravesh pariksha parinam upasthiti praman adhyayan pathyakram adhyay aakalan panjikaran") },
+  { title: "Environmental Reports", words: words("paryavaran jal vayu nirikshan aankada srot jila report satyapan gunavatta vikas praman") },
+  { title: "Election Duty", words: words("nirvachan matdaan ginti niyam nirdesh adhikari karmachari upasthiti suraksha suchana parinam uttardayitva") },
+  { title: "Digital Public Service", words: words("computer online lenden suraksha backup aavedan praman sandarbh pranali gopniya takneek jankari") },
+  { title: "Statistical Reporting", words: words("aankada ganana rashi ank aakalan jila talika vivaran masik dainik report satyapan") },
+  { title: "Compliance Review", words: words("niyam jaanch nirikshan samiksha karyavahi adhikari anumati praman samadhan nirnay uttardayitva sveekriti") },
+  { title: "Official Correspondence", words: words("sandarbh aadesh adhisuchana suchana prastav pratilipi hastakshar vivaran vibhag karyalay sangrah sveekriti") },
 ];
 
 const ENGLISH_SENTENCE_SUBJECTS = [
@@ -271,7 +301,7 @@ function buildKeyLesson(index: number, english: boolean): CanonicalLessonSeed {
 
 function buildWordLesson(index: number, english: boolean): CanonicalLessonSeed {
   const modules = english ? ENGLISH_WORD_MODULES : HINDI_WORD_MODULES;
-  const variationCount = 6;
+  const variationCount = 3;
   const moduleIndex = Math.floor(index / variationCount);
   const variation = index % variationCount;
   const module = modules[moduleIndex];

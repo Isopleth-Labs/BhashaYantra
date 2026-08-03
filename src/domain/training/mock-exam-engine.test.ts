@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   applyWordLimit,
+  calculateRrbTypingScore,
   countWords,
   formatExamText,
   getHighlightSegments,
@@ -27,5 +28,20 @@ describe("mock exam engine", () => {
     ]);
     expect(getHighlightSegments("one two", "one tx", "error-word").find((segment) => segment.text === "two"))
       .toEqual({ text: "two", state: "error", current: true });
+  });
+
+  it("applies the published RRB mistake allowance and ten-word penalty", () => {
+    const exact = calculateRrbTypingScore("one two three four five six seven eight nine ten", "one two three four five six seven eight nine ten", 60);
+    expect(exact).toMatchObject({ typedWords: 10, fullMistakes: 0, halfMistakes: 0, finalMistakes: 0, wpm: 10 });
+
+    const oneSmallError = calculateRrbTypingScore("one two three four five six seven eight nine ten", "one two thre four five six seven eight nine ten", 60);
+    expect(oneSmallError.halfMistakes).toBe(1);
+    expect(oneSmallError.finalMistakes).toBe(0);
+    expect(oneSmallError.wpm).toBe(10);
+
+    const fullError = calculateRrbTypingScore("one two three four five six seven eight nine ten", "one two wrong four five six seven eight nine ten", 60);
+    expect(fullError.fullMistakes).toBe(1);
+    expect(fullError.finalMistakes).toBe(0.5);
+    expect(fullError.wpm).toBe(5);
   });
 });
