@@ -10,6 +10,12 @@ Updated: 3 August 2026
 - Final three-column BhashaYantra dashboard matching the approved reference.
 - Light and dark semantic theme tokens.
 - Simple Smart / Advanced Classic mode interaction.
+- Complete in-app Start Typing workspace with familiar-key input and live Unicode/Legacy output switching.
+- Automatic matra, reph, conjunct, and normalization behavior shared with the tested conversion engine.
+- Clickable Classic Hindi keyboard with normal/Shift layers and five-group character insertion palette.
+- Built-in expert shortcuts, custom shortcut conflict validation, and Advanced-mode physical-key overrides.
+- Offline draft/preferences/custom-layout persistence plus import, export, protected-default reset, copy, open, and save flows.
+- Live typing metrics for words, characters, lines, and estimated WPM.
 - Bidirectional KrutiDev 010 ↔ Unicode text converter.
 - Longest-token mapping, short-i handling, Unicode normalization, and warnings.
 - Text open, paste, clear, copy, and save/download actions with browser fallback.
@@ -17,7 +23,7 @@ Updated: 3 August 2026
 - Drizzle schema for profiles, preferences, layouts, mappings, shortcuts, history, practice, stenography, and dictionary data.
 - Supabase schema migrations, Auth ownership foreign keys, RLS policies, triggers, constraints, seed data, and pgTAP policy tests.
 - Local and Supabase preference repository implementations.
-- Strict TypeScript, converter tests, production web build, and browser visual QA.
+- Strict TypeScript, eleven converter/typing tests, production web build, and browser visual/interaction QA.
 - Local Supabase reset, eight pgTAP/RLS tests, and schema linting.
 - Rust formatting and Clippy checks.
 - Release desktop executable, MSI installer, and NSIS setup executable.
@@ -41,8 +47,8 @@ cargo clippy --manifest-path .\src-tauri\Cargo.toml -- -D warnings
 |---|---|---|
 | KrutiDev profile | Common alphabet, matras, conjuncts, digits, and acceptance fixtures | Validate/expand against a licensed full test corpus |
 | Document converter | Drop-zone UI and text-file flow | RTF/DOC/DOCX parsing with structure-preserving native conversion |
-| Keyboard modes | Mode switching and database model | Physical key interception/composition engine |
-| Shortcut manager | Searchable reference panel | Full CRUD editor and conflict workflow |
+| Keyboard modes | Complete in-app familiar-key input, smart composition, virtual keyboard, and Advanced custom mappings | Optional system-wide Windows IME/input integration after MVP |
+| Shortcut manager | Built-in shortcuts, custom creation/deletion, conflict validation, persistence, import/export, and reset | Editing existing custom entries in place and cloud sync |
 | Typing practice/test | Navigation, metrics UI, schema | Live capture, timers, scoring engine, reports |
 | Stenography | Navigation and schema | Audio state machine, transcript editor, evaluation |
 | Supabase | Schema, repositories, local configuration | Auth UI and opt-in sync wiring |

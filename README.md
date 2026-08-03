@@ -12,6 +12,13 @@ The approved design source is preserved at [docs/assets/bhashayantra-final-refer
 
 - Responsive desktop dashboard matching the approved reference.
 - Simple Smart and Advanced Classic mode switch.
+- Fully interactive Start Typing pad with familiar KrutiDev-style keys and live Unicode output.
+- Automatic short-i matra, reph, conjunct, and Unicode normalization through the shared typing engine.
+- Clickable Classic Hindi on-screen keyboard, Shift layer, word suggestions, and five character-palette groups.
+- Built-in expert shortcuts plus conflict-checked custom shortcuts and physical-key mappings.
+- Offline draft, mode, output, shortcut, and custom-layout persistence.
+- Custom layout import/export, reset, text open, output copy, and `.txt` save/download actions.
+- Live words, characters, lines, elapsed-session WPM, and mapping-warning feedback.
 - Local KrutiDev 010 ↔ Unicode text conversion with warnings.
 - Text-file open, paste, clear, copy, and download actions.
 - Light/dark design tokens and Hindi font fallbacks.
@@ -187,7 +194,7 @@ The first Tauri build can take longer because Rust dependencies must be download
 
 ## Verified build status
 
-The current workspace has passed strict TypeScript checking, five converter unit tests, eight database/RLS tests, Drizzle configuration validation, Supabase schema linting, Rust formatting and Clippy checks, frontend production build, desktop executable build, and both Windows installer builds.
+The current workspace has passed strict TypeScript checking, eleven converter/typing unit tests, eight database/RLS tests, Drizzle configuration validation, Supabase schema linting, Rust formatting and Clippy checks, frontend production build, browser interaction QA, desktop executable build, and both Windows installer builds.
 
 ## Database workflow
 
