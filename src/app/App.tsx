@@ -136,7 +136,7 @@ export default function App() {
   });
   const [typingMode, setTypingMode] = useState<TypingMode>(() => {
     const stored = localStorage.getItem("bhashayantra-typing-layout");
-    return stored === "classic-hindi" || stored === "inscript" ? "advanced" : "simple";
+    return stored && stored !== "bhashayantra-smart" && stored !== "english-qwerty" ? "advanced" : "simple";
   });
   const [displayFont, setDisplayFont] = useState<UnicodeDisplayFontId>(() => {
     if (localStorage.getItem("bhashayantra-typing-layout") === "english-qwerty") return "segoe-ui";
@@ -152,6 +152,8 @@ export default function App() {
     "bhashayantra-smart": localStorage.getItem("bhashayantra-smart-draft") ?? "",
     "classic-hindi": localStorage.getItem("bhashayantra-classic-draft") ?? localStorage.getItem("bhashayantra-typing-draft") ?? "",
     inscript: localStorage.getItem("bhashayantra-inscript-draft") ?? "",
+    "remington-gail": localStorage.getItem("bhashayantra-remington-gail-draft") ?? "",
+    "remington-cbi": localStorage.getItem("bhashayantra-remington-cbi-draft") ?? "",
     "english-qwerty": localStorage.getItem("bhashayantra-english-draft") ?? "",
   }));
   const [customShortcuts, setCustomShortcuts] = useState<readonly ShortcutDefinition[]>(() => loadJsonArray("bhashayantra-custom-shortcuts", isStoredShortcut));
@@ -172,6 +174,8 @@ export default function App() {
   useEffect(() => localStorage.setItem("bhashayantra-smart-draft", typingDrafts["bhashayantra-smart"]), [typingDrafts]);
   useEffect(() => localStorage.setItem("bhashayantra-classic-draft", typingDrafts["classic-hindi"]), [typingDrafts]);
   useEffect(() => localStorage.setItem("bhashayantra-inscript-draft", typingDrafts.inscript), [typingDrafts]);
+  useEffect(() => localStorage.setItem("bhashayantra-remington-gail-draft", typingDrafts["remington-gail"]), [typingDrafts]);
+  useEffect(() => localStorage.setItem("bhashayantra-remington-cbi-draft", typingDrafts["remington-cbi"]), [typingDrafts]);
   useEffect(() => localStorage.setItem("bhashayantra-english-draft", typingDrafts["english-qwerty"]), [typingDrafts]);
   useEffect(() => localStorage.setItem("bhashayantra-custom-shortcuts", JSON.stringify(customShortcuts)), [customShortcuts]);
   useEffect(() => localStorage.setItem("bhashayantra-custom-mappings", JSON.stringify(customMappings)), [customMappings]);

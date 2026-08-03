@@ -10,6 +10,8 @@ const LAYOUT_IDS: readonly ReadyTypingLayoutId[] = [
   "bhashayantra-smart",
   "classic-hindi",
   "inscript",
+  "remington-gail",
+  "remington-cbi",
   "english-qwerty",
 ];
 

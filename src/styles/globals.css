@@ -103,12 +103,13 @@ label svg,
   position: sticky;
   top: 0;
   z-index: 10;
+  height: 82px;
   min-height: 82px;
   display: grid;
   grid-template-columns: 290px minmax(680px, 1fr) auto;
   align-items: center;
   gap: 16px;
-  padding: 14px 28px;
+  padding: 11px 28px 12px;
   border-bottom: 1px solid var(--border);
   background: color-mix(in srgb, var(--surface) 96%, transparent);
   backdrop-filter: blur(18px);
@@ -204,7 +205,15 @@ label svg,
 }
 
 .app-body.exam-active {
+  height: calc(100dvh - 82px);
+  min-height: 0;
   grid-template-columns: 292px minmax(0, 1fr);
+  overflow: hidden;
+}
+
+.app-body.exam-active > .sidebar {
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .sidebar {
@@ -2906,7 +2915,11 @@ label svg,
 }
 
 .academy {
+  height: calc(100dvh - 122px);
   min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   overflow: hidden;
   border: 1px solid var(--border-strong);
   border-radius: 12px;
@@ -2915,12 +2928,12 @@ label svg,
 }
 
 .academy-header {
-  min-height: 112px;
+  min-height: 78px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  padding: 24px 28px;
+  padding: 13px 22px;
   color: #f8fafc;
   background: linear-gradient(110deg, #101827 0%, #17243a 65%, #123d72 100%);
 }
@@ -2937,15 +2950,15 @@ label svg,
 }
 
 .academy-header h1 {
-  margin: 5px 0 4px;
-  font-size: 29px;
+  margin: 3px 0 2px;
+  font-size: 24px;
   letter-spacing: -.03em;
 }
 
 .academy-header p {
   margin: 0;
   color: #cbd5e1;
-  font-size: 13px;
+  font-size: 11px;
 }
 
 .academy-progress {
@@ -2958,7 +2971,7 @@ label svg,
 }
 
 .academy-progress strong {
-  font-size: 28px;
+  font-size: 24px;
 }
 
 .academy-progress span {
@@ -2979,6 +2992,7 @@ label svg,
 
 .academy-grid {
   min-width: 0;
+  min-height: 0;
   display: grid;
   grid-template-columns: 250px minmax(560px, 1fr) 270px;
   align-items: stretch;
@@ -2986,7 +3000,9 @@ label svg,
 
 .academy-course {
   min-width: 0;
-  padding: 20px 14px;
+  min-height: 0;
+  padding: 16px 14px;
+  overflow-y: auto;
   color: #e5edf8;
   background: #111b2c;
   border-right: 1px solid #26344a;
@@ -3154,10 +3170,12 @@ label svg,
 
 .academy-workbench {
   min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  padding: 20px;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto auto auto auto minmax(230px, 1fr) auto;
+  gap: 8px;
+  padding: 12px 14px;
+  overflow: hidden;
   background: #f4f6f8;
 }
 
@@ -3209,8 +3227,8 @@ label svg,
 .academy-brief {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 20px;
-  padding: 18px 20px;
+  gap: 14px;
+  padding: 10px 14px;
   border: 1px solid var(--border);
   border-left: 4px solid var(--primary);
   border-radius: 7px;
@@ -3226,8 +3244,8 @@ label svg,
 }
 
 .academy-brief h2 {
-  margin: 6px 0 4px;
-  font-size: 20px;
+  margin: 3px 0 2px;
+  font-size: 16px;
   letter-spacing: -.02em;
 }
 
@@ -3235,13 +3253,16 @@ label svg,
   max-width: 720px;
   margin: 0;
   color: var(--muted-foreground);
-  font-size: 12px;
-  line-height: 1.55;
+  overflow: hidden;
+  font-size: 10px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .academy-brief dl {
   display: flex;
-  gap: 20px;
+  gap: 14px;
   margin: 0;
 }
 
@@ -3261,7 +3282,7 @@ label svg,
 
 .academy-brief dd {
   margin: 0;
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
@@ -3277,12 +3298,12 @@ label svg,
 
 .drill-track > div {
   min-width: 0;
-  min-height: 64px;
+  min-height: 48px;
   display: grid;
   grid-template-columns: 22px 1fr;
   align-content: center;
   gap: 2px 8px;
-  padding: 10px 12px;
+  padding: 7px 9px;
   border-right: 1px solid var(--border);
   color: var(--muted-foreground);
 }
@@ -3328,7 +3349,8 @@ label svg,
 }
 
 .academy-copyboard {
-  max-height: 340px;
+  min-height: 0;
+  max-height: none;
   overflow-y: auto;
   border: 1px solid #cbd5e1;
   border-radius: 6px;
@@ -3361,9 +3383,9 @@ label svg,
   display: grid;
   grid-template-columns: 88px 1fr;
   gap: 14px;
-  padding: 15px 16px;
+  padding: 10px 14px;
   border-bottom: 1px solid #e7ebf0;
-  line-height: 1.75;
+  line-height: 1.65;
 }
 
 .copy-block:last-child {
@@ -3406,7 +3428,7 @@ label svg,
   grid-template-columns: auto 1fr;
   align-items: center;
   gap: 12px;
-  padding: 9px 12px;
+  padding: 6px 10px;
 }
 
 .academy-keyline span,
@@ -3431,7 +3453,7 @@ label svg,
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 7px 12px;
+  padding: 5px 10px;
   border-left: 1px solid var(--border);
   background: var(--surface-muted);
 }
@@ -3459,32 +3481,60 @@ label svg,
   font-weight: 500;
 }
 
-.academy-workbench > textarea {
+.academy-training-panes {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: minmax(120px, 1.05fr) minmax(105px, .85fr);
+  gap: 8px;
+}
+
+.academy-answer-pane {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 5px;
+}
+
+.academy-editor-grid {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(170px, .42fr);
+  gap: 8px;
+}
+
+.academy-editor-grid.direct {
+  grid-template-columns: 1fr;
+}
+
+.academy-editor-grid textarea {
   width: 100%;
-  min-height: 190px;
-  resize: vertical;
-  padding: 18px;
+  min-height: 0;
+  height: 100%;
+  resize: none;
+  padding: 12px 14px;
   border: 2px solid #9aa7b8;
   border-radius: 6px;
   color: var(--foreground);
   background: var(--surface);
   outline: none;
   font-family: "Cascadia Mono", Consolas, monospace;
-  font-size: 18px;
-  line-height: 1.65;
+  font-size: 16px;
+  line-height: 1.55;
 }
 
-.academy-workbench > textarea:focus {
+.academy-editor-grid textarea:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent);
 }
 
 .academy-unicode-preview {
-  min-height: 66px;
-  display: grid;
-  grid-template-columns: 100px 1fr;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   gap: 12px;
-  padding: 12px 14px;
+  padding: 10px 12px;
+  overflow: auto;
   border: 1px solid var(--border);
   border-radius: 6px;
   background: var(--surface);
@@ -3503,9 +3553,38 @@ label svg,
   white-space: pre-wrap;
 }
 
+.academy-keyboard {
+  gap: 3px;
+  max-height: 170px;
+  margin-top: 0;
+  padding: 6px;
+}
+
+.academy-keyboard .training-keyboard-row {
+  min-width: 590px;
+  gap: 3px;
+}
+
+.academy-keyboard .training-keyboard-row button {
+  width: 39px;
+  min-height: 29px;
+  padding: 2px 4px;
+  border-radius: 5px;
+}
+
+.academy-keyboard .training-keyboard-row button.space {
+  width: 245px;
+}
+
+.academy-keyboard .training-keyboard-row button strong {
+  font-size: 12px;
+}
+
 .academy-coach {
   min-width: 0;
-  padding: 20px 16px;
+  min-height: 0;
+  padding: 16px 14px;
+  overflow-y: auto;
   border-left: 1px solid var(--border);
   background: var(--surface);
 }
@@ -3671,12 +3750,50 @@ label svg,
   grid-column: 1 / -1;
 }
 
-.academy-history {
-  margin: 0;
-  padding: 18px 22px 24px;
-  border: 0;
+.academy-history-drawer {
+  margin-top: 12px;
+  padding-top: 10px;
   border-top: 1px solid var(--border);
-  border-radius: 0;
+}
+
+.academy-history-drawer summary {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.academy-history-drawer summary svg {
+  width: 15px;
+  height: 15px;
+}
+
+.academy-history-drawer summary span {
+  margin-left: auto;
+  color: var(--muted-foreground);
+}
+
+.academy-history-drawer > p {
+  color: var(--muted-foreground);
+  font-size: 10px;
+}
+
+.academy-history-list {
+  display: grid;
+  gap: 5px;
+  margin: 9px 0;
+}
+
+.academy-history-list div {
+  display: flex;
+  justify-content: space-between;
+  gap: 7px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  font-size: 9px;
 }
 
 .mock-exam-page {
@@ -3861,6 +3978,50 @@ label svg,
   background: color-mix(in srgb, var(--surface-muted) 80%, var(--surface));
 }
 
+@media (max-height: 800px) and (min-width: 1181px) {
+  .academy-workbench {
+    grid-template-rows: auto auto auto auto minmax(190px, 1fr) auto;
+    gap: 6px;
+    padding-block: 9px;
+  }
+
+  .academy-brief {
+    padding-block: 7px;
+  }
+
+  .academy-brief p,
+  .drill-track small {
+    display: none;
+  }
+
+  .drill-track > div {
+    min-height: 34px;
+    grid-template-rows: 1fr;
+  }
+
+  .drill-track > div > span {
+    grid-row: 1;
+  }
+
+  .academy-training-panes {
+    grid-template-rows: minmax(105px, 1fr) minmax(78px, .7fr);
+  }
+
+  .academy-keyboard {
+    max-height: 115px;
+    padding: 4px;
+  }
+
+  .academy-keyboard .training-keyboard-row button {
+    width: 36px;
+    min-height: 20px;
+  }
+
+  .academy-keyboard .training-keyboard-row button.space {
+    width: 220px;
+  }
+}
+
 @media (max-width: 1450px) {
   .topbar {
     grid-template-columns: 250px 1fr auto;
@@ -3918,7 +4079,7 @@ label svg,
   }
 
   .academy-brief {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 
   .works-in span:first-child,
@@ -3999,6 +4160,14 @@ label svg,
 
   .academy-grid {
     grid-template-columns: 1fr;
+  }
+
+  .academy {
+    height: auto;
+  }
+
+  .workspace {
+    overflow: auto;
   }
 
   .academy-course {

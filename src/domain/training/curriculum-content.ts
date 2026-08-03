@@ -210,7 +210,9 @@ function buildKeyUnits(current: readonly string[], review: readonly string[], hi
   const repeated = active.map((key) => hindi ? `${key} ${key} ${key} ${key}` : key.repeat(4));
   const alternated = active.map((key, index) => {
     const next = active[(index + 1) % active.length];
-    return hindi ? `${key}${next} ${next}${key} ${key}${next}` : `${key}${next}${key}${next} ${next}${key}${next}${key}`;
+    return hindi
+      ? `${key} ${next} ${key} ${next} ${next} ${key} ${next} ${key}`
+      : `${key}${next}${key}${next} ${next}${key}${next}${key}`;
   });
   const grouped = Array.from({ length: Math.max(4, active.length) }, (_, index) => {
     const group = rotateUnique(active, index, Math.min(5, active.length));
@@ -277,18 +279,26 @@ function buildWordLesson(index: number, english: boolean): CanonicalLessonSeed {
   const next = modules[(moduleIndex + 1) % modules.length];
   const pool = unique([...module.words, ...next.words, ...previous.words]);
   const selected = rotateUnique(pool, variation + moduleIndex * 7, 30 + variation);
-  const firstBreak = Math.ceil(selected.length / 3);
-  const secondBreak = firstBreak * 2;
+  const recognition = selected.slice(0, 12).flatMap((word) => [word, word]);
+  const accuracyCircuit = [
+    ...selected,
+    ...rotateUnique(selected, Math.max(1, variation + 3), selected.length),
+  ];
+  const timedRun = [
+    ...rotateUnique(selected, variation * 3 + 5, selected.length),
+    ...rotateUnique(selected, variation * 5 + 11, selected.length),
+    ...rotateUnique(selected, variation * 7 + 17, Math.ceil(selected.length / 2)),
+  ];
   const drillBlocks: readonly CanonicalDrillBlock[] = [
-    { label: "Recognition", purpose: "Read and type the core vocabulary without correction pressure.", content: selected.slice(0, firstBreak).join(" ") },
-    { label: "Recall", purpose: "Type the mixed vocabulary while maintaining clean word spacing.", content: selected.slice(firstBreak, secondBreak).join(" ") },
-    { label: "Timed set", purpose: "Complete the final word group at the recommended speed.", content: selected.slice(secondBreak).join(" ") },
+    { label: "Recognition", purpose: "Repeat each focus word twice to establish a clean movement pattern.", content: recognition.join(" ") },
+    { label: "Accuracy circuit", purpose: "Type two controlled rounds with consistent spacing and no skipped words.", content: accuracyCircuit.join(" ") },
+    { label: "Timed run", purpose: "Finish a longer mixed sequence without pausing between familiar words.", content: timedRun.join(" ") },
   ];
   return {
     title: `${module.title} — Word Set ${variation + 1}`,
     moduleTitle: module.title,
     drillLabel: `Word Set ${variation + 1}`,
-    objective: `Master ${selected.length} distinct professional words through recognition, recall, and a timed set.`,
+    objective: `Master ${selected.length} distinct professional words through repeated recognition, a two-round accuracy circuit, and a sustained timed run.`,
     content: drillBlocks.map((block) => block.content).join("\n"),
     competency: module.title,
     practiceMode: variation < 3 ? "accuracy" : "flow",

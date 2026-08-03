@@ -59,6 +59,16 @@ export const TRAINING_LESSONS: Readonly<Record<ReadyTypingLayoutId, readonly Tra
     { id: "inscript-2", keys: "Yejl" },
     { id: "inscript-3", keys: "ufvdor" },
   ],
+  "remington-gail": [
+    { id: "gail-1", keys: "esjk uke" },
+    { id: "gail-2", keys: "Hkkjr" },
+    { id: "gail-3", keys: "fgUnh" },
+  ],
+  "remington-cbi": [
+    { id: "cbi-1", keys: "esjk uke" },
+    { id: "cbi-2", keys: "Hkkjr" },
+    { id: "cbi-3", keys: "gfUnh" },
+  ],
   "english-qwerty": [
     { id: "english-1", keys: "The quick brown fox" },
     { id: "english-2", keys: "Practice builds speed and accuracy." },

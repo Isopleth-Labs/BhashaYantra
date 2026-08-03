@@ -8,6 +8,8 @@ describe("training engine", () => {
       "bhashayantra-smart",
       "classic-hindi",
       "inscript",
+      "remington-gail",
+      "remington-cbi",
       "english-qwerty",
     ]);
     expect(Object.values(TRAINING_LESSONS).every((lessons) => lessons.length >= 3)).toBe(true);

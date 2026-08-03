@@ -9,6 +9,22 @@ export const INSCRIPT_KEY_MAP: Readonly<Record<string, string>> = {
   X: "ँ", C: "ण", N: "ळ", M: "श", "<": "ष", ">": "।", "?": "य़",
 };
 
+// Remington GAIL/CBI share the same visible base and Shift layers. The CBI
+// workflow differs chiefly by entering the short-i matra after its consonant,
+// so it can emit Unicode in logical order through this direct map.
+// Base/Shift layer adapted from SIL Global's MIT-licensed Remington GAIL map.
+export const REMINGTON_CBI_KEY_MAP: Readonly<Record<string, string>> = {
+  "1": "1", "2": "2", "3": "3", "4": "4", "5": "5", "6": "6", "7": "7", "8": "8", "9": "9", "0": "0",
+  "!": "।", "@": "/", "#": "ः", "$": "*", "%": "-", "^": "‘", "&": "’", "*": "द्ध", "(": "त्र", ")": "ऋ",
+  "-": ";", "_": ".", "=": "ृ", "+": "्",
+  q: "ु", w: "ू", e: "म", r: "त", t: "ज", y: "ल", u: "न", i: "प", o: "व", p: "च", "[": "ख्", "]": ",", "\\": "(",
+  Q: "फ", W: "ॅ", E: "म्", R: "त्", T: "ज्", Y: "ल्", U: "न्", I: "प्", O: "व्", P: "च्", "{": "क्ष्", "}": "द्व", "|": ")",
+  a: "ं", s: "े", d: "क", f: "ि", g: "ह", h: "ी", j: "र", k: "ा", l: "स", ";": "य", "'": "श्", "`": "़",
+  A: "ा", S: "ै", D: "क्", F: "थ्", G: "ळ", H: "भ्", J: "श्र", K: "ज्ञ", L: "स्", ":": "रू", "\"": "ष्", "~": "द्य",
+  z: "्र", x: "ग", c: "ब", v: "अ", b: "इ", n: "द", m: "उ", ",": "ए", ".": "ण्", "/": "ध्",
+  Z: "र्", X: "ग्", C: "ब्", V: "ट", B: "ठ", N: "छ", M: "ड", "<": "ढ", ">": "झ", "?": "घ्",
+};
+
 function isPassThrough(value: string) {
   return /[\s0-9!@#$%^&*()_+={}\[\]:;"'<>.,?/~`\-–—|\\]/u.test(value) || /[\u0900-\u097f]/u.test(value);
 }
@@ -65,27 +81,31 @@ export function unicodeToDirectLayout(input: string, keyMap: Readonly<Record<str
     if (!inverseMap.has(value)) inverseMap.set(value, key);
   }
 
-  const normalizedInput = input.replace(/\r\n?/g, "\n").normalize("NFD");
+  const inverseEntries = [...inverseMap.entries()].sort((left, right) => right[0].length - left[0].length);
+  const normalizedInput = input.replace(/\r\n?/g, "\n").normalize("NFC");
   const warnings: ConversionWarning[] = [];
   let output = "";
-  let index = 0;
+  let cursor = 0;
 
-  for (const value of Array.from(normalizedInput)) {
-    const mapped = inverseMap.get(value);
-    if (mapped !== undefined) {
-      output += mapped;
-    } else {
-      output += value;
-      if (!isInversePassThrough(value)) {
-        warnings.push({
-          code: "unsupported-character",
-          index,
-          input: value,
-          message: `No inverse direct-layout mapping is available for “${value}”.`,
-        });
-      }
+  while (cursor < normalizedInput.length) {
+    const pair = inverseEntries.find(([value]) => normalizedInput.startsWith(value, cursor));
+    if (pair) {
+      output += pair[1];
+      cursor += pair[0].length;
+      continue;
     }
-    index += value.length;
+
+    const value = Array.from(normalizedInput.slice(cursor))[0] ?? "";
+    output += value;
+    if (!isInversePassThrough(value)) {
+      warnings.push({
+        code: "unsupported-character",
+        index: cursor,
+        input: value,
+        message: `No inverse direct-layout mapping is available for “${value}”.`,
+      });
+    }
+    cursor += value.length;
   }
 
   return {
@@ -93,5 +113,59 @@ export function unicodeToDirectLayout(input: string, keyMap: Readonly<Record<str
     warnings,
     inputCharacters: Array.from(normalizedInput).length,
     outputCharacters: Array.from(output).length,
+  };
+}
+
+function composeRemingtonUnicode(value: string) {
+  return value
+    .replace(/([क-हक़-य़])्ा/gu, "$1")
+    .replaceAll("अा", "आ")
+    .replaceAll("आॅ", "ऑ")
+    .replaceAll("आे", "ओ")
+    .replaceAll("आै", "औ")
+    .replaceAll("ाॅ", "ॉ")
+    .replaceAll("ाे", "ो")
+    .replaceAll("ाै", "ौ")
+    .replaceAll("एॅ", "ऍ")
+    .replaceAll("एे", "ऐ")
+    .replaceAll("इी", "ई")
+    .replaceAll("उु", "ऊ")
+    .replaceAll("ॅं", "ँ")
+    .normalize("NFC");
+}
+
+function expandRemingtonUnicode(value: string) {
+  return value
+    .normalize("NFC")
+    .replaceAll("ऑ", "अाॅ")
+    .replaceAll("ओ", "अाे")
+    .replaceAll("औ", "अाै")
+    .replaceAll("आ", "अा")
+    .replaceAll("ऍ", "एॅ")
+    .replaceAll("ऐ", "एे")
+    .replaceAll("ई", "इी")
+    .replaceAll("ऊ", "उु")
+    .replaceAll("ँ", "ॅं")
+    .replaceAll("ॉ", "ाॅ")
+    .replaceAll("ो", "ाे")
+    .replaceAll("ौ", "ाै")
+    .replace(/[खघणथधभशष]/gu, (character) => `${character}्ा`);
+}
+
+export function remingtonCbiToUnicode(input: string): ConversionResult {
+  const converted = directLayoutToUnicode(input, REMINGTON_CBI_KEY_MAP);
+  const output = composeRemingtonUnicode(converted.output);
+  return {
+    ...converted,
+    output,
+    outputCharacters: Array.from(output).length,
+  };
+}
+
+export function unicodeToRemingtonCbi(input: string): ConversionResult {
+  const converted = unicodeToDirectLayout(expandRemingtonUnicode(input), REMINGTON_CBI_KEY_MAP);
+  return {
+    ...converted,
+    inputCharacters: Array.from(input.replace(/\r\n?/g, "\n").normalize("NFC")).length,
   };
 }

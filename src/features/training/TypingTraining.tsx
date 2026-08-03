@@ -1,21 +1,17 @@
 import {
   AlertTriangle,
-  Award,
   BookOpenCheck,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
-  Clock3,
   Gauge,
   History,
-  Keyboard,
   Layers3,
   LockKeyhole,
   RotateCcw,
   Settings2,
   Target,
   Trash2,
-  Volume2,
 } from "lucide-react";
 import {
   useEffect,
@@ -369,18 +365,23 @@ export function TypingTraining({ kind, layout, displayFont }: TypingTrainingProp
 
           <div className="drill-track" aria-label="Lesson drill sequence">{exercise.drillBlocks.map((block, index) => <div key={block.label} className={index < activeBlockIndex || activeBlockIndex < 0 ? "done" : index === activeBlockIndex ? "active" : ""}><span>{index + 1}</span><strong>{block.label}</strong><small>{block.purpose}</small></div>)}</div>
 
-          <section className="academy-copyboard" style={{ fontFamily: fontStack, fontSize }}>
-            <div className="academy-copyboard-title"><span>Source copy</span><small>{exercise.wordCount} words · {exercise.characterCount} characters</small></div>
-            {exercise.drillBlocks.map((block, index) => <div key={block.label} className={index === activeBlockIndex ? "copy-block active" : "copy-block"}><span>{block.label}</span><strong>{block.target}</strong></div>)}
-          </section>
-
           <div className="academy-keyline"><div><span>Layout keystrokes</span><code>{exercise.keys}</code></div><div><span>Next</span><kbd>{nextExpected?.key === " " ? t("space") : nextExpected?.key ?? "—"}</kbd><small>{nextExpected?.finger ? t(nextExpected.finger) : "Ready"}</small></div></div>
 
-          <label className="academy-input-label" htmlFor="training-input"><span>{t("yourTyping")}</span><small>Typing starts the timer automatically</small></label>
-          <textarea ref={textareaRef} id="training-input" value={source} onChange={(event) => updateSource(event.target.value)} onKeyDown={handleKeyDown} placeholder={t("trainingPlaceholder")} spellCheck={false} disabled={finished} autoFocus />
-          {layout !== "english-qwerty" && <div className="academy-unicode-preview" style={{ fontFamily: fontStack, fontSize }}><span>Unicode preview</span><strong>{actual || "—"}</strong></div>}
+          <div className="academy-training-panes">
+            <section className="academy-copyboard" style={{ fontFamily: fontStack, fontSize }}>
+              <div className="academy-copyboard-title"><span>Source copy</span><small>{exercise.wordCount} {exercise.stageId === "learn-keys" ? "drill units" : "words"} · {exercise.characterCount} characters</small></div>
+              {exercise.drillBlocks.map((block, index) => <div key={block.label} className={index === activeBlockIndex ? "copy-block active" : "copy-block"}><span>{block.label}</span><strong>{block.target}</strong></div>)}
+            </section>
+            <section className="academy-answer-pane">
+              <label className="academy-input-label" htmlFor="training-input"><span>{t("yourTyping")}</span><small>Timer starts with your first key</small></label>
+              <div className={layout === "english-qwerty" ? "academy-editor-grid direct" : "academy-editor-grid"}>
+                <textarea ref={textareaRef} id="training-input" value={source} onChange={(event) => updateSource(event.target.value)} onKeyDown={handleKeyDown} placeholder={t("trainingPlaceholder")} spellCheck={false} disabled={finished} autoFocus />
+                {layout !== "english-qwerty" && <div className="academy-unicode-preview" style={{ fontFamily: fontStack, fontSize }}><span>Unicode preview</span><strong>{actual || "—"}</strong></div>}
+              </div>
+            </section>
+          </div>
 
-          {showKeyboard && <div className="training-keyboard" aria-label={t("showCourseKeyboard")}>{keyboard.map((row, rowIndex) => <div className="training-keyboard-row" key={rowIndex}>{row.map((keyDefinition) => { const insertion = nextExpected?.key === keyDefinition.shiftKey ? keyDefinition.shiftKey : keyDefinition.key; const highlighted = nextExpected?.key === keyDefinition.key || nextExpected?.key === keyDefinition.shiftKey; return <button type="button" key={keyDefinition.key} className={`${keyDefinition.width ?? ""} ${highlighted ? "next" : ""}`} onClick={() => insertVirtualKey(insertion ?? keyDefinition.key)}><small>{keyDefinition.shiftLabel}</small><strong>{keyDefinition.label}</strong><span>{keyDefinition.key === " " ? t("space") : keyDefinition.key.toLocaleUpperCase()}</span></button>; })}</div>)}</div>}
+          {showKeyboard && <div className="training-keyboard academy-keyboard" aria-label={t("showCourseKeyboard")}>{keyboard.map((row, rowIndex) => <div className="training-keyboard-row" key={rowIndex}>{row.map((keyDefinition) => { const insertion = nextExpected?.key === keyDefinition.shiftKey ? keyDefinition.shiftKey : keyDefinition.key; const highlighted = nextExpected?.key === keyDefinition.key || nextExpected?.key === keyDefinition.shiftKey; return <button type="button" key={keyDefinition.key} className={`${keyDefinition.width ?? ""} ${highlighted ? "next" : ""}`} onClick={() => insertVirtualKey(insertion ?? keyDefinition.key)}><small>{keyDefinition.shiftLabel}</small><strong>{keyDefinition.label}</strong><span>{keyDefinition.key === " " ? t("space") : keyDefinition.key.toLocaleUpperCase()}</span></button>; })}</div>)}</div>}
         </main>
 
         <aside className="academy-coach" aria-label="Live coach">
@@ -393,13 +394,12 @@ export function TypingTraining({ kind, layout, displayFont }: TypingTrainingProp
           <div className={finished ? lessonMastered ? "coach-status mastered" : "coach-status repeat" : "coach-status"}>{finished ? lessonMastered ? <><CheckCircle2 aria-hidden="true" /><strong>Lesson mastered</strong><span>Next lesson is unlocked.</span></> : lessonPassed ? <><RotateCcw aria-hidden="true" /><strong>Clean run recorded</strong><span>Repeat once more for mastery.</span></> : <><AlertTriangle aria-hidden="true" /><strong>Accuracy gate missed</strong><span>Review errors and repeat.</span></> : <><Target aria-hidden="true" /><strong>Ready to train</strong><span>Start with accuracy; speed follows.</span></>}</div>
           <div className="academy-actions"><Button variant="outline" onClick={previousExercise} disabled={exerciseIndex === 0}><ChevronLeft aria-hidden="true" /> Previous</Button><Button variant="outline" onClick={resetSession}><RotateCcw aria-hidden="true" /> Reset</Button><Button onClick={nextExercise} disabled={!lessonMastered}>Next <ChevronRight aria-hidden="true" /></Button></div>
           {attemptSaved && <p className="training-saved"><CheckCircle2 aria-hidden="true" /> {t("trainingSaved")}</p>}
+          <details className="academy-history-drawer">
+            <summary><History aria-hidden="true" /> {t("attemptHistory")} <span>{layoutAttempts.length}</span></summary>
+            {layoutAttempts.length === 0 ? <p>{t("noAttempts")}</p> : <><div className="academy-history-list">{layoutAttempts.slice(0, 6).map((attempt) => <div key={attempt.id}><span>{new Date(attempt.completedAt).toLocaleDateString(language === "hi" ? "hi-IN" : "en-IN")}</span><strong>{attempt.accuracy}% · {attempt.wpm} WPM</strong></div>)}</div><Button size="sm" variant="danger" onClick={() => void clearHistory()}><Trash2 aria-hidden="true" /> {t("clearHistory")}</Button></>}
+          </details>
         </aside>
       </div>
-
-      <section className="attempt-history academy-history" aria-labelledby="attempt-history-title">
-        <div><h2 id="attempt-history-title"><History aria-hidden="true" /> {t("attemptHistory")}</h2>{layoutAttempts.length > 0 && <Button size="sm" variant="danger" onClick={() => void clearHistory()}><Trash2 aria-hidden="true" /> {t("clearHistory")}</Button>}</div>
-        {layoutAttempts.length === 0 ? <p>{t("noAttempts")}</p> : <div className="attempt-table"><div className="attempt-row heading"><span>{t("exercise")}</span><span>{t("accuracy")}</span><span>WPM</span><span>KDPH</span><span>{t("duration")}</span></div>{layoutAttempts.slice(0, 8).map((attempt) => <div className="attempt-row" key={attempt.id}><span><Award aria-hidden="true" /> {attempt.kind === "test" ? t("typingTest") : t("typingPractice")}<small>{new Date(attempt.completedAt).toLocaleString(language === "hi" ? "hi-IN" : "en-IN")}</small></span><strong>{attempt.accuracy}%</strong><strong>{attempt.wpm}</strong><strong>{attempt.kdph}</strong><strong>{attempt.elapsedSeconds}s</strong></div>)}</div>}
-      </section>
     </section>
   );
 }

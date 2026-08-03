@@ -5,12 +5,11 @@ export type ReadyTypingLayoutId =
   | "bhashayantra-smart"
   | "classic-hindi"
   | "inscript"
+  | "remington-gail"
+  | "remington-cbi"
   | "english-qwerty";
 
-export type TypingLayoutId =
-  | ReadyTypingLayoutId
-  | "remington-gail"
-  | "remington-cbi";
+export type TypingLayoutId = ReadyTypingLayoutId;
 
 export type LegacyEncodingId = "krutidev-010" | "devlys-010" | "shreelipi";
 export type UnicodeDisplayFontId = "noto-devanagari" | "mangal" | "nirmala-ui" | "segoe-ui";
@@ -21,7 +20,7 @@ export interface TypingLayoutProfile {
   readonly name: string;
   readonly readiness: ProfileReadiness;
   readonly version: number;
-  readonly source: "bhashayantra" | "microsoft" | "validation-pending";
+  readonly source: "bhashayantra" | "microsoft" | "sil";
 }
 
 export interface LegacyEncodingProfile {
@@ -42,8 +41,8 @@ export const TYPING_LAYOUT_PROFILES: readonly TypingLayoutProfile[] = [
   { id: "bhashayantra-smart", language: "hi", name: "BhashaYantra Smart", readiness: "ready", version: 1, source: "bhashayantra" },
   { id: "classic-hindi", language: "hi", name: "Classic Hindi / KrutiDev", readiness: "ready", version: 1, source: "bhashayantra" },
   { id: "inscript", language: "hi", name: "Devanagari INSCRIPT", readiness: "ready", version: 1, source: "microsoft" },
-  { id: "remington-gail", language: "hi", name: "Remington Gail", readiness: "validation", version: 1, source: "validation-pending" },
-  { id: "remington-cbi", language: "hi", name: "Remington CBI", readiness: "validation", version: 1, source: "validation-pending" },
+  { id: "remington-gail", language: "hi", name: "Remington GAIL", readiness: "ready", version: 1, source: "sil" },
+  { id: "remington-cbi", language: "hi", name: "Remington CBI", readiness: "ready", version: 1, source: "microsoft" },
   { id: "english-qwerty", language: "en", name: "English QWERTY", readiness: "ready", version: 1, source: "bhashayantra" },
 ] as const;
 

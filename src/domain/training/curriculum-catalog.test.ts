@@ -9,15 +9,17 @@ const READY_LAYOUTS: readonly ReadyTypingLayoutId[] = [
   "bhashayantra-smart",
   "classic-hindi",
   "inscript",
+  "remington-gail",
+  "remington-cbi",
   "english-qwerty",
 ];
 
 describe("curriculum catalog", () => {
-  it("provides 1,200 structured original exercises", () => {
+  it("provides 1,800 structured original exercises", () => {
     expect(getCurriculumCatalogSummary()).toEqual({
-      courseCount: 4,
-      exerciseCount: 1200,
-      freeExerciseCount: 160,
+      courseCount: 6,
+      exerciseCount: 1800,
+      freeExerciseCount: 240,
     });
   });
 
@@ -61,13 +63,13 @@ describe("curriculum catalog", () => {
       expect(exercises.every((exercise) => exercise.minimumAccuracy >= 92 && exercise.minimumAccuracy <= 98)).toBe(true);
       expect(exercises.every((exercise) => exercise.targetWpm >= 10)).toBe(true);
       expect(keyLessons.every((exercise) => Array.from(exercise.target).length >= 120)).toBe(true);
-      expect(wordLessons.filter((exercise) => exercise.wordCount < 28).map((exercise) => ({ id: exercise.id, words: exercise.wordCount }))).toEqual([]);
+      expect(wordLessons.filter((exercise) => exercise.wordCount < 140).map((exercise) => ({ id: exercise.id, words: exercise.wordCount }))).toEqual([]);
       expect(sentenceLessons.filter((exercise) => exercise.wordCount < 70).map((exercise) => ({ id: exercise.id, words: exercise.wordCount }))).toEqual([]);
       expect(paragraphLessons.filter((exercise) => exercise.wordCount < 180 || !exercise.keys.includes("\n\n")).map((exercise) => ({ id: exercise.id, words: exercise.wordCount }))).toEqual([]);
 
       for (const exercise of wordLessons) {
         const words = exercise.target.trim().split(/\s+/u);
-        expect(new Set(words).size, exercise.id).toBe(words.length);
+        expect(new Set(words).size, exercise.id).toBeGreaterThanOrEqual(28);
       }
     }
   });

@@ -1,5 +1,12 @@
 import { convertText } from "@/domain/conversion/convert-text";
-import { directLayoutToUnicode, englishQwertyToUnicode, INSCRIPT_KEY_MAP, unicodeToDirectLayout } from "@/domain/typing/direct-layout-engine";
+import {
+  directLayoutToUnicode,
+  englishQwertyToUnicode,
+  INSCRIPT_KEY_MAP,
+  remingtonCbiToUnicode,
+  unicodeToDirectLayout,
+  unicodeToRemingtonCbi,
+} from "@/domain/typing/direct-layout-engine";
 import { smartPhoneticToUnicode } from "@/domain/typing/smart-phonetic-engine";
 import type { ReadyTypingLayoutId } from "@/domain/typing/typing-profiles";
 
@@ -160,6 +167,65 @@ export const INSCRIPT_KEYBOARD: readonly (readonly KeyboardKey[])[] = [
   [{ key: " ", label: "स्पेस", width: "space" }],
 ] as const;
 
+export const REMINGTON_KEYBOARD: readonly (readonly KeyboardKey[])[] = [
+  [
+    { key: "`", label: "़", shiftKey: "~", shiftLabel: "द्य" },
+    { key: "1", label: "1", shiftKey: "!", shiftLabel: "।" },
+    { key: "2", label: "2", shiftKey: "@", shiftLabel: "/" },
+    { key: "3", label: "3", shiftKey: "#", shiftLabel: "ः" },
+    { key: "4", label: "4", shiftKey: "$", shiftLabel: "*" },
+    { key: "5", label: "5", shiftKey: "%", shiftLabel: "-" },
+    { key: "6", label: "6", shiftKey: "^", shiftLabel: "‘" },
+    { key: "7", label: "7", shiftKey: "&", shiftLabel: "’" },
+    { key: "8", label: "8", shiftKey: "*", shiftLabel: "द्ध" },
+    { key: "9", label: "9", shiftKey: "(", shiftLabel: "त्र" },
+    { key: "0", label: "0", shiftKey: ")", shiftLabel: "ऋ" },
+    { key: "-", label: ";", shiftKey: "_", shiftLabel: "." },
+    { key: "=", label: "ृ", shiftKey: "+", shiftLabel: "्" },
+  ],
+  [
+    { key: "q", label: "ु", shiftKey: "Q", shiftLabel: "फ" },
+    { key: "w", label: "ू", shiftKey: "W", shiftLabel: "ॅ" },
+    { key: "e", label: "म", shiftKey: "E", shiftLabel: "म्" },
+    { key: "r", label: "त", shiftKey: "R", shiftLabel: "त्" },
+    { key: "t", label: "ज", shiftKey: "T", shiftLabel: "ज्" },
+    { key: "y", label: "ल", shiftKey: "Y", shiftLabel: "ल्" },
+    { key: "u", label: "न", shiftKey: "U", shiftLabel: "न्" },
+    { key: "i", label: "प", shiftKey: "I", shiftLabel: "प्" },
+    { key: "o", label: "व", shiftKey: "O", shiftLabel: "व्" },
+    { key: "p", label: "च", shiftKey: "P", shiftLabel: "च्" },
+    { key: "[", label: "ख्", shiftKey: "{", shiftLabel: "क्ष्" },
+    { key: "]", label: ",", shiftKey: "}", shiftLabel: "द्व" },
+    { key: "\\", label: "(", shiftKey: "|", shiftLabel: ")" },
+  ],
+  [
+    { key: "a", label: "ं", shiftKey: "A", shiftLabel: "ा" },
+    { key: "s", label: "े", shiftKey: "S", shiftLabel: "ै" },
+    { key: "d", label: "क", shiftKey: "D", shiftLabel: "क्" },
+    { key: "f", label: "ि", shiftKey: "F", shiftLabel: "थ्" },
+    { key: "g", label: "ह", shiftKey: "G", shiftLabel: "ळ" },
+    { key: "h", label: "ी", shiftKey: "H", shiftLabel: "भ्" },
+    { key: "j", label: "र", shiftKey: "J", shiftLabel: "श्र" },
+    { key: "k", label: "ा", shiftKey: "K", shiftLabel: "ज्ञ" },
+    { key: "l", label: "स", shiftKey: "L", shiftLabel: "स्" },
+    { key: ";", label: "य", shiftKey: ":", shiftLabel: "रू" },
+    { key: "'", label: "श्", shiftKey: "\"", shiftLabel: "ष्" },
+  ],
+  [
+    { key: "z", label: "्र", shiftKey: "Z", shiftLabel: "र्" },
+    { key: "x", label: "ग", shiftKey: "X", shiftLabel: "ग्" },
+    { key: "c", label: "ब", shiftKey: "C", shiftLabel: "ब्" },
+    { key: "v", label: "अ", shiftKey: "V", shiftLabel: "ट" },
+    { key: "b", label: "इ", shiftKey: "B", shiftLabel: "ठ" },
+    { key: "n", label: "द", shiftKey: "N", shiftLabel: "छ" },
+    { key: "m", label: "उ", shiftKey: "M", shiftLabel: "ड" },
+    { key: ",", label: "ए", shiftKey: "<", shiftLabel: "ढ" },
+    { key: ".", label: "ण्", shiftKey: ">", shiftLabel: "झ" },
+    { key: "/", label: "ध्", shiftKey: "?", shiftLabel: "घ्" },
+  ],
+  [{ key: " ", label: "स्पेस", width: "space" }],
+] as const;
+
 export const ENGLISH_QWERTY_KEYBOARD: readonly (readonly KeyboardKey[])[] = [
   [
     { key: "1", label: "1", shiftKey: "!", shiftLabel: "!" }, { key: "2", label: "2", shiftKey: "@", shiftLabel: "@" },
@@ -244,13 +310,15 @@ export function typingKeysToUnicode(legacy: string) {
 
 export function typingSourceToUnicode(source: string, layout: ReadyTypingLayoutId) {
   if (layout === "bhashayantra-smart") return smartPhoneticToUnicode(source);
-  if (layout === "classic-hindi") return typingKeysToUnicode(source);
+  if (layout === "classic-hindi" || layout === "remington-gail") return typingKeysToUnicode(source);
+  if (layout === "remington-cbi") return remingtonCbiToUnicode(source);
   if (layout === "inscript") return directLayoutToUnicode(source, INSCRIPT_KEY_MAP);
   return englishQwertyToUnicode(source);
 }
 
 export function unicodeToTypingSource(unicode: string, layout: ReadyTypingLayoutId) {
-  if (layout === "classic-hindi") return unicodeToTypingKeys(unicode);
+  if (layout === "classic-hindi" || layout === "remington-gail") return unicodeToTypingKeys(unicode);
+  if (layout === "remington-cbi") return unicodeToRemingtonCbi(unicode);
   if (layout === "inscript") return unicodeToDirectLayout(unicode, INSCRIPT_KEY_MAP);
   return englishQwertyToUnicode(unicode);
 }
@@ -258,6 +326,7 @@ export function unicodeToTypingSource(unicode: string, layout: ReadyTypingLayout
 export function keyboardForLayout(layout: ReadyTypingLayoutId) {
   if (layout === "bhashayantra-smart") return BHASHAYANTRA_SMART_KEYBOARD;
   if (layout === "classic-hindi") return CLASSIC_HINDI_KEYBOARD;
+  if (layout === "remington-gail" || layout === "remington-cbi") return REMINGTON_KEYBOARD;
   if (layout === "inscript") return INSCRIPT_KEYBOARD;
   return ENGLISH_QWERTY_KEYBOARD;
 }
