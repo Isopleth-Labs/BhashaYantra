@@ -31,6 +31,11 @@ describe("Start Typing engine", () => {
     expect(unicodeToTypingKeys("क्ष त्र ज्ञ श्र").output).toBe("{k = K J");
   });
 
+  it("round-trips the INSCRIPT vocalic-r keys", () => {
+    expect(typingSourceToUnicode("=+", "inscript").output).toBe("ृऋ");
+    expect(unicodeToTypingSource("ृऋ", "inscript").output).toBe("=+");
+  });
+
   it("inserts text at and replaces a selection", () => {
     expect(insertAtSelection("abcd", "XY", 1, 3)).toEqual({
       value: "aXYd",

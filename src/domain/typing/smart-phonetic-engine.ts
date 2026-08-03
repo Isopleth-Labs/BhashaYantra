@@ -1,8 +1,10 @@
 import type { ConversionResult } from "@/domain/conversion/types";
+import { HINDI_PROFESSIONAL_LEXICON } from "@/domain/typing/hindi-professional-lexicon";
 
 const VIRAMA = "्";
 
 const WORD_DICTIONARY: Readonly<Record<string, string>> = {
+  ...HINDI_PROFESSIONAL_LEXICON,
   aadhar: "आधार",
   aaj: "आज",
   abhyas: "अभ्यास",

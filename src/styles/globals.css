@@ -1448,6 +1448,13 @@ label svg,
   min-height: 34px;
   font-size: 24px;
   line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.training-target strong {
+  max-height: 210px;
+  overflow: auto;
+  padding-right: 8px;
 }
 
 .training-guide {
@@ -1661,6 +1668,66 @@ label svg,
 .exercise-picker .tier-badge.pro {
   color: #b45309;
   background: #fffbeb;
+}
+
+.lesson-overview {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 24px;
+  margin-top: 10px;
+  padding: 16px 18px;
+  border: 1px solid color-mix(in srgb, var(--primary) 22%, var(--border));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--primary) 4%, var(--surface));
+}
+
+.lesson-overview > div > span {
+  color: var(--primary);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.lesson-overview h2 {
+  margin: 4px 0;
+  font-size: 18px;
+}
+
+.lesson-overview p {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+
+.lesson-overview dl {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(78px, auto));
+  gap: 8px;
+  margin: 0;
+}
+
+.lesson-overview dl div {
+  display: grid;
+  gap: 3px;
+  min-width: 82px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.lesson-overview dt {
+  color: var(--muted-foreground);
+  font-size: 9px;
+}
+
+.lesson-overview dd {
+  margin: 0;
+  color: var(--primary);
+  font-size: 14px;
+  font-weight: 800;
 }
 
 .exam-profile-panel {
@@ -3029,6 +3096,14 @@ label svg,
 
   .exercise-picker > span {
     padding-bottom: 0;
+  }
+
+  .lesson-overview {
+    grid-template-columns: 1fr;
+  }
+
+  .lesson-overview dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .attempt-table {

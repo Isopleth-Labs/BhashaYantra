@@ -52,11 +52,14 @@ function tokenize(
     const pair = sorted.find(([source]) => input.startsWith(source, cursor));
     if (pair) {
       output += pair[1];
-      if (pendingIMatra) {
+      const nextCursor = cursor + pair[0].length;
+      const nextPair = sorted.find(([source]) => input.startsWith(source, nextCursor));
+      const clusterContinues = pair[1].endsWith("्") || nextPair?.[1].startsWith("्") === true;
+      if (pendingIMatra && !clusterContinues) {
         output += I_MATRA_MARKER;
         pendingIMatra = false;
       }
-      cursor += pair[0].length;
+      cursor = nextCursor;
       continue;
     }
 

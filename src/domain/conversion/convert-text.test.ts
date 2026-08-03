@@ -23,6 +23,13 @@ describe("KrutiDev text conversion", () => {
     expect(result.output).toBe("हिंदी");
   });
 
+  it("keeps the short-i matra after a complete consonant cluster", () => {
+    const unicode = "स्थिरता पंक्ति प्रविष्टि प्रक्रिया";
+    const legacy = convertText(unicode, "unicode-to-legacy");
+    expect(legacy.warnings).toEqual([]);
+    expect(convertText(legacy.output, "legacy-to-unicode").output).toBe(unicode);
+  });
+
   it("preserves line breaks and ordinary punctuation", () => {
     const result = convertText("uke!\nesjk", "legacy-to-unicode");
 

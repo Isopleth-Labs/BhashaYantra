@@ -22,8 +22,8 @@ Updated: 3 August 2026
 - Built-in expert shortcuts, custom shortcut conflict validation, and a working Advanced-mode manager with layout-scoped physical-key overrides.
 - Offline draft/preferences/custom-layout persistence plus import, export, protected-default reset, copy, open, and save flows.
 - Live typing metrics for words, characters, lines, and estimated WPM.
-- Original 1,200-exercise curriculum across the four ready layouts: 60 key drills, 90 word drills, 90 sentence drills, and 60 paragraph drills per layout.
-- Staged practice with exercise selection, difficulty, Free/Pro labels, target keys, next-key/finger guidance, clickable keyboard, error sound, text size, and backspace policy controls.
+- Original 1,200-exercise professional curriculum across the four ready layouts: 60 progressive key drills, 90 distinct-word drills, 90 sustained sentence drills, and 60 two-paragraph drills per layout.
+- Staged practice with named modules, lesson objectives, mastery accuracy, recommended WPM, content counts, exercise selection, progressive difficulty, Free/Pro labels, target keys, next-key/finger guidance, clickable keyboard, error sound, text size, and backspace policy controls.
 - Eight non-official exam simulations in a focused workstation with 60 selectable papers per layout, long passages, explicit Start/Pause/Resume/Submit/Timeout states, and current-notice disclaimer.
 - Working exam controls for 1/5/10/15-minute timers, speed/accuracy targets, full/current-word/disabled backspace, word/error/letter highlighting, scrollbar and auto-scroll, 150–1,200 word limits, paragraphs, tabs, corrections, custom Unicode passages, font sizing, and printing.
 - Live WPM, KDPH, accuracy, missing/extra/substituted counts, weak-key analysis, completion state, and once-only attempt saving.
@@ -64,7 +64,7 @@ cargo clippy --manifest-path .\src-tauri\Cargo.toml -- -D warnings
 | Keyboard modes | Own Smart phonetic, Classic familiar-key, initial INSCRIPT, and English QWERTY inputs; per-layout drafts, keyboards, and custom layers | Expand INSCRIPT acceptance fixtures, validate licensed Remington Gail/CBI fixtures, then optional Windows IME integration |
 | Legacy encoding profiles | KrutiDev 010 working; DevLys and Shree-Lipi registered as validation-pending | Add licensed fixtures and round-trip acceptance corpora before enabling each profile |
 | Shortcut manager | Built-in shortcuts, custom creation/deletion, conflict validation, persistence, import/export, and reset | Editing existing custom entries in place and cloud sync |
-| Typing practice/test | 1,200 exercises; focused mock workstation; 60 papers/layout; eight profiles; Start/Pause/Resume/Submit/Timeout flow; passage, correction, highlighting and scrolling settings; WPM/KDPH/error scoring; weak-key analysis; local history | Official-profile validation, full/half-mistake rules, adaptive lesson generation, and exportable reports |
+| Typing practice/test | 1,200 professional exercises with mastery gates and depth/uniqueness checks; focused mock workstation; 60 papers/layout; eight profiles; Start/Pause/Resume/Submit/Timeout flow; passage, correction, highlighting and scrolling settings; WPM/KDPH/error scoring; weak-key analysis; local history | Official-profile validation, full/half-mistake rules, adaptive lesson generation, and exportable reports |
 | Stenography | Navigation and schema | Audio state machine, transcript editor, evaluation |
 | Supabase | Schema, repositories, local configuration | Auth UI and opt-in sync wiring |
 

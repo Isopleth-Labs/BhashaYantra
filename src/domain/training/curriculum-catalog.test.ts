@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { getCurriculumCatalogSummary, getCurriculumCourse } from "@/domain/training/curriculum-catalog";
 import { EXAM_PROFILES, getExamPassage, getExamProfilesForLayout } from "@/domain/training/exam-profiles";
-import { typingSourceToUnicode } from "@/domain/typing/typing-engine";
+import { typingSourceToUnicode, unicodeToTypingSource } from "@/domain/typing/typing-engine";
 import type { ReadyTypingLayoutId } from "@/domain/typing/typing-profiles";
 
 const READY_LAYOUTS: readonly ReadyTypingLayoutId[] = [
@@ -29,9 +29,43 @@ describe("curriculum catalog", () => {
       expect(new Set(exercises.map((exercise) => exercise.id)).size).toBe(300);
       expect(new Set(exercises.map((exercise) => exercise.keys)).size).toBe(300);
       expect(exercises.every((exercise) => exercise.keys.length > 0 && exercise.target.length > 0)).toBe(true);
-      expect(exercises.every((exercise) => typingSourceToUnicode(exercise.keys, layout).output === exercise.target)).toBe(true);
+      const mismatched = exercises.filter((exercise) => typingSourceToUnicode(exercise.keys, layout).output !== exercise.target);
+      expect(mismatched.slice(0, 5).map((exercise) => ({
+        id: exercise.id,
+        title: exercise.title,
+        expected: exercise.target,
+        actual: typingSourceToUnicode(exercise.keys, layout).output,
+      }))).toEqual([]);
       const warned = exercises.filter((exercise) => exercise.conversionWarnings > 0);
-      expect(warned.map((exercise) => ({ id: exercise.id, keys: exercise.keys, target: exercise.target, warnings: exercise.conversionWarnings }))).toEqual([]);
+      expect(warned.slice(0, 12).map((exercise) => ({
+        id: exercise.id,
+        unsupported: unicodeToTypingSource(exercise.target, layout).warnings.map((warning) => warning.input),
+      }))).toEqual([]);
+    }
+  });
+
+  it("provides professional lesson depth, metadata, and distinct word drills", () => {
+    for (const layout of READY_LAYOUTS) {
+      const course = getCurriculumCourse(layout);
+      const exercises = course.stages.flatMap((stage) => stage.exercises);
+      const keyLessons = course.stages.find((stage) => stage.id === "learn-keys")?.exercises ?? [];
+      const wordLessons = course.stages.find((stage) => stage.id === "practice-words")?.exercises ?? [];
+      const sentenceLessons = course.stages.find((stage) => stage.id === "sentences")?.exercises ?? [];
+      const paragraphLessons = course.stages.find((stage) => stage.id === "paragraphs")?.exercises ?? [];
+
+      expect(new Set(exercises.map((exercise) => exercise.title)).size).toBe(300);
+      expect(exercises.every((exercise) => exercise.objective.length >= 40)).toBe(true);
+      expect(exercises.every((exercise) => exercise.minimumAccuracy >= 92 && exercise.minimumAccuracy <= 98)).toBe(true);
+      expect(exercises.every((exercise) => exercise.targetWpm >= 10)).toBe(true);
+      expect(keyLessons.every((exercise) => Array.from(exercise.target).length >= 120)).toBe(true);
+      expect(wordLessons.filter((exercise) => exercise.wordCount < 28).map((exercise) => ({ id: exercise.id, words: exercise.wordCount }))).toEqual([]);
+      expect(sentenceLessons.filter((exercise) => exercise.wordCount < 70).map((exercise) => ({ id: exercise.id, words: exercise.wordCount }))).toEqual([]);
+      expect(paragraphLessons.filter((exercise) => exercise.wordCount < 180 || !exercise.keys.includes("\n\n")).map((exercise) => ({ id: exercise.id, words: exercise.wordCount }))).toEqual([]);
+
+      for (const exercise of wordLessons) {
+        const words = exercise.target.trim().split(/\s+/u);
+        expect(new Set(words).size, exercise.id).toBe(words.length);
+      }
     }
   });
 

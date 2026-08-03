@@ -153,6 +153,10 @@ Comparison uses Unicode normalization and grapheme-aware segmentation so a visua
 - Each layout has 60 key drills, 90 word drills, 90 sentence drills, and 60 paragraph drills.
 - Canonical Hindi targets are generated through the BhashaYantra Smart engine; Classic and INSCRIPT source keys are obtained through deterministic inverse mappings and then round-trip validated.
 - Every exercise has a stable ID, sequence, focus keys, difficulty, estimated duration, tier, and conversion-warning count.
+- Professional metadata also records the module, drill type, objective, mastery accuracy, recommended WPM, word count, and character count.
+- Key training advances through Precision, Alternation, and Fluency Review. Word lessons reject duplicate terms within the same lesson; sentence and paragraph lessons enforce minimum depth.
+- A completed lesson is counted as mastered only when its saved accuracy meets that lesson's threshold. The learner can reset and repeat a completed-but-unmastered attempt.
+- KrutiDev short-i reordering keeps the matra after the full consonant cluster, including forms such as `स्थिरता`, `पंक्ति`, `प्रविष्टि`, and `प्रक्रिया`.
 - The content is original project material. Competitor exercises, logos, and proprietary exam screens are not copied.
 
 ### Current attempt analysis

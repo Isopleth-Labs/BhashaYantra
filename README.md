@@ -28,9 +28,10 @@ The approved design source is preserved at [docs/assets/bhashayantra-final-refer
 - Live local KrutiDev 010 ↔ Unicode text conversion in both directions with warnings.
 - Text-file open, paste, clear, copy, and download actions.
 - Selectable Unicode preview fonts: Noto Sans Devanagari, Mangal, Nirmala UI, and Segoe UI for English.
-- Original 1,200-exercise curriculum: 300 exercises for each ready layout, split into Learn Keys (60), Practice Words (90), Sentences (90), and Paragraphs (60).
+- Original 1,200-exercise professional curriculum: 300 exercises for each ready layout, split into Learn Keys (60), Practice Words (90), Sentences (90), and Paragraphs (60).
+- Progressive key modules use Precision, Alternation, and Fluency Review drills; word lessons contain at least 28 distinct professional words; sentence and paragraph lessons provide sustained original material instead of short rotating samples.
 - 160 Free exercises and 1,040 Pro-marked exercises. These tier labels are catalog metadata until signed entitlement and billing enforcement are implemented.
-- Guided layout-specific practice with exercise selection, difficulty, target keys, next-key/finger guidance, clickable keyboard, error sound, text-size, and backspace controls.
+- Guided layout-specific practice with named lessons, objectives, mastery accuracy, recommended speed, word/character counts, exercise selection, progressive difficulty, target keys, next-key/finger guidance, clickable keyboard, error sound, text-size, and backspace controls.
 - Eight clearly labelled non-official exam simulations covering general Hindi/English, SSC-style, Railway-style, CPCT-style, Court-style, and English data-entry practice.
 - Focused mock-exam workstation with 60 papers per layout, 1,200-word source passages, explicit Start/Pause/Resume/Submit states, and automatic timeout submission.
 - Configurable 1/5/10/15-minute tests with backspace rules, word/letter/error highlighting, passage auto-scroll, 150–1,200 word limits, paragraphs/tabs/correction controls, custom Unicode passage input, and print view.

@@ -126,14 +126,22 @@ export function TypingTraining({ kind, layout, displayFont }: TypingTrainingProp
   const weakKeys = useMemo(() => analyzeWeakKeys(exercise.keys, source), [exercise.keys, source]);
   const nextExpected = useMemo(() => getNextExpectedKey(exercise.keys, source), [exercise.keys, source]);
   const keyboard = keyboardForLayout(layout);
+  const courseExercises = useMemo(() => course.stages.flatMap((stage) => stage.exercises), [course]);
+  const exerciseById = useMemo(() => new Map(courseExercises.map((item) => [item.id, item])), [courseExercises]);
   const completedExerciseIds = useMemo(
-    () => new Set(attempts.filter((attempt) => attempt.kind === "practice" && attempt.layoutId === layout).map((attempt) => attempt.exerciseId)),
-    [attempts, layout],
+    () => new Set(
+      attempts
+        .filter((attempt) => attempt.kind === "practice" && attempt.layoutId === layout)
+        .filter((attempt) => attempt.accuracy >= (exerciseById.get(attempt.exerciseId)?.minimumAccuracy ?? 100))
+        .map((attempt) => attempt.exerciseId),
+    ),
+    [attempts, exerciseById, layout],
   );
-  const layoutAttempts = attempts.filter((attempt) => attempt.layoutId === layout);
+  const layoutAttempts = attempts.filter((attempt) => attempt.layoutId === layout && attempt.kind === "practice");
   const layoutName = TYPING_LAYOUT_PROFILES.find((profile) => profile.id === layout)?.name ?? layout;
   const fontStack = getDisplayFont(displayFont).cssStack;
   const passed = kind === "test" && finished && wpm >= selectedProfile.targetWpm && score.accuracy >= selectedProfile.minimumAccuracy;
+  const lessonPassed = kind === "practice" && finished && score.accuracy >= exercise.minimumAccuracy;
 
   function loadAttempts() {
     void attemptsRepository.list().then(setAttempts);
@@ -329,11 +337,24 @@ export function TypingTraining({ kind, layout, displayFont }: TypingTrainingProp
             </div>
           )}
           <div className="exercise-picker">
-            <label>{t("selectExercise")}<select value={exerciseIndex} onChange={(event) => chooseExercise(Number(event.target.value))}>{selectedStage.exercises.map((item, index) => <option key={item.id} value={index}>{completedExerciseIds.has(item.id) ? "✓ " : ""}{t("exercise")} {item.sequence} · {item.tier === "free" ? t("free") : t("pro")}</option>)}</select></label>
+            <label>{t("selectExercise")}<select value={exerciseIndex} onChange={(event) => chooseExercise(Number(event.target.value))}>{selectedStage.exercises.map((item, index) => <option key={item.id} value={index}>{completedExerciseIds.has(item.id) ? "✓ " : ""}{String(item.sequence).padStart(2, "0")} · {item.title} · {item.tier === "free" ? t("free") : t("pro")}</option>)}</select></label>
             <span className={`tier-badge ${exercise.tier}`}>{exercise.tier === "free" ? t("free") : t("pro")}</span>
             <span>{t("difficulty")}: {"●".repeat(exercise.difficulty)}{"○".repeat(5 - exercise.difficulty)}</span>
             <span>{t("estimatedTime")}: {exercise.estimatedSeconds}s</span>
           </div>
+          <section className="lesson-overview" aria-labelledby="lesson-overview-title">
+            <div>
+              <span>{exercise.moduleTitle} · {t("lesson")} {exercise.sequence}/{selectedStage.exercises.length}</span>
+              <h2 id="lesson-overview-title">{exercise.title}</h2>
+              <p>{exercise.objective}</p>
+            </div>
+            <dl>
+              <div><dt>{t("minimumAccuracy")}</dt><dd>{exercise.minimumAccuracy}%</dd></div>
+              <div><dt>{t("recommendedSpeed")}</dt><dd>{exercise.targetWpm} WPM</dd></div>
+              <div><dt>{t("words")}</dt><dd>{exercise.wordCount}</dd></div>
+              <div><dt>{t("characters")}</dt><dd>{exercise.characterCount}</dd></div>
+            </dl>
+          </section>
         </>
       ) : (
         <div className="exam-profile-panel">
@@ -408,7 +429,7 @@ export function TypingTraining({ kind, layout, displayFont }: TypingTrainingProp
         <TrainingMetric label={t("substitutions")} value={String(score.substitutedCharacters)} />
         <div className={finished ? "training-result-status complete" : "training-result-status"}>
           {finished ? <CheckCircle2 aria-hidden="true" /> : <Gauge aria-hidden="true" />}
-          {finished ? kind === "test" ? passed ? t("testPassed") : t("testNeedsPractice") : t("lessonComplete") : t("trainingInProgress")}
+          {finished ? kind === "test" ? passed ? t("testPassed") : t("testNeedsPractice") : lessonPassed ? t("lessonComplete") : t("lessonNeedsAccuracy") : t("trainingInProgress")}
         </div>
       </div>
 
@@ -418,7 +439,7 @@ export function TypingTraining({ kind, layout, displayFont }: TypingTrainingProp
       <div className="training-actions">
         {kind === "practice" && <Button variant="outline" onClick={previousExercise} disabled={exerciseIndex === 0}><ChevronLeft aria-hidden="true" /> {t("previousExercise")}</Button>}
         <Button variant="outline" onClick={resetSession}><RotateCcw aria-hidden="true" /> {t("reset")}</Button>
-        {kind === "practice" ? <Button onClick={nextExercise} disabled={!finished}>{t("nextLesson")} <ChevronRight aria-hidden="true" /></Button> : <Button onClick={startNewTest} disabled={!finished}><RotateCcw aria-hidden="true" /> {t("startNewAttempt")}</Button>}
+        {kind === "practice" ? <Button onClick={nextExercise} disabled={!lessonPassed}>{t("nextLesson")} <ChevronRight aria-hidden="true" /></Button> : <Button onClick={startNewTest} disabled={!finished}><RotateCcw aria-hidden="true" /> {t("startNewAttempt")}</Button>}
       </div>
 
       <section className="attempt-history" aria-labelledby="attempt-history-title">

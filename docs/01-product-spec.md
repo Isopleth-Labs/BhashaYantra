@@ -97,8 +97,11 @@ The start screen contains both typing modes, the Exchange Converter, character b
 
 - Four ready layout courses: BhashaYantra Smart, Classic Hindi/KrutiDev, Devanagari INSCRIPT, and English QWERTY.
 - 300 original exercises per course: 60 key drills, 90 word drills, 90 sentence drills, and 60 paragraph drills.
+- Twenty key modules progress through three drill modes; professional vocabulary is grouped by real work topics and every word lesson contains at least 28 distinct terms.
+- Every lesson exposes a name, module, objective, difficulty, mastery-accuracy requirement, recommended WPM, estimated duration, and content size.
+- Sentence lessons contain at least 70 words and paragraph lessons contain at least 180 words in two-paragraph form.
 - 1,200 exercises in catalog version 1, with 160 marked Free and 1,040 marked Pro.
-- Guided lessons and custom text.
+- Guided lessons require the configured mastery accuracy before the Next Lesson action is unlocked.
 - Hindi Unicode-aware comparison.
 - WPM, KDPH, accuracy, and error breakdown.
 - Weak-key and repeated-error reporting.
