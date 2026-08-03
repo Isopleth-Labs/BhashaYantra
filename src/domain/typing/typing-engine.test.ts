@@ -8,7 +8,9 @@ import {
   hasShortcutConflict,
   insertAtSelection,
   typingKeysToUnicode,
+  typingSourceToUnicode,
   unicodeToTypingKeys,
+  unicodeToTypingSource,
 } from "./typing-engine";
 
 describe("Start Typing engine", () => {
@@ -16,6 +18,13 @@ describe("Start Typing engine", () => {
     expect(typingKeysToUnicode('esjk uke Hkk"kk ;a= gS').output).toBe(
       "मेरा नाम भाषा यंत्र है",
     );
+  });
+
+  it("routes Smart and Classic layouts through separate engines", () => {
+    expect(typingSourceToUnicode("mera naam", "bhashayantra-smart").output).toBe("मेरा नाम");
+    expect(typingSourceToUnicode("esjk uke", "classic-hindi").output).toBe("मेरा नाम");
+    expect(unicodeToTypingSource("क्ष", "bhashayantra-smart").output).toBe("क्ष");
+    expect(unicodeToTypingSource("क्ष", "classic-hindi").output).toBe("{k");
   });
 
   it("creates familiar key text for inserted Unicode characters", () => {

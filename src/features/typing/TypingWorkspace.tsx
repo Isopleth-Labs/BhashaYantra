@@ -24,17 +24,19 @@ import {
 
 import { Button } from "@/components/ui/button";
 import {
-  CLASSIC_HINDI_KEYBOARD,
   findMatchingShortcut,
   formatShortcut,
   getTypingMetrics,
   hasKeyMappingConflict,
   hasShortcutConflict,
   insertAtSelection,
-  typingKeysToUnicode,
+  keyboardForLayout,
+  typingSourceToUnicode,
   unicodeToTypingKeys,
+  unicodeToTypingSource,
   type CustomKeyMapping,
   type ShortcutDefinition,
+  type TypingLayoutId,
   type TypingMode,
   type TypingOutputMode,
 } from "@/domain/typing/typing-engine";
@@ -44,6 +46,7 @@ const SUGGESTIONS = ["नमस्ते", "भारत", "हिंदी", "�
 
 interface TypingWorkspaceProps {
   readonly mode: TypingMode;
+  readonly layout: TypingLayoutId;
   readonly outputMode: TypingOutputMode;
   readonly source: string;
   readonly onSourceChange: (value: string) => void;
@@ -72,6 +75,7 @@ function downloadText(contents: string, filename: string, type = "text/plain;cha
 
 export function TypingWorkspace({
   mode,
+  layout,
   outputMode,
   source,
   onSourceChange,
@@ -89,7 +93,7 @@ export function TypingWorkspace({
   const configFileRef = useRef<HTMLInputElement>(null);
   const [shifted, setShifted] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(true);
-  const [status, setStatus] = useState(() => t("readyTyping"));
+  const [status, setStatus] = useState(() => t(layout === "bhashayantra-smart" ? "readySmartTyping" : "readyTyping"));
   const [startedAt, setStartedAt] = useState<number>();
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [shortcutKey, setShortcutKey] = useState("");
@@ -101,8 +105,11 @@ export function TypingWorkspace({
   const [mappingOutput, setMappingOutput] = useState("");
   const [configurationError, setConfigurationError] = useState("");
 
-  const unicodeResult = useMemo(() => typingKeysToUnicode(source), [source]);
-  const displayedOutput = outputMode === "unicode" ? unicodeResult.output : source;
+  const unicodeResult = useMemo(() => typingSourceToUnicode(source, layout), [layout, source]);
+  const legacyResult = useMemo(() => unicodeToTypingKeys(unicodeResult.output), [unicodeResult.output]);
+  const displayedOutput = outputMode === "unicode" ? unicodeResult.output : legacyResult.output;
+  const activeWarnings = outputMode === "unicode" ? unicodeResult.warnings : legacyResult.warnings;
+  const keyboard = keyboardForLayout(layout);
   const metrics = useMemo(() => getTypingMetrics(unicodeResult.output), [unicodeResult.output]);
   const estimatedWpm = useMemo(() => {
     if (!startedAt || elapsedSeconds < 2) return 0;
@@ -116,6 +123,10 @@ export function TypingWorkspace({
     }, 1000);
     return () => window.clearInterval(timer);
   }, [startedAt]);
+
+  useEffect(() => {
+    setStatus(t(layout === "bhashayantra-smart" ? "readySmartTyping" : "readyTyping"));
+  }, [layout, t]);
 
   function updateSource(value: string) {
     if (!startedAt && value.length > 0) setStartedAt(Date.now());
@@ -144,7 +155,7 @@ export function TypingWorkspace({
   }
 
   function insertUnicode(unicode: string) {
-    const converted = unicodeToTypingKeys(unicode);
+    const converted = unicodeToTypingSource(unicode, layout);
     insertTypingKeys(converted.output);
     setStatus(converted.warnings.length ? t("insertedWithWarning") : `${unicode} ${t("inserted")}`);
   }
@@ -337,7 +348,7 @@ export function TypingWorkspace({
       <div className="typing-heading">
         <div>
           <h1 id="typing-workspace-title">{t("startTyping")}</h1>
-          <p>{t("typingIntro")}</p>
+          <p>{t(layout === "bhashayantra-smart" ? "smartTypingIntro" : "typingIntro")}</p>
         </div>
         <div className="typing-status-chip">
           <CheckCircle2 aria-hidden="true" />
@@ -350,9 +361,9 @@ export function TypingWorkspace({
           <div className="typing-panel-heading">
             <span>
               <Keyboard aria-hidden="true" />
-              <strong>{t("familiarKeys")}</strong>
+              <strong>{layout === "bhashayantra-smart" ? t("smartPhoneticKeys") : t("familiarKeys")}</strong>
             </span>
-            <small>{t("krutidevInput")}</small>
+            <small>{layout === "bhashayantra-smart" ? t("smartPhoneticInput") : t("krutidevInput")}</small>
           </div>
           <textarea
             ref={sourceRef}
@@ -360,7 +371,7 @@ export function TypingWorkspace({
             value={source}
             onChange={(event) => updateSource(event.target.value)}
             onKeyDown={handleTypingKeyDown}
-            placeholder={t("typingPlaceholder")}
+            placeholder={layout === "bhashayantra-smart" ? t("smartTypingPlaceholder") : t("typingPlaceholder")}
             spellCheck={false}
             autoFocus
           />
@@ -388,7 +399,7 @@ export function TypingWorkspace({
           />
           <div className="typing-panel-meta">
             <span>{metrics.characters} {t("characters")}</span>
-            <span>{unicodeResult.warnings.length ? `${unicodeResult.warnings.length} ${t("mappingWarnings")}` : t("unicodeNormalized")}</span>
+            <span>{activeWarnings.length ? `${activeWarnings.length} ${t("mappingWarnings")}` : t("unicodeNormalized")}</span>
           </div>
         </div>
       </div>
@@ -443,9 +454,9 @@ export function TypingWorkspace({
       )}
 
       {keyboardVisible && (
-        <div className="virtual-keyboard" aria-label="Classic Hindi on-screen keyboard">
+          <div className="virtual-keyboard" aria-label={layout === "bhashayantra-smart" ? t("smartKeyboard") : t("classicKeyboard")}>
           <div className="virtual-keyboard-toolbar">
-            <span><Keyboard aria-hidden="true" /> {t("classicKeyboard")}</span>
+            <span><Keyboard aria-hidden="true" /> {layout === "bhashayantra-smart" ? t("smartKeyboard") : t("classicKeyboard")}</span>
             <button
               type="button"
               className={shifted ? "shift-toggle active" : "shift-toggle"}
@@ -455,7 +466,7 @@ export function TypingWorkspace({
               {t("shift")} {shifted ? t("on") : t("off")}
             </button>
           </div>
-          {CLASSIC_HINDI_KEYBOARD.map((row, rowIndex) => (
+          {keyboard.map((row, rowIndex) => (
             <div className="virtual-keyboard-row" key={`keyboard-row-${rowIndex}`}>
               {row.map((keyDefinition) => {
                 const key = shifted && keyDefinition.shiftKey ? keyDefinition.shiftKey : keyDefinition.key;

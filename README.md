@@ -13,7 +13,8 @@ The approved design source is preserved at [docs/assets/bhashayantra-final-refer
 - Responsive desktop dashboard matching the approved reference.
 - Simple Smart and Advanced Classic mode switch.
 - Hindi-first interface with an instant Hindi/English language switch.
-- Fully interactive Start Typing pad with familiar KrutiDev-style keys and live Unicode output.
+- Fully interactive Start Typing pad with the original BhashaYantra Smart Roman-phonetic engine and familiar Classic/KrutiDev keys.
+- Working Smart/Classic layout selector, separate offline drafts, and live Unicode or KrutiDev output from either input method.
 - Automatic short-i matra, reph, conjunct, and Unicode normalization through the shared typing engine.
 - Clickable Classic Hindi on-screen keyboard, Shift layer, word suggestions, and five character-palette groups.
 - Searchable full character library and full shortcut manager with direct character insertion.
@@ -29,12 +30,13 @@ The approved design source is preserved at [docs/assets/bhashayantra-final-refer
 - Supabase migrations, Auth ownership constraints, update triggers, and RLS policies.
 - Local and Supabase user-preference repository implementations.
 - Tauri 2 configuration with allowlisted dialog and text-file permissions.
-- Automated converter tests, strict TypeScript checking, and production frontend build.
+- Tested Free/Pro/Institution feature-entitlement vocabulary for future secure billing integration.
+- Automated converter/typing/licensing tests, strict TypeScript checking, and production frontend build.
 
 ## Final product direction
 
-- Default keyboard experience: familiar Classic Hindi/KrutiDev-style keys with Unicode output.
-- `Simple Smart Mode`: automatic matra, reph, joint-character, and sequence handling.
+- Default keyboard experience: original BhashaYantra Smart Roman-phonetic input with Unicode output.
+- `Simple Smart Mode`: natural Roman Hindi typing with automatic matra and joint-character composition.
 - `Advanced Classic Mode`: shortcuts, Alt combinations, custom mappings, and expert controls.
 - Central workspace: bidirectional `KrutiDev / Legacy ↔ Unicode` Exchange Converter.
 - Additional modules: document conversion, typing practice, typing tests, stenography, shortcut manager, reports, and user customization.
@@ -65,6 +67,7 @@ Start with [Documentation Index](docs/00-documentation-index.md).
 - [Frontend Design System](docs/06-frontend-design-system.md)
 - [Development Roadmap](docs/07-development-roadmap.md)
 - [Implementation Status](docs/08-implementation-status.md)
+- [Business Model](docs/09-business-model.md)
 
 ## Download
 

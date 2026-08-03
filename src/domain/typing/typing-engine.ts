@@ -1,7 +1,9 @@
 import { convertText } from "@/domain/conversion/convert-text";
+import { smartPhoneticToUnicode } from "@/domain/typing/smart-phonetic-engine";
 
 export type TypingMode = "simple" | "advanced";
 export type TypingOutputMode = "unicode" | "legacy";
+export type TypingLayoutId = "bhashayantra-smart" | "classic-hindi";
 
 export interface ShortcutDefinition {
   readonly id: string;
@@ -93,6 +95,38 @@ export const CLASSIC_HINDI_KEYBOARD: readonly (readonly KeyboardKey[])[] = [
   [{ key: " ", label: "स्पेस", width: "space" }],
 ] as const;
 
+export const BHASHAYANTRA_SMART_KEYBOARD: readonly (readonly KeyboardKey[])[] = [
+  [
+    { key: "1", label: "1" }, { key: "2", label: "2" }, { key: "3", label: "3" },
+    { key: "4", label: "4" }, { key: "5", label: "5" }, { key: "6", label: "6" },
+    { key: "7", label: "7" }, { key: "8", label: "8" }, { key: "9", label: "9" },
+    { key: "0", label: "0" },
+  ],
+  [
+    { key: "q", label: "क़" }, { key: "w", label: "व" }, { key: "e", label: "ए" },
+    { key: "r", label: "र" }, { key: "t", label: "त", shiftKey: "T", shiftLabel: "ट" },
+    { key: "y", label: "य" }, { key: "u", label: "उ" }, { key: "i", label: "इ" },
+    { key: "o", label: "ओ" }, { key: "p", label: "प" },
+  ],
+  [
+    { key: "a", label: "अ/आ" }, { key: "s", label: "स/श" },
+    { key: "d", label: "द", shiftKey: "D", shiftLabel: "ड" }, { key: "f", label: "फ" },
+    { key: "g", label: "ग" }, { key: "h", label: "ह" }, { key: "j", label: "ज" },
+    { key: "k", label: "क" }, { key: "l", label: "ल" },
+  ],
+  [
+    { key: "z", label: "ज़" }, { key: "x", label: "क्ष" }, { key: "c", label: "च" },
+    { key: "v", label: "व" }, { key: "b", label: "ब/भ" },
+    { key: "n", label: "न", shiftKey: "N", shiftLabel: "ण" }, { key: "m", label: "म" },
+  ],
+  [{ key: " ", label: "स्पेस", width: "space" }],
+] as const;
+
+export const TYPING_LAYOUTS = [
+  { id: "bhashayantra-smart", mode: "simple", name: "BhashaYantra Smart" },
+  { id: "classic-hindi", mode: "advanced", name: "Classic Hindi" },
+] as const satisfies readonly { readonly id: TypingLayoutId; readonly mode: TypingMode; readonly name: string }[];
+
 export function formatShortcut(shortcut: ShortcutDefinition) {
   return [
     shortcut.ctrl ? "Ctrl" : "",
@@ -159,6 +193,24 @@ export function unicodeToTypingKeys(unicode: string) {
 
 export function typingKeysToUnicode(legacy: string) {
   return convertText(legacy, "legacy-to-unicode");
+}
+
+export function typingSourceToUnicode(source: string, layout: TypingLayoutId) {
+  return layout === "bhashayantra-smart"
+    ? smartPhoneticToUnicode(source)
+    : typingKeysToUnicode(source);
+}
+
+export function unicodeToTypingSource(unicode: string, layout: TypingLayoutId) {
+  return layout === "bhashayantra-smart"
+    ? { output: unicode, warnings: [] as const }
+    : unicodeToTypingKeys(unicode);
+}
+
+export function keyboardForLayout(layout: TypingLayoutId) {
+  return layout === "bhashayantra-smart"
+    ? BHASHAYANTRA_SMART_KEYBOARD
+    : CLASSIC_HINDI_KEYBOARD;
 }
 
 export function getTypingMetrics(value: string) {

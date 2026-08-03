@@ -49,13 +49,25 @@ Exit gate: agreed fixtures pass in both directions, with lossy cases reported.
 Deliverables:
 
 - Classic Hindi default profile.
-- Simple Smart Mode processing.
+- BhashaYantra Smart Roman-phonetic profile and Simple Smart Mode processing.
+- Versioned multi-layout catalog for Classic, Remington Gail/CBI, InScript, and future language profiles.
 - Advanced Classic Mode shortcut resolution.
 - Character browser and shortcut manager.
 - Clone-and-customize layout workflow.
 - Import/export validation.
 
 Exit gate: continuous typing has no visible lag and the keyboard corpus passes.
+
+## Phase 3B — Product packaging foundation
+
+Deliverables:
+
+- Free, Pro, and Institution feature-entitlement catalog.
+- Original/licensed content policy and product analytics event vocabulary.
+- Pricing experiments documented outside the desktop bundle.
+- Signed entitlement and offline-grace design before billing integration.
+
+Exit gate: free core value remains useful, paid boundaries are testable, and no client-editable value can grant a paid entitlement.
 
 ## Phase 4 — Practice and testing
 

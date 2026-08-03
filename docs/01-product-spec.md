@@ -7,6 +7,7 @@ BhashaYantra is a Windows-first desktop suite for users who type Hindi using fam
 ## 2. Target users
 
 - Existing KrutiDev and DevLys typists.
+- First-time Hindi typists who prefer natural Roman-phonetic input.
 - Court, government-office, and data-entry operators.
 - Typing-test and stenography candidates.
 - Training institutes and instructors.
@@ -38,8 +39,8 @@ The start screen contains both typing modes, the Exchange Converter, character b
 ### 5.1 Simple Smart Mode
 
 - Default mode for new installations.
-- Default profile: `Classic Hindi Default`.
-- Familiar KrutiDev-style key positions.
+- Default profile: `BhashaYantra Smart`.
+- Natural Roman-phonetic Hindi input with the product's own versioned rules and dictionary.
 - Unicode output by default.
 - Automatic matra placement and normalization.
 - Automatic reph and half-letter handling.
@@ -48,10 +49,12 @@ The start screen contains both typing modes, the Exchange Converter, character b
 - Character search and character palette.
 - Suggestions and optional autocorrection.
 - User can duplicate the default layout and customize the copy.
+- Smart and Classic drafts remain separate when switching layouts.
 
 ### 5.2 Advanced Classic Mode
 
 - Normal and Shift mappings.
+- Default profile: `Classic Hindi Default` with familiar KrutiDev-style key positions.
 - Ctrl/Alt shortcut combinations.
 - Searchable rare-character shortcuts.
 - User-created shortcuts and mappings.
@@ -108,6 +111,7 @@ The start screen contains both typing modes, the Exchange Converter, character b
 ### 5.8 User customization
 
 - Keyboard layouts, shortcuts, suggestions, theme, font size, and output defaults.
+- Layout catalog separates language, physical keyboard layout, encoding profile, display font, and exam rules.
 - System layouts are protected.
 - User layouts can be duplicated, renamed, exported, imported, and reset.
 - Invalid shortcut conflicts must be reported before saving.
@@ -139,7 +143,7 @@ The start screen contains both typing modes, the Exchange Converter, character b
 - Windows Tauri desktop shell.
 - Final start-screen UI.
 - Simple Smart and Advanced Classic mode switching.
-- Classic Hindi default profile and editable user copy.
+- BhashaYantra Smart and Classic Hindi profiles with separate offline drafts.
 - Text Exchange Converter for KrutiDev 010 and Unicode.
 - Character palette and shortcut manager basics.
 - Basic typing practice and result calculation.
@@ -160,8 +164,8 @@ The start screen contains both typing modes, the Exchange Converter, character b
 
 1. A user can start the desktop app and see the approved reference layout.
 2. A user can convert representative KrutiDev text to Unicode and back.
-3. A user can type using the Classic Hindi default mapping.
-4. Simple Smart Mode correctly handles the agreed matra, reph, and joint-letter test corpus.
+3. A user can type a representative Roman Hindi sentence using BhashaYantra Smart and receive correct Unicode output.
+4. A user can switch to the Classic Hindi default mapping without losing either layout's draft.
 5. Advanced Classic Mode can save and use a conflict-free custom shortcut.
 6. A practice attempt produces reproducible metrics.
 7. No source file is overwritten during document conversion.

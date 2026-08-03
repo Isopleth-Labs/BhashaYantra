@@ -108,6 +108,10 @@ The UI cannot pass an arbitrary unrestricted file-system operation to Tauri. Nat
 
 ## 6. Keyboard layout rules
 
+- `BhashaYantra Smart` tokenizes Roman words with longest-match consonant/vowel rules, composes dependent matras and conjuncts, then applies a versioned original word dictionary.
+- Smart input preserves Devanagari and punctuation, so palette insertion and mixed text remain safe.
+- Smart and Classic source drafts are stored independently; changing a layout never reinterprets or destroys the other layout's source.
+- Any future Remington, InScript, DevLys, or language profile implements the same typed layout contract instead of adding UI-only options.
 - Built-in layout: immutable.
 - User customization: clone, then edit.
 - Mapping identity: physical key plus canonical modifier signature.

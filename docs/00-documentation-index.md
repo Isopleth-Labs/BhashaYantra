@@ -12,6 +12,7 @@ This folder is the initial source of truth for BhashaYantra before application c
 6. [Frontend Design System](06-frontend-design-system.md) — final layout, themes, fonts, and UI rules.
 7. [Development Roadmap](07-development-roadmap.md) — implementation sequence and completion gates.
 8. [Implementation Status](08-implementation-status.md) — what is runnable now and what remains.
+9. [Business Model](09-business-model.md) — product tiers, monetization boundaries, pricing hypotheses, and launch gates.
 
 ## Document ownership
 
@@ -24,6 +25,7 @@ This folder is the initial source of truth for BhashaYantra before application c
 | Business logic | Domain engineer | Product owner, QA |
 | Frontend design system | Product designer | Frontend engineer, product owner |
 | Roadmap | Technical lead | Entire delivery team |
+| Business model | Product owner | Finance, engineering, support |
 
 ## Change rule
 
