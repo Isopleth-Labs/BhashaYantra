@@ -60,38 +60,29 @@ jobs:
       - name: Run converter tests
         run: npm run test
 
-      - name: Build Windows installers
-        run: npm run tauri build
+      - name: Build web assets
+        run: npm run build
+
+      - name: Build portable Windows app
+        run: cargo build --release --manifest-path src-tauri/Cargo.toml
 
       - name: Verify packaged files
         shell: pwsh
         run: |
           $portableApp = "src-tauri/target/release/bhashayantra.exe"
-          $installerPatterns = @(
-            "src-tauri/target/release/bundle/msi/*.msi",
-            "src-tauri/target/release/bundle/nsis/*-setup.exe"
-          )
 
           if (-not (Test-Path -LiteralPath $portableApp)) {
             throw "Expected build output was not created: $portableApp"
           }
 
-          $installers = Get-ChildItem -Path $installerPatterns
-          if ($installers.Count -ne 2) {
-            throw "Expected one MSI and one Setup executable, but found $($installers.Count)."
-          }
-
-          @(Get-Item -LiteralPath $portableApp) + $installers |
+          Get-Item -LiteralPath $portableApp |
             Select-Object Name, Length, LastWriteTime
 
-      - name: Store Windows downloads
+      - name: Store portable Windows app
         uses: actions/upload-artifact@v7
         with:
           name: BhashaYantra-Windows
-          path: |
-            src-tauri/target/release/bhashayantra.exe
-            src-tauri/target/release/bundle/msi/*.msi
-            src-tauri/target/release/bundle/nsis/*-setup.exe
+          path: src-tauri/target/release/bhashayantra.exe
           if-no-files-found: error
           compression-level: 0
           retention-days: 14
