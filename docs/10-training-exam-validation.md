@@ -1,6 +1,6 @@
 # Training and Exam Validation
 
-Updated: 4 August 2026
+Updated: 9 August 2026
 
 ## Purpose
 
@@ -14,27 +14,27 @@ The audit is used only to understand category breadth and interaction depth. Bha
 
 ## BhashaYantra Academy contract
 
-Each of the six ready layouts has 300 exercises (1,800 total):
+Each of the six ready layouts has 470 exercises (2,820 total):
 
 | Stage | Count | Required structure |
 |---|---:|---|
 | Learn Keys | 60 | Warm-up, Control, Application, Checkpoint |
-| Practice Words | 90 | Repeated Recognition, two-round Accuracy Circuit, sustained Timed Run; at least 28 distinct terms |
-| Type Sentences | 90 | Accuracy Build, Rhythm Build, Timed Copy |
-| Type Paragraphs | 60 | Document Copy, Exam Run |
+| Practice Words | 200 | Alphabetic-control sets followed by professional vocabulary; Repeated Recognition, two-round Accuracy Circuit, sustained Timed Run; at least 28 distinct terms |
+| Type Sentences | 120 | Accuracy Build, Rhythm Build, Timed Copy |
+| Type Paragraphs | 90 | Document Copy, Exam Run |
 
 Every exercise stores a stable ID, phase, module position, competency, practice mode, focus keys, original source/target copy, accuracy gate, target speed, required clean passes, tier, and conversion-validation result. Lessons unlock sequentially. Checkpoints can require multiple clean attempts; merely opening a lesson never marks it complete.
 
-Hindi Learn Keys content keeps every intended letter or syllable as a separate drill unit. It never concatenates Roman source tokens in a way that silently creates a different Devanagari syllable. Practice Words uses 30 professional vocabulary modules per layout and three distinct lessons per module. The academy uses a fixed-height workstation with independently scrollable source, keyboard, course, and coach panels so typing focus does not move the browser page.
+Hindi Learn Keys content keeps every intended letter or syllable as a separate drill unit. It never concatenates Roman source tokens in a way that silently creates a different Devanagari syllable. Practice Words uses 20 ordered alphabetic-control modules plus 30 professional vocabulary modules per layout, with four distinct lessons per module. The academy uses a fixed-height workstation with independently scrollable source, keyboard, course, and coach panels so typing focus does not move the browser page.
 
 Mock papers are assembled from original English and Hindi administrative passages covering public records, recruitment, railways, courts, accounts and audit, public health, rural development, disaster response, education, environment, digital services, and election duty. They reproduce the size and interaction contract of the selected profile without copying a competitor or an authority's test passage.
 
 ## Remington validation
 
-- Remington GAIL and CBI are selectable ready layouts with 300 exercises each.
+- Remington GAIL and CBI are selectable ready layouts with 470 exercises each.
 - The base and Shift keyboard layers are based on SIL Global's MIT-licensed Remington GAIL implementation.
 - The Microsoft Hindi Indic Input 3 guide is the behavioral reference: GAIL enters short-i before the consonant cluster, while CBI enters it after the consonant cluster.
-- Automated acceptance tests assert both short-i orders, all 300 round trips for each layout, zero course conversion warnings, and keyboard-profile readiness.
+- Automated acceptance tests assert both short-i orders, all 470 round trips for each layout, zero course conversion warnings, and keyboard-profile readiness.
 - AltGr and escape-key rare-character coverage remains an explicit expansion item; it is not required by the current original training corpus.
 
 References: [Hindi Indic Input 3 user guide](https://mpforest.gov.in/img/files/Hindi_Indic_Input_3_Use_Guide.pdf), [SIL Remington GAIL source](https://github.com/keymanapp/keyboards/tree/master/release/r/remington_gail), and [SIL Remington GAIL help](https://help.keyman.com/keyboard/remington_gail/1.1/remington_gail).

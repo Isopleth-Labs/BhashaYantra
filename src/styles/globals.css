@@ -543,6 +543,91 @@ label svg,
   border-top: 3px solid var(--success);
 }
 
+.typing-productivity-panel {
+  min-height: 240px;
+  padding: 14px;
+  border: 1px solid color-mix(in srgb, var(--success) 25%, var(--border));
+  border-top: 3px solid var(--success);
+  border-radius: 10px;
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--success) 6%, var(--surface)) 0%, var(--surface) 72%);
+}
+
+.typing-productivity-panel > p {
+  max-width: 46ch;
+  margin: 12px 0;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.productivity-format-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.productivity-format-list > div {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.productivity-format-list svg {
+  width: 18px;
+  flex: 0 0 auto;
+  color: var(--primary);
+}
+
+.productivity-format-list span {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.productivity-format-list strong {
+  overflow: hidden;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.productivity-format-list small {
+  margin-top: 2px;
+  color: var(--muted-foreground);
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+.productivity-note {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  color: var(--success);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.productivity-note svg {
+  width: 15px;
+}
+
+.spin {
+  animation: control-spin 0.8s linear infinite;
+}
+
+@keyframes control-spin {
+  to { transform: rotate(360deg); }
+}
+
 .typing-panel-heading > span,
 .virtual-keyboard-toolbar > span {
   display: flex;
@@ -643,6 +728,50 @@ label svg,
 
 .typing-actions .action-group {
   flex-wrap: wrap;
+}
+
+.converter-profile-coverage {
+  display: grid;
+  grid-template-columns: auto repeat(3, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.converter-profile-coverage > strong {
+  display: flex;
+  align-items: center;
+  color: var(--muted-foreground);
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.converter-profile-coverage > span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 7px 9px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.converter-profile-coverage > span.ready {
+  border-color: color-mix(in srgb, var(--success) 35%, var(--border));
+  color: var(--success);
+  background: color-mix(in srgb, var(--success) 5%, var(--surface));
+}
+
+.converter-profile-coverage > span.planned {
+  color: var(--muted-foreground);
+  background: var(--surface-muted);
+}
+
+.converter-profile-coverage small {
+  color: var(--muted-foreground);
+  font-size: 8px;
+  font-weight: 500;
 }
 
 .typing-suggestions {
@@ -4653,6 +4782,14 @@ body:has(.mock-exam-page.session-active) .mock-exam-page {
   .typing-actions .action-group,
   .typing-actions .action-group-right {
     justify-content: flex-start;
+  }
+
+  .productivity-format-list {
+    grid-template-columns: 1fr;
+  }
+
+  .converter-profile-coverage {
+    grid-template-columns: 1fr;
   }
 
   .virtual-keyboard {

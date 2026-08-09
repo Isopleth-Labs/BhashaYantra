@@ -1,6 +1,6 @@
 # Implementation Status
 
-Updated: 4 August 2026
+Updated: 9 August 2026
 
 ## Completed
 
@@ -22,8 +22,8 @@ Updated: 4 August 2026
 - Built-in expert shortcuts, custom shortcut conflict validation, and a working Advanced-mode manager with layout-scoped physical-key overrides.
 - Offline draft/preferences/custom-layout persistence plus import, export, protected-default reset, copy, open, and save flows.
 - Live typing metrics for words, characters, lines, and estimated WPM.
-- Original 1,800-exercise professional curriculum across the six ready layouts: 60 progressive key drills, 90 multi-round word drills, 90 sustained sentence drills, and 60 two-paragraph drills per layout.
-- Learn Keys now keeps Hindi units separate through repetition, alternation, application, and checkpoint patterns. Practice Words contains 30 professional vocabulary modules per layout with three distinct lessons per module, at least 28 distinct terms, and repeated recognition, accuracy, and sustained-copy rounds.
+- Original 2,820-exercise professional curriculum across the six ready layouts: 60 progressive key drills, 200 alphabetic/professional word drills, 120 sustained sentence drills, and 90 two-paragraph drills per layout.
+- Learn Keys keeps Hindi units separate through repetition, alternation, application, and checkpoint patterns. Practice Words contains 20 ordered alphabetic-control modules plus 30 professional vocabulary modules per layout with four distinct lessons per module, at least 28 distinct terms, and repeated recognition, accuracy, and sustained-copy rounds.
 - Fixed-height practice/test shell prevents page-level focus jumps; source copy, answer editor, Unicode preview, and compact keyboard remain in the workstation with independent panel scrolling. A running test becomes a distraction-free full-viewport workstation, including at 1280×720.
 - Academy-style staged practice with a course map, sequential lesson locks, phase/module position, multi-block drills, one-to-three clean-pass mastery requirements, named objectives, recommended WPM, Free/Pro labels, next-key/finger guidance, clickable keyboard, error sound, text size, and backspace controls.
 - Eighteen mock-test profiles: two flexible baselines and sixteen official-reference profiles covering SSC CHSL/D.E.S.T., RRB NTPC CBTST, DDA, DSSSB, MP CPCT, Rajasthan High Court, and Allahabad High Court, with 60 selectable papers per layout and cited official sources.
@@ -33,15 +33,15 @@ Updated: 4 August 2026
 - Verified official duration/correction locking and a layout/font environment guard for profiles with an explicit requirement.
 - Versioned local attempt repository, layout-specific history deletion, real dashboard summaries, and recent-speed trend.
 - Live bidirectional KrutiDev 010 ↔ Unicode text converter.
-- Converter profile selector with KrutiDev ready and DevLys/Shree-Lipi visibly blocked until validation, plus selectable Noto/Mangal/Nirmala Unicode preview fonts.
+- Converter profile selector exposes verified KrutiDev conversion only; separate coverage cards explain that DevLys requires its own validated corpus and Shree-Lipi requires an exact family variant instead of pretending disabled entries are working support.
 - Longest-token mapping, short-i handling, Unicode normalization, and warnings.
-- Text open, paste, clear, copy, and save/download actions with browser fallback.
+- Text open, paste, clear, copy, and save/download actions with browser fallback, plus real offline Word `.docx`, Excel `.xlsx`, browser `.html`, and plain-text exports from typing and conversion workspaces.
 - Character browser, complete-library modal, and shortcut search/manager interactions.
 - Drizzle schema for profiles, preferences, layouts, mappings, shortcuts, history, practice, stenography, and dictionary data.
 - Supabase schema migrations, Auth ownership foreign keys, RLS policies, triggers, constraints, seed data, and pgTAP policy tests.
 - Local and Supabase preference repository implementations.
 - Free/Pro/Institution product-entitlement vocabulary and profitability-focused packaging documentation.
-- Strict TypeScript, forty-four converter/typing/training/repository/licensing tests, production web build, and browser visual/interaction QA at 1724×986 and 1280×720.
+- Strict TypeScript, fifty-two converter/typing/training/document/repository/licensing tests, production web build, and browser visual/interaction QA at 1724×986 and 1280×720.
 - Local Supabase reset, eight pgTAP/RLS tests, and schema linting.
 - Rust formatting and Clippy checks.
 - Local development desktop executable, MSI installer, and NSIS setup executable.
@@ -68,7 +68,7 @@ cargo clippy --manifest-path .\src-tauri\Cargo.toml -- -D warnings
 | Keyboard modes | Own Smart phonetic, Classic familiar-key, INSCRIPT, Remington GAIL, Remington CBI, and English QWERTY inputs; per-layout drafts, keyboards, round-trip fixtures, and custom layers | Expand INSCRIPT and Remington AltGr/escape-key acceptance corpora, then optional Windows IME integration |
 | Legacy encoding profiles | KrutiDev 010 working; DevLys and Shree-Lipi registered as validation-pending | Add licensed fixtures and round-trip acceptance corpora before enabling each profile |
 | Shortcut manager | Built-in shortcuts, custom creation/deletion, conflict validation, persistence, import/export, and reset | Editing existing custom entries in place and cloud sync |
-| Typing practice/test | 1,800 professional exercises with multi-round patterns, mastery gates, depth checks, a distraction-free fixed-height workstation, 60 original papers/layout, 18 profiles including 16 official-reference profiles, WPM/NWPM/KDPH/RRB practice scoring, weak-key analysis, and local history | Independently validate remaining recruitment-specific deduction rules, then add adaptive lessons and exportable reports |
+| Typing practice/test | 2,820 professional exercises with alphabetic and domain progression, multi-round patterns, mastery gates, depth checks, a distraction-free fixed-height workstation, 60 original papers/layout, 18 profiles including 16 official-reference profiles, WPM/NWPM/KDPH/RRB practice scoring, weak-key analysis, and local history | Independently validate remaining recruitment-specific deduction rules, then add adaptive lessons and exportable reports |
 | Stenography | Navigation and schema | Audio state machine, transcript editor, evaluation |
 | Supabase | Schema, repositories, local configuration | Auth UI and opt-in sync wiring |
 

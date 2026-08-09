@@ -274,12 +274,12 @@ export default function App() {
         <aside className="sidebar" aria-label={t("menu")}>
           <nav>
             {navItems.map(({ id, labelKey, icon: Icon }) => (
-              <button type="button" key={id} className={activeNav === id ? "nav-item active" : "nav-item"} onClick={() => setActiveNav(id)}>
+              <button type="button" key={id} aria-label={t(labelKey)} className={activeNav === id ? "nav-item active" : "nav-item"} onClick={() => setActiveNav(id)}>
                 <Icon aria-hidden="true" /><span>{t(labelKey)}</span>
               </button>
             ))}
             <div className="nav-separator" />
-            <button type="button" className={activeNav === "settings" ? "nav-item active" : "nav-item"} onClick={() => setActiveNav("settings")}>
+            <button type="button" aria-label={t("settings")} className={activeNav === "settings" ? "nav-item active" : "nav-item"} onClick={() => setActiveNav("settings")}>
               <Settings aria-hidden="true" /><span>{t("settings")}</span>
             </button>
           </nav>

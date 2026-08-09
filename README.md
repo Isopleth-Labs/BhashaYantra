@@ -24,14 +24,15 @@ The approved design source is preserved at [docs/assets/bhashayantra-final-refer
 - Offline draft, language, layout, display-font, output, shortcut, and custom-layout persistence.
 - Layout-scoped custom shortcuts and physical-key mappings with JSON import/export.
 - Custom layout import/export, reset, text open, output copy, and `.txt` save/download actions.
+- Native offline productivity exports for Microsoft Word (`.docx`), Microsoft Excel (`.xlsx`), and browser-ready (`.html`) documents from both typing and conversion workspaces.
 - Live words, characters, lines, elapsed-session WPM, and mapping-warning feedback.
 - Live local KrutiDev 010 ↔ Unicode text conversion in both directions with warnings.
 - Text-file open, paste, clear, copy, and download actions.
 - Selectable Unicode preview fonts: Noto Sans Devanagari, Mangal, Nirmala UI, and Segoe UI for English.
-- Original 1,800-exercise professional curriculum: 300 exercises for each ready layout, split into Learn Keys (60), Practice Words (90), Sentences (90), and Paragraphs (60).
+- Original 2,820-exercise professional curriculum: 470 exercises for each ready layout, split into Learn Keys (60), alphabetic and professional Practice Words (200), Sentences (120), and Paragraphs (90).
 - Academy-style course map with sequential lesson locks, module progress, accuracy gates, and one-to-three required clean passes before mastery.
 - Key lessons use Warm-up, Control, Application, and Checkpoint blocks; Hindi key units remain intentionally separated instead of accidentally merging into different syllables. Word lessons use repeated Recognition, a two-round Accuracy Circuit, and a sustained Timed Run; sentence and paragraph lessons provide original long-form copy.
-- 240 Free exercises and 1,560 Pro-marked exercises. These tier labels are catalog metadata until signed entitlement and billing enforcement are implemented.
+- 240 Free exercises and 2,580 Pro-marked exercises. These tier labels are catalog metadata until signed entitlement and billing enforcement are implemented.
 - Fixed-height academy workstation keeps the source, typing editor, Unicode preview, and compact keyboard inside the application viewport; the browser page no longer jumps downward when typing.
 - Guided layout-specific practice with named lessons, objectives, mastery accuracy, recommended speed, word/character counts, exercise selection, progressive difficulty, target keys, next-key/finger guidance, clickable keyboard, error sound, text-size, and backspace controls.
 - Eighteen exam profiles: two flexible BhashaYantra baselines and sixteen official-reference profiles for SSC CHSL/D.E.S.T., RRB NTPC CBTST, DDA, DSSSB, MP CPCT, Rajasthan High Court, and Allahabad High Court.
@@ -48,7 +49,7 @@ The approved design source is preserved at [docs/assets/bhashayantra-final-refer
 - Local and Supabase user-preference repository implementations.
 - Tauri 2 configuration with allowlisted dialog and text-file permissions.
 - Tested Free/Pro/Institution feature-entitlement vocabulary for future secure billing integration.
-- Forty-four automated converter/typing/training/repository/licensing tests, strict TypeScript checking, and production frontend build.
+- Fifty-two automated converter/typing/training/document/repository/licensing tests, strict TypeScript checking, and production frontend build.
 
 ## Final product direction
 

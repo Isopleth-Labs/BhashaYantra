@@ -90,7 +90,7 @@ function words(value: string) {
   return value.trim().split(/\s+/u);
 }
 
-const ENGLISH_WORD_MODULES: readonly WordModule[] = [
+const ENGLISH_PROFESSIONAL_WORD_MODULES: readonly WordModule[] = [
   { title: "Accuracy Fundamentals", words: words("accuracy careful correct exact focus posture precise rhythm steady touch control practice") },
   { title: "Learning Progress", words: words("lesson course module chapter exercise review improve progress target skill mastery confidence") },
   { title: "Office Workflow", words: words("office manager meeting schedule memo email folder desk workflow task calendar colleague") },
@@ -123,7 +123,7 @@ const ENGLISH_WORD_MODULES: readonly WordModule[] = [
   { title: "Official Correspondence", words: words("subject reference memorandum circular notification enclosure copy signature designation dispatch acknowledgement") },
 ];
 
-const HINDI_WORD_MODULES: readonly WordModule[] = [
+const HINDI_PROFESSIONAL_WORD_MODULES: readonly WordModule[] = [
   { title: "Accuracy Fundamentals", words: words("abhyas gati shuddhata lakshya prayas pragati dhyan samay niyam vishvas sudhar galti safalta kaushal") },
   { title: "Learning Progress", words: words("adhyayan adhyay pathyakram prashikshan prashikshit anubhav mulyankan aakalan ank parinam vidya shiksha") },
   { title: "Keyboard Skills", words: words("keyboard akshar pankti madhya upari nichali ungli baya daya sparsh shift lay talmel doharav") },
@@ -219,6 +219,36 @@ function unique<T>(items: readonly T[]) {
   return [...new Set(items)];
 }
 
+function buildAlphabeticWordModules(
+  source: readonly WordModule[],
+  title: string,
+  groupCount: number,
+) {
+  const sorted = unique(source.flatMap((module) => module.words))
+    .sort((left, right) => left.localeCompare(right, "en"));
+  const groupSize = Math.ceil(sorted.length / groupCount);
+  return Array.from({ length: groupCount }, (_, index): WordModule => {
+    const start = index * groupSize;
+    const selected = sorted.slice(start, start + groupSize);
+    const first = selected[0]?.slice(0, 1).toLocaleUpperCase() ?? "A";
+    const last = selected.at(-1)?.slice(0, 1).toLocaleUpperCase() ?? first;
+    return {
+      title: `${title} ${String(index + 1).padStart(2, "0")} · ${first}–${last}`,
+      words: selected,
+    };
+  });
+}
+
+const ENGLISH_WORD_MODULES: readonly WordModule[] = [
+  ...buildAlphabeticWordModules(ENGLISH_PROFESSIONAL_WORD_MODULES, "Alphabetic Control", 20),
+  ...ENGLISH_PROFESSIONAL_WORD_MODULES,
+];
+
+const HINDI_WORD_MODULES: readonly WordModule[] = [
+  ...buildAlphabeticWordModules(HINDI_PROFESSIONAL_WORD_MODULES, "Akshar Control", 20),
+  ...HINDI_PROFESSIONAL_WORD_MODULES,
+];
+
 function rotateUnique<T>(items: readonly T[], start: number, count: number) {
   const available = unique(items);
   return Array.from({ length: Math.min(count, available.length) }, (_, offset) => available[(start + offset) % available.length]);
@@ -301,14 +331,15 @@ function buildKeyLesson(index: number, english: boolean): CanonicalLessonSeed {
 
 function buildWordLesson(index: number, english: boolean): CanonicalLessonSeed {
   const modules = english ? ENGLISH_WORD_MODULES : HINDI_WORD_MODULES;
-  const variationCount = 3;
+  const variationCount = 4;
   const moduleIndex = Math.floor(index / variationCount);
   const variation = index % variationCount;
   const module = modules[moduleIndex];
-  const previous = modules[(moduleIndex + modules.length - 1) % modules.length];
-  const next = modules[(moduleIndex + 1) % modules.length];
-  const pool = unique([...module.words, ...next.words, ...previous.words]);
-  const selected = rotateUnique(pool, variation + moduleIndex * 7, 30 + variation);
+  const neighbors = [-2, -1, 0, 1, 2].map(
+    (offset) => modules[(moduleIndex + modules.length + offset) % modules.length],
+  );
+  const pool = unique(neighbors.flatMap((neighbor) => neighbor.words));
+  const selected = rotateUnique(pool, variation + moduleIndex * 7, 32 + variation);
   const recognition = selected.slice(0, 12).flatMap((word) => [word, word]);
   const accuracyCircuit = [
     ...selected,
@@ -331,8 +362,8 @@ function buildWordLesson(index: number, english: boolean): CanonicalLessonSeed {
     objective: `Master ${selected.length} distinct professional words through repeated recognition, a two-round accuracy circuit, and a sustained timed run.`,
     content: drillBlocks.map((block) => block.content).join("\n"),
     competency: module.title,
-    practiceMode: variation < 3 ? "accuracy" : "flow",
-    requiredPasses: variation < 4 ? 1 : 2,
+    practiceMode: variation < 2 ? "accuracy" : "flow",
+    requiredPasses: variation < 3 ? 1 : 2,
     drillBlocks,
     minimumAccuracy: Math.min(98, 94 + Math.floor(index / 30)),
     targetWpm: 18 + Math.floor(index / 15),
@@ -354,8 +385,8 @@ function hindiSentence(seed: number) {
 }
 
 function buildSentenceLesson(index: number, english: boolean): CanonicalLessonSeed {
-  const topicIndex = Math.floor(index / 6);
-  const variation = index % 6;
+  const topicIndex = Math.floor(index / 8);
+  const variation = index % 8;
   const count = 7 + Math.floor(index / 30);
   const sentenceBuilder = english ? englishSentence : hindiSentence;
   const sentences = Array.from({ length: count }, (_, offset) => sentenceBuilder(index * 13 + offset * 17));
@@ -383,8 +414,8 @@ function buildSentenceLesson(index: number, english: boolean): CanonicalLessonSe
 }
 
 function buildParagraphLesson(index: number, english: boolean): CanonicalLessonSeed {
-  const topicIndex = Math.floor(index / 4);
-  const variation = index % 4;
+  const topicIndex = Math.floor(index / 6);
+  const variation = index % 6;
   const count = 14 + Math.floor(index / 15);
   const sentenceBuilder = english ? englishSentence : hindiSentence;
   const sentences = Array.from({ length: count }, (_, offset) => sentenceBuilder(1000 + index * 23 + offset * 19));

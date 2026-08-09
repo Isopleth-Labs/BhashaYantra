@@ -5,17 +5,26 @@ import {
   Clipboard,
   Copy,
   Download,
+  FileSpreadsheet,
   FileText,
+  FileType2,
   FolderOpen,
+  Globe2,
+  LoaderCircle,
   Trash2,
 } from "lucide-react";
 
+import {
+  saveProductivityExport,
+  type ProductivityExportFormat,
+} from "@/application/document-export";
 import { convertText } from "@/application/use-cases/convert-text";
 import { Button } from "@/components/ui/button";
 import type { ConversionDirection } from "@/domain/conversion/types";
 import {
   getDisplayFont,
   LEGACY_ENCODING_PROFILES,
+  READY_LEGACY_ENCODING_PROFILES,
   UNICODE_DISPLAY_FONTS,
   type LegacyEncodingId,
   type UnicodeDisplayFontId,
@@ -49,11 +58,14 @@ export function ExchangeConverter() {
   const [unicodeFont, setUnicodeFont] = useState<UnicodeDisplayFontId>("noto-devanagari");
   const [warnings, setWarnings] = useState<readonly string[]>([]);
   const [status, setStatus] = useState(() => t("converterReady"));
+  const [exportingFormat, setExportingFormat] = useState<ProductivityExportFormat>();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const sourceText =
     direction === "legacy-to-unicode" ? legacyText : unicodeText;
-  const activeLegacyProfile = LEGACY_ENCODING_PROFILES.find((profile) => profile.id === legacyProfile) ?? LEGACY_ENCODING_PROFILES[0];
+  const outputText =
+    direction === "legacy-to-unicode" ? unicodeText : legacyText;
+  const activeLegacyProfile = READY_LEGACY_ENCODING_PROFILES.find((profile) => profile.id === legacyProfile) ?? READY_LEGACY_ENCODING_PROFILES[0];
   const activeUnicodeFont = getDisplayFont(unicodeFont);
 
   const characterCounts = useMemo(
@@ -65,7 +77,7 @@ export function ExchangeConverter() {
   );
 
   useEffect(() => {
-    const result = convertText({ input: sourceText, direction });
+    const result = convertText({ input: sourceText, direction, profile: legacyProfile });
     if (direction === "legacy-to-unicode") {
       setUnicodeText((current) => current === result.output ? current : result.output);
     } else {
@@ -73,10 +85,10 @@ export function ExchangeConverter() {
     }
     setWarnings(result.warnings.map((warning) => warning.message));
     setStatus(t("converterLive"));
-  }, [direction, sourceText, t]);
+  }, [direction, legacyProfile, sourceText, t]);
 
   function runConversion() {
-    const result = convertText({ input: sourceText, direction });
+    const result = convertText({ input: sourceText, direction, profile: legacyProfile });
 
     if (direction === "legacy-to-unicode") {
       setUnicodeText(result.output);
@@ -117,10 +129,8 @@ export function ExchangeConverter() {
   }
 
   async function copyOutput() {
-    const output =
-      direction === "legacy-to-unicode" ? unicodeText : legacyText;
     try {
-      await navigator.clipboard.writeText(output);
+      await navigator.clipboard.writeText(outputText);
       setStatus(t("outputCopied"));
     } catch {
       setStatus(t("outputCopyFailed"));
@@ -168,8 +178,6 @@ export function ExchangeConverter() {
   }
 
   async function saveOutput() {
-    const output =
-      direction === "legacy-to-unicode" ? unicodeText : legacyText;
     const defaultName =
       direction === "legacy-to-unicode" ? "unicode-output.txt" : "legacy-output.txt";
 
@@ -184,7 +192,7 @@ export function ExchangeConverter() {
           filters: [{ name: "Text", extensions: ["txt"] }],
         });
         if (selected) {
-          await writeTextFile(selected, output);
+          await writeTextFile(selected, outputText);
           setStatus(t("outputFileSaved"));
         }
         return;
@@ -193,7 +201,31 @@ export function ExchangeConverter() {
       }
     }
 
-    downloadInBrowser(output, defaultName);
+    downloadInBrowser(outputText, defaultName);
+  }
+
+  async function exportDocument(format: Exclude<ProductivityExportFormat, "txt">) {
+    if (exportingFormat) return;
+    if (!outputText) return;
+    setExportingFormat(format);
+    setStatus(t("exportingDocument"));
+    try {
+      const result = await saveProductivityExport({
+        text: outputText,
+        format,
+        displayFont: direction === "legacy-to-unicode" ? activeUnicodeFont.name : activeLegacyProfile.name,
+        basename: direction === "legacy-to-unicode" ? "bhashayantra-unicode" : "bhashayantra-legacy",
+      });
+      if (result !== "cancelled") {
+        setStatus(t(format === "docx" ? "wordExported" : format === "xlsx" ? "excelExported" : "browserExported"));
+      } else {
+        setStatus(t("exportCancelled"));
+      }
+    } catch {
+      setStatus(t("exportFailed"));
+    } finally {
+      setExportingFormat(undefined);
+    }
   }
 
   function handleBrowserFile(file: File | undefined) {
@@ -231,10 +263,9 @@ export function ExchangeConverter() {
           tone="legacy"
           title={t("legacySource")}
           selectedOption={legacyProfile}
-          options={LEGACY_ENCODING_PROFILES.map((profile) => ({
+          options={READY_LEGACY_ENCODING_PROFILES.map((profile) => ({
             id: profile.id,
             label: profile.name,
-            disabled: profile.readiness !== "ready",
           }))}
           onOptionChange={(value) => setLegacyProfile(value as LegacyEncodingId)}
           value={legacyText}
@@ -292,10 +323,19 @@ export function ExchangeConverter() {
         </Button>
 
         <div className="action-group action-group-right">
-          <Button variant="success" onClick={copyOutput}>
+          <Button variant="success" onClick={copyOutput} disabled={!outputText}>
             <Copy aria-hidden="true" /> {t("copy")}
           </Button>
-          <Button variant="success" onClick={saveOutput}>
+          <Button variant="outline" onClick={() => exportDocument("docx")} disabled={!outputText || Boolean(exportingFormat)}>
+            {exportingFormat === "docx" ? <LoaderCircle className="spin" aria-hidden="true" /> : <FileType2 aria-hidden="true" />} {t("saveWord")}
+          </Button>
+          <Button variant="outline" onClick={() => exportDocument("xlsx")} disabled={!outputText || Boolean(exportingFormat)}>
+            {exportingFormat === "xlsx" ? <LoaderCircle className="spin" aria-hidden="true" /> : <FileSpreadsheet aria-hidden="true" />} {t("saveExcel")}
+          </Button>
+          <Button variant="outline" onClick={() => exportDocument("html")} disabled={!outputText || Boolean(exportingFormat)}>
+            {exportingFormat === "html" ? <LoaderCircle className="spin" aria-hidden="true" /> : <Globe2 aria-hidden="true" />} {t("saveBrowser")}
+          </Button>
+          <Button variant="success" onClick={saveOutput} disabled={!outputText || Boolean(exportingFormat)}>
             <Download aria-hidden="true" /> {t("download")}
           </Button>
         </div>
@@ -309,6 +349,16 @@ export function ExchangeConverter() {
             {warnings.slice(0, 2).join(" • ")}
           </span>
         )}
+      </div>
+
+      <div className="converter-profile-coverage" aria-label={t("profileCoverage")}>
+        <strong>{t("profileCoverage")}</strong>
+        {LEGACY_ENCODING_PROFILES.map((profile) => (
+          <span key={profile.id} className={profile.readiness === "ready" ? "ready" : "planned"}>
+            {profile.name}
+            <small>{profile.coverage === "bidirectional" ? t("readyBidirectional") : profile.coverage === "variant-required" ? t("shreeLipiVariantNote") : t("devlysValidationNote")}</small>
+          </span>
+        ))}
       </div>
 
       <input

@@ -76,9 +76,9 @@ const STAGE_DEFINITIONS: readonly {
   readonly difficulty: 1 | 2 | 3 | 4 | 5;
 }[] = [
   { id: "learn-keys", title: "Learn Keys", description: "Build key and finger memory with focused repetitions.", count: 60, difficulty: 1 },
-  { id: "practice-words", title: "Practice Words", description: "Combine learned keys into useful words and short groups.", count: 90, difficulty: 2 },
-  { id: "sentences", title: "Type Sentences", description: "Develop rhythm, spacing, punctuation, and accuracy.", count: 90, difficulty: 3 },
-  { id: "paragraphs", title: "Type Paragraphs", description: "Prepare for sustained office and exam passages.", count: 60, difficulty: 4 },
+  { id: "practice-words", title: "Practice Words", description: "Build alphabetic control, then master professional and government vocabulary.", count: 200, difficulty: 2 },
+  { id: "sentences", title: "Type Sentences", description: "Develop rhythm, spacing, punctuation, and accuracy.", count: 120, difficulty: 3 },
+  { id: "paragraphs", title: "Type Paragraphs", description: "Prepare for sustained office and exam passages.", count: 90, difficulty: 4 },
 ] as const;
 
 const STAGE_PHASES: Readonly<Record<CurriculumStageId, readonly string[]>> = {
@@ -115,11 +115,13 @@ function buildExercise(
   const characterCount = Array.from(keys).length;
   const wordCount = keys.trim() ? keys.trim().split(/\s+/u).length : 0;
   const difficulty = Math.min(5, stage.difficulty + Math.floor(index / Math.max(1, stage.count / 3))) as 1 | 2 | 3 | 4 | 5;
-  const moduleLessonCount = stage.id === "learn-keys" || stage.id === "practice-words"
+  const moduleLessonCount = stage.id === "learn-keys"
     ? 3
-    : stage.id === "paragraphs"
+    : stage.id === "practice-words"
       ? 4
-      : 6;
+      : stage.id === "paragraphs"
+        ? 6
+        : 8;
   const moduleLesson = (index % moduleLessonCount) + 1;
   const drillBlocks = lesson.drillBlocks.map((block) => {
     const canonicalBlockTarget = typingSourceToUnicode(block.content, isEnglish ? "english-qwerty" : "bhashayantra-smart").output;

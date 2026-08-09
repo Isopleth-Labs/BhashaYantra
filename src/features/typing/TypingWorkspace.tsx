@@ -11,9 +11,13 @@ import {
   CheckCircle2,
   Copy,
   Download,
+  FileSpreadsheet,
+  FileType2,
   FileJson,
   FolderOpen,
+  Globe2,
   Keyboard,
+  LoaderCircle,
   RotateCcw,
   Save,
   Settings2,
@@ -23,6 +27,10 @@ import {
   X,
 } from "lucide-react";
 
+import {
+  saveProductivityExport,
+  type ProductivityExportFormat,
+} from "@/application/document-export";
 import { Button } from "@/components/ui/button";
 import {
   findMatchingShortcut,
@@ -123,6 +131,7 @@ export function TypingWorkspace({
   const [mappingKey, setMappingKey] = useState("");
   const [mappingOutput, setMappingOutput] = useState("");
   const [configurationError, setConfigurationError] = useState("");
+  const [exportingFormat, setExportingFormat] = useState<ProductivityExportFormat>();
 
   const unicodeResult = useMemo(() => typingSourceToUnicode(source, layout), [layout, source]);
   const legacyResult = useMemo(() => unicodeToTypingKeys(unicodeResult.output), [unicodeResult.output]);
@@ -130,7 +139,8 @@ export function TypingWorkspace({
   const activeWarnings = outputMode === "unicode" ? unicodeResult.warnings : legacyResult.warnings;
   const naturalEnglishMismatch = !isEnglish && !isSmart && looksLikeNaturalEnglish(source);
   const keyboard = keyboardForLayout(layout);
-  const outputFontStack = getDisplayFont(displayFont).cssStack;
+  const activeDisplayFont = getDisplayFont(displayFont);
+  const outputFontStack = activeDisplayFont.cssStack;
   const metrics = useMemo(() => getTypingMetrics(unicodeResult.output), [unicodeResult.output]);
   const estimatedWpm = useMemo(() => {
     if (!startedAt || elapsedSeconds < 2) return 0;
@@ -235,6 +245,35 @@ export function TypingWorkspace({
       }
     }
     downloadText(displayedOutput, filename);
+  }
+
+  async function exportDocument(format: ProductivityExportFormat) {
+    if (!displayedOutput || naturalEnglishMismatch || exportingFormat) return;
+    setExportingFormat(format);
+    setStatus(t("exportingDocument"));
+    try {
+      const result = await saveProductivityExport({
+        text: displayedOutput,
+        format,
+        displayFont: activeDisplayFont.name,
+      });
+      if (result !== "cancelled") {
+        const statusKey = format === "docx"
+          ? "wordExported"
+          : format === "xlsx"
+            ? "excelExported"
+            : format === "html"
+              ? "browserExported"
+              : "outputSaved";
+        setStatus(t(statusKey));
+      } else {
+        setStatus(t("exportCancelled"));
+      }
+    } catch {
+      setStatus(t("exportFailed"));
+    } finally {
+      setExportingFormat(undefined);
+    }
   }
 
   function handleSourceFile(file: File | undefined) {
@@ -389,7 +428,7 @@ export function TypingWorkspace({
         </div>
       )}
 
-      <div className="typing-editor-grid">
+      <div className={`typing-editor-grid${isEnglish ? " typing-editor-grid-productivity" : ""}`}>
         <div className="typing-editor-panel typing-source-panel">
           <div className="typing-panel-heading">
             <span>
@@ -414,28 +453,47 @@ export function TypingWorkspace({
           </div>
         </div>
 
-        <div className="typing-editor-panel typing-output-panel">
-          <div className="typing-panel-heading">
-            <span>
-              <Sparkles aria-hidden="true" />
-              <strong>{isEnglish ? t("englishOutput") : outputMode === "unicode" ? t("unicodeOutput") : t("legacyOutput")}</strong>
-            </span>
-            <small>{t("livePreview")}</small>
+        {isEnglish ? (
+          <div className="typing-productivity-panel" aria-label={t("documentReady")}>
+            <div className="typing-panel-heading">
+              <span>
+                <FileType2 aria-hidden="true" />
+                <strong>{t("documentReady")}</strong>
+              </span>
+              <small>{t("offlinePrivate")}</small>
+            </div>
+            <p>{t("documentReadyDescription")}</p>
+            <div className="productivity-format-list">
+              <div><FileType2 aria-hidden="true" /><span><strong>{t("wordDocument")}</strong><small>.docx</small></span></div>
+              <div><FileSpreadsheet aria-hidden="true" /><span><strong>{t("excelWorkbook")}</strong><small>.xlsx</small></span></div>
+              <div><Globe2 aria-hidden="true" /><span><strong>{t("browserDocument")}</strong><small>.html</small></span></div>
+            </div>
+            <div className="productivity-note"><CheckCircle2 aria-hidden="true" /> {t("noDuplicatePreview")}</div>
           </div>
-          <textarea
-            id="typing-output"
-            className={outputMode === "unicode" ? "devanagari" : undefined}
-            style={outputMode === "unicode" ? { fontFamily: outputFontStack } : undefined}
-            value={naturalEnglishMismatch ? "" : displayedOutput}
-            readOnly
-            aria-label={`${outputMode} typing output`}
-            placeholder={t("outputPlaceholder")}
-          />
-          <div className="typing-panel-meta">
-            <span>{metrics.characters} {t("characters")}</span>
-            <span>{activeWarnings.length ? `${activeWarnings.length} ${t("mappingWarnings")}` : t("unicodeNormalized")}</span>
+        ) : (
+          <div className="typing-editor-panel typing-output-panel">
+            <div className="typing-panel-heading">
+              <span>
+                <Sparkles aria-hidden="true" />
+                <strong>{outputMode === "unicode" ? t("unicodeOutput") : t("legacyOutput")}</strong>
+              </span>
+              <small>{t("livePreview")}</small>
+            </div>
+            <textarea
+              id="typing-output"
+              className={outputMode === "unicode" ? "devanagari" : undefined}
+              style={outputMode === "unicode" ? { fontFamily: outputFontStack } : undefined}
+              value={naturalEnglishMismatch ? "" : displayedOutput}
+              readOnly
+              aria-label={`${outputMode} typing output`}
+              placeholder={t("outputPlaceholder")}
+            />
+            <div className="typing-panel-meta">
+              <span>{metrics.characters} {t("characters")}</span>
+              <span>{activeWarnings.length ? `${activeWarnings.length} ${t("mappingWarnings")}` : t("unicodeNormalized")}</span>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <div className="typing-metrics" aria-label="Live typing metrics">
@@ -470,7 +528,16 @@ export function TypingWorkspace({
           <Button variant="success" onClick={copyOutput} disabled={!displayedOutput || naturalEnglishMismatch}>
             <Copy aria-hidden="true" /> {t("copyOutput")}
           </Button>
-          <Button variant="success" onClick={saveOutput} disabled={!displayedOutput || naturalEnglishMismatch}>
+          <Button variant="outline" onClick={() => exportDocument("docx")} disabled={!displayedOutput || naturalEnglishMismatch || Boolean(exportingFormat)}>
+            {exportingFormat === "docx" ? <LoaderCircle className="spin" aria-hidden="true" /> : <FileType2 aria-hidden="true" />} {t("saveWord")}
+          </Button>
+          <Button variant="outline" onClick={() => exportDocument("xlsx")} disabled={!displayedOutput || naturalEnglishMismatch || Boolean(exportingFormat)}>
+            {exportingFormat === "xlsx" ? <LoaderCircle className="spin" aria-hidden="true" /> : <FileSpreadsheet aria-hidden="true" />} {t("saveExcel")}
+          </Button>
+          <Button variant="outline" onClick={() => exportDocument("html")} disabled={!displayedOutput || naturalEnglishMismatch || Boolean(exportingFormat)}>
+            {exportingFormat === "html" ? <LoaderCircle className="spin" aria-hidden="true" /> : <Globe2 aria-hidden="true" />} {t("saveBrowser")}
+          </Button>
+          <Button variant="success" onClick={saveOutput} disabled={!displayedOutput || naturalEnglishMismatch || Boolean(exportingFormat)}>
             <Download aria-hidden="true" /> {t("saveText")}
           </Button>
         </div>
