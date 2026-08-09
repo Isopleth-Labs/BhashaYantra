@@ -46,6 +46,7 @@ const INITIAL_LEGACY = 'esjk uke Hkk"kk ;a= gS';
 const INITIAL_UNICODE = "मेरा नाम भाषा यंत्र है";
 
 type ConverterTool = "legacy" | "roman-hindi" | "translation";
+type RomanOutputFormat = "unicode" | "krutidev";
 
 function isTauriRuntime() {
   return "__TAURI_INTERNALS__" in window;
@@ -70,6 +71,7 @@ export function ExchangeConverter() {
   const [legacyProfile, setLegacyProfile] = useState<LegacyEncodingId>("krutidev-010");
   const [unicodeFont, setUnicodeFont] = useState<UnicodeDisplayFontId>("noto-devanagari");
   const [romanText, setRomanText] = useState("mera naam bhasha yantra hai");
+  const [romanOutputFormat, setRomanOutputFormat] = useState<RomanOutputFormat>("unicode");
   const [translationSource, setTranslationSource] = useState("Good morning. Welcome to BhashaYantra.");
   const [translationOutput, setTranslationOutput] = useState("");
   const [sourceLanguage, setSourceLanguage] = useState<TranslationLanguageId>("en");
@@ -83,20 +85,26 @@ export function ExchangeConverter() {
   const activeLegacyProfile = READY_LEGACY_ENCODING_PROFILES.find((profile) => profile.id === legacyProfile) ?? READY_LEGACY_ENCODING_PROFILES[0];
   const activeUnicodeFont = getDisplayFont(unicodeFont);
   const romanResult = useMemo(() => typingSourceToUnicode(romanText, "bhashayantra-smart"), [romanText]);
+  const romanLegacyResult = useMemo(() => convertText({
+    input: romanResult.output,
+    direction: "unicode-to-legacy",
+    profile: "krutidev-010",
+  }), [romanResult.output]);
+  const romanOutputText = romanOutputFormat === "krutidev" ? romanLegacyResult.output : romanResult.output;
   const sourceText = tool === "legacy"
     ? direction === "legacy-to-unicode" ? legacyText : unicodeText
     : tool === "roman-hindi" ? romanText : translationSource;
   const outputText = tool === "legacy"
     ? direction === "legacy-to-unicode" ? unicodeText : legacyText
-    : tool === "roman-hindi" ? romanResult.output : translationOutput;
+    : tool === "roman-hindi" ? romanOutputText : translationOutput;
   const characterCounts = useMemo(() => ({
     legacy: Array.from(legacyText).length,
     unicode: Array.from(unicodeText).length,
     roman: Array.from(romanText).length,
-    romanOutput: Array.from(romanResult.output).length,
+    romanOutput: Array.from(romanOutputText).length,
     translationSource: Array.from(translationSource).length,
     translationOutput: Array.from(translationOutput).length,
-  }), [legacyText, romanResult.output, romanText, translationOutput, translationSource, unicodeText]);
+  }), [legacyText, romanOutputText, romanText, translationOutput, translationSource, unicodeText]);
 
   useEffect(() => {
     if (tool !== "legacy") return;
@@ -112,9 +120,12 @@ export function ExchangeConverter() {
 
   useEffect(() => {
     if (tool !== "roman-hindi") return;
-    setWarnings(romanResult.warnings.map((warning) => warning.message));
+    const activeWarnings = romanOutputFormat === "krutidev"
+      ? [...romanResult.warnings, ...romanLegacyResult.warnings]
+      : romanResult.warnings;
+    setWarnings(activeWarnings.map((warning) => warning.message));
     setStatus(t("transliterationLive"));
-  }, [romanResult, t, tool]);
+  }, [romanLegacyResult, romanOutputFormat, romanResult, t, tool]);
 
   function chooseTool(nextTool: ConverterTool) {
     setTool(nextTool);
@@ -216,7 +227,7 @@ export function ExchangeConverter() {
   }
 
   async function saveOutput() {
-    const defaultName = tool === "translation" ? `translation-${targetLanguage}.txt` : tool === "roman-hindi" ? "roman-hindi-unicode.txt" : direction === "legacy-to-unicode" ? "unicode-output.txt" : "legacy-output.txt";
+    const defaultName = tool === "translation" ? `translation-${targetLanguage}.txt` : tool === "roman-hindi" ? `roman-hindi-${romanOutputFormat === "krutidev" ? "krutidev-010" : "unicode"}.txt` : direction === "legacy-to-unicode" ? "unicode-output.txt" : "legacy-output.txt";
     if (isTauriRuntime()) {
       try {
         const [{ save }, { writeTextFile }] = await Promise.all([
@@ -244,7 +255,7 @@ export function ExchangeConverter() {
       const result = await saveProductivityExport({
         text: outputText,
         format,
-        displayFont: tool === "legacy" && direction === "unicode-to-legacy" ? activeLegacyProfile.name : activeUnicodeFont.name,
+        displayFont: (tool === "legacy" && direction === "unicode-to-legacy") || (tool === "roman-hindi" && romanOutputFormat === "krutidev") ? activeLegacyProfile.name : activeUnicodeFont.name,
         basename: `bhashayantra-${tool}`,
       });
       setStatus(result === "cancelled" ? t("exportCancelled") : t(format === "docx" ? "wordExported" : format === "xlsx" ? "excelExported" : "browserExported"));
@@ -278,7 +289,7 @@ export function ExchangeConverter() {
         <div><h1 id="converter-title">{t("exchangeConverter")}</h1><p>{t(tool === "legacy" ? "converterSubtitle" : tool === "roman-hindi" ? "romanConverterSubtitle" : "translationSubtitle")}</p></div>
         <div className={`converter-status-chip${tool === "translation" && !isSupabaseConfigured ? " pending" : ""}`}>
           {tool === "translation" && !isSupabaseConfigured ? <CloudOff aria-hidden="true" /> : <CheckCircle2 aria-hidden="true" />}
-          {tool === "legacy" ? <>{activeLegacyProfile.name} <ArrowLeftRight aria-hidden="true" /> Unicode</> : tool === "roman-hindi" ? <>Roman <ArrowRight aria-hidden="true" /> हिन्दी</> : t(isSupabaseConfigured ? "translationOnline" : "translationSetupRequired")}
+          {tool === "legacy" ? <>{activeLegacyProfile.name} <ArrowLeftRight aria-hidden="true" /> Unicode</> : tool === "roman-hindi" ? <>Roman <ArrowRight aria-hidden="true" /> {romanOutputFormat === "krutidev" ? "Kruti Dev 010" : t("hindiUnicode")}</> : t(isSupabaseConfigured ? "translationOnline" : "translationSetupRequired")}
         </div>
       </div>
 
@@ -315,7 +326,30 @@ export function ExchangeConverter() {
         {tool === "legacy" ? (
           <EditorPanel id="unicode-editor" tone="unicode" title={t("unicode")} selectedOption={unicodeFont} options={UNICODE_DISPLAY_FONTS.filter((font) => font.language === "hi").map((font) => ({ id: font.id, label: font.name }))} onOptionChange={(value) => setUnicodeFont(value as UnicodeDisplayFontId)} fontFamily={activeUnicodeFont.cssStack} value={unicodeText} count={characterCounts.unicode} isSource={direction === "unicode-to-legacy"} onChange={setUnicodeText} />
         ) : tool === "roman-hindi" ? (
-          <EditorPanel id="roman-output" tone="unicode" title={t("hindiUnicode")} selectedOption={unicodeFont} options={UNICODE_DISPLAY_FONTS.filter((font) => font.language === "hi").map((font) => ({ id: font.id, label: font.name }))} onOptionChange={(value) => setUnicodeFont(value as UnicodeDisplayFontId)} fontFamily={activeUnicodeFont.cssStack} value={romanResult.output} count={characterCounts.romanOutput} isSource={false} onChange={() => undefined} readOnly />
+          <EditorPanel
+            id="roman-output"
+            tone={romanOutputFormat === "krutidev" ? "legacy" : "unicode"}
+            title={romanOutputFormat === "krutidev" ? "Kruti Dev 010 / Legacy" : t("hindiUnicode")}
+            selectedOption={romanOutputFormat === "krutidev" ? "krutidev" : `unicode:${unicodeFont}`}
+            options={[
+              ...UNICODE_DISPLAY_FONTS.filter((font) => font.language === "hi").map((font) => ({ id: `unicode:${font.id}`, label: `Hindi Unicode — ${font.name}` })),
+              { id: "krutidev", label: "Kruti Dev 010 — Legacy output" },
+            ]}
+            onOptionChange={(value) => {
+              if (value === "krutidev") {
+                setRomanOutputFormat("krutidev");
+              } else {
+                setRomanOutputFormat("unicode");
+                setUnicodeFont(value.replace("unicode:", "") as UnicodeDisplayFontId);
+              }
+            }}
+            fontFamily={romanOutputFormat === "unicode" ? activeUnicodeFont.cssStack : undefined}
+            value={romanOutputText}
+            count={characterCounts.romanOutput}
+            isSource={false}
+            onChange={() => undefined}
+            readOnly
+          />
         ) : (
           <EditorPanel id="translation-output" tone="unicode" title={t("targetLanguage")} selectedOption={targetLanguage} options={TRANSLATION_LANGUAGES.map((language) => ({ id: language.id, label: language.name }))} onOptionChange={(value) => setTargetLanguage(value as TranslationLanguageId)} fontFamily={targetLanguage === "en" ? undefined : activeUnicodeFont.cssStack} value={translationOutput} count={characterCounts.translationOutput} isSource={false} onChange={() => undefined} readOnly placeholder={t("translationOutputPlaceholder")} />
         )}
@@ -347,7 +381,10 @@ export function ExchangeConverter() {
         {warnings.length > 0 && <span className="warning-summary">{warnings.slice(0, 2).join(" • ")}</span>}
       </div>
 
-      <UseAnywherePanel text={outputText} />
+      <UseAnywherePanel
+        text={outputText}
+        format={(tool === "legacy" && direction === "unicode-to-legacy") || (tool === "roman-hindi" && romanOutputFormat === "krutidev") ? "krutidev" : "unicode"}
+      />
 
       {tool === "legacy" && (
         <div className="converter-profile-coverage" aria-label={t("profileCoverage")}>

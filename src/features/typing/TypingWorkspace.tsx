@@ -544,7 +544,7 @@ export function TypingWorkspace({
         </div>
       </div>
 
-      <UseAnywherePanel text={naturalEnglishMismatch ? "" : displayedOutput} />
+      <UseAnywherePanel text={naturalEnglishMismatch ? "" : displayedOutput} format={outputMode === "legacy" ? "krutidev" : "unicode"} />
 
       {mode === "simple" && isSmart && (
         <div className="typing-suggestions" aria-label="Hindi word suggestions">

@@ -7,14 +7,15 @@ import { useI18n } from "@/i18n/I18nProvider";
 
 interface UseAnywherePanelProps {
   readonly text: string;
+  readonly format?: "unicode" | "krutidev";
 }
 
-export function UseAnywherePanel({ text }: UseAnywherePanelProps) {
+export function UseAnywherePanel({ text, format = "unicode" }: UseAnywherePanelProps) {
   const { t } = useI18n();
   const [sending, setSending] = useState(false);
   const [status, setStatus] = useState("");
 
-  useEffect(() => setStatus(""), [text]);
+  useEffect(() => setStatus(""), [format, text]);
 
   async function sendAnywhere() {
     if (!text.trim() || sending) return;
@@ -35,11 +36,11 @@ export function UseAnywherePanel({ text }: UseAnywherePanelProps) {
       <div className="use-anywhere-icon"><AppWindow aria-hidden="true" /></div>
       <div className="use-anywhere-copy">
         <strong id="use-anywhere-title">{t("useAnywhere")}</strong>
-        <p>{t("useAnywhereDescription")}</p>
-        <span aria-live="polite">{status || t("useAnywhereHint")}</span>
+        <p>{t(format === "krutidev" ? "useAnywhereLegacyDescription" : "useAnywhereDescription")}</p>
+        <span aria-live="polite">{status || t(format === "krutidev" ? "useAnywhereLegacyHint" : "useAnywhereHint")}</span>
       </div>
       <div className="use-anywhere-badges" aria-hidden="true">
-        <span>Windows</span><span>Unicode</span>
+        <span>Windows</span><span>{format === "krutidev" ? "Kruti Dev 010" : "Unicode"}</span>
       </div>
       <Button onClick={sendAnywhere} disabled={!text.trim() || sending}>
         {sending ? <LoaderCircle className="spin" aria-hidden="true" /> : <Send aria-hidden="true" />}

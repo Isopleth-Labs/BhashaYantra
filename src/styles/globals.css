@@ -1548,6 +1548,9 @@ label svg,
 
 .rail-card {
   padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
   box-shadow: 0 6px 20px rgb(15 23 42 / 3%);
 }
 
@@ -1674,6 +1677,7 @@ label svg,
   border: 1.5px dashed #3b82f6;
   border-radius: 10px;
   color: var(--muted-foreground);
+  background: transparent;
   text-align: center;
   cursor: pointer;
 }
@@ -1755,6 +1759,20 @@ label svg,
   width: 100%;
   height: 74px;
   margin-top: 8px;
+}
+
+.trend-baseline {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.trend-line {
+  fill: none;
+  stroke: var(--primary);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 3;
 }
 
 .summary-empty {
@@ -5094,14 +5112,20 @@ body:has(.mock-exam-page.session-active) .mock-exam-page {
 .brand strong { font-size: 23px; }
 .top-controls { min-width: 0; min-height: 46px; justify-content: flex-start; gap: 12px; padding: 7px 14px; overflow-x: auto; scrollbar-width: none; }
 .top-controls::-webkit-scrollbar { display: none; }
+.top-controls label { gap: 5px; }
+.top-controls select { max-width: 112px; font-size: 13px; }
+.works-in { gap: 10px; }
 .app-body,
 .app-body.exam-active { grid-template-columns: 230px minmax(0, 1fr); }
+.app-body.with-rail { grid-template-columns: 230px minmax(640px, 1fr) 340px; }
 .workspace { gap: 12px; padding: 18px 22px 24px; }
 .mode-switch { min-height: 54px; }
+.right-rail { min-width: 0; border-left: 1px solid var(--border); background: color-mix(in srgb, var(--surface) 50%, var(--background)); }
 
 @media (max-width: 1450px) {
   .app-body,
   .app-body.exam-active { grid-template-columns: 210px minmax(0, 1fr); }
+  .app-body.with-rail { grid-template-columns: 210px minmax(560px, 1fr) 300px; }
   .academy-grid { grid-template-columns: 180px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
   .academy-course { grid-row: 1 / -1; padding: 12px 9px; }
   .academy-workbench { grid-column: 2; grid-row: 1; }
@@ -5125,6 +5149,7 @@ body:has(.mock-exam-page.session-active) .mock-exam-page {
 @media (max-width: 1180px) and (min-width: 821px) {
   .app-body,
   .app-body.exam-active { grid-template-columns: 76px minmax(0, 1fr); }
+  .app-body.with-rail { grid-template-columns: 76px minmax(0, 1fr); }
   .academy { height: 100%; }
   .academy-grid { grid-template-columns: 160px minmax(0, 1fr); }
   .academy-stage-list,
