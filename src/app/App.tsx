@@ -87,7 +87,6 @@ const characterGroups = {
 type Theme = "light" | "dark";
 type CharacterTab = keyof typeof characterGroups;
 type NavId = (typeof navItems)[number]["id"] | "settings";
-type StartTool = "converter" | "typing";
 
 function isStoredShortcut(value: unknown): value is ShortcutDefinition {
   if (!value || typeof value !== "object") return false;
@@ -137,7 +136,6 @@ export default function App() {
   });
   const [outputMode, setOutputMode] = useState<TypingOutputMode>(() => localStorage.getItem("bhashayantra-typing-layout") !== "english-qwerty" && localStorage.getItem("bhashayantra-output-mode") === "legacy" ? "legacy" : "unicode");
   const [activeNav, setActiveNav] = useState<NavId>("start");
-  const [startTool, setStartTool] = useState<StartTool>("converter");
   const [characterTab, setCharacterTab] = useState<CharacterTab>("स्वर");
   const [typingDrafts, setTypingDrafts] = useState<Record<ReadyTypingLayoutId, string>>(() => ({
     "bhashayantra-smart": localStorage.getItem("bhashayantra-smart-draft") ?? "",
@@ -190,7 +188,6 @@ export default function App() {
       [typingLayout]: `${current[typingLayout]}${unicodeToTypingSource(character, typingLayout).output}`,
     }));
     setActiveNav("start");
-    setStartTool("typing");
   }
 
   function scrollToAdvancedManager() {
@@ -198,7 +195,6 @@ export default function App() {
   }
 
   function chooseTypingMode(mode: TypingMode) {
-    setStartTool("typing");
     setTypingLanguage("hi");
     setTypingMode(mode);
     setTypingLayout(mode === "simple" ? "bhashayantra-smart" : "classic-hindi");
@@ -237,7 +233,6 @@ export default function App() {
       setDisplayFont("noto-devanagari");
     }
     setActiveNav("start");
-    setStartTool("typing");
     setAdvancedOpen(false);
   }
 
@@ -258,7 +253,6 @@ export default function App() {
   function openAdvancedManager() {
     setShortcutLibraryOpen(false);
     setActiveNav("start");
-    setStartTool("typing");
     setTypingMode("advanced");
     setTypingLayout("classic-hindi");
     setAdvancedOpen(true);
@@ -272,7 +266,6 @@ export default function App() {
 
   function chooseNavigation(id: NavId) {
     setActiveNav(id);
-    if (id === "start") setStartTool("converter");
   }
 
   return (
@@ -314,19 +307,17 @@ export default function App() {
 
           {activeNav === "start" ? (
             <>
-              {startTool === "converter" ? <ExchangeConverter /> : (
-                <TypingWorkspace
-                  mode={typingMode} layout={typingLayout} displayFont={displayFont} outputMode={outputMode} source={typingSource} onSourceChange={updateTypingSource}
-                  shortcuts={shortcuts} customShortcuts={activeCustomShortcuts} onCustomShortcutsChange={replaceActiveCustomShortcuts}
-                  customMappings={activeCustomMappings} onCustomMappingsChange={replaceActiveCustomMappings}
-                  advancedOpen={advancedOpen} onAdvancedOpenChange={setAdvancedOpen}
-                  onUseSmartMode={() => chooseTypingMode("simple")}
-                  onUseEnglishMode={() => chooseTypingLanguage("en")}
-                  onOpenConverter={() => setStartTool("converter")}
-                  onOpenShortcutLibrary={() => setShortcutLibraryOpen(true)}
-                />
-              )}
-              {(typingLanguage === "hi" || startTool === "converter") && <CharacterBrowser activeTab={characterTab} onTabChange={setCharacterTab} onInsertCharacter={insertCharacter} onOpenAll={() => setCharacterLibraryOpen(true)} />}
+              <TypingWorkspace
+                mode={typingMode} layout={typingLayout} displayFont={displayFont} outputMode={outputMode} source={typingSource} onSourceChange={updateTypingSource}
+                shortcuts={shortcuts} customShortcuts={activeCustomShortcuts} onCustomShortcutsChange={replaceActiveCustomShortcuts}
+                customMappings={activeCustomMappings} onCustomMappingsChange={replaceActiveCustomMappings}
+                advancedOpen={advancedOpen} onAdvancedOpenChange={setAdvancedOpen}
+                onUseSmartMode={() => chooseTypingMode("simple")}
+                onUseEnglishMode={() => chooseTypingLanguage("en")}
+                onOpenConverter={() => setActiveNav("documents")}
+                onOpenShortcutLibrary={() => setShortcutLibraryOpen(true)}
+              />
+              {typingLanguage === "hi" && <CharacterBrowser activeTab={characterTab} onTabChange={setCharacterTab} onInsertCharacter={insertCharacter} onOpenAll={() => setCharacterLibraryOpen(true)} />}
             </>
           ) : activeNav === "documents" ? (
             <ExchangeConverter />
