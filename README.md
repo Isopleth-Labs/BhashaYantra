@@ -2,7 +2,7 @@
 
 BhashaYantra is a Windows-first Hindi typing, legacy-font conversion, typing-practice, testing, and stenography desktop application.
 
-> Project status: the React/Tauri foundation, six-layout typing engine, complete original practice catalog, configurable exam simulator, offline result history, multi-tool converter, Windows Use Anywhere bridge, Drizzle schema, Supabase migrations, and repository boundaries are implemented. Stenography, a signed Windows TSF IME, and structure-preserving document import remain roadmap modules.
+> Project status: the React/Tauri foundation, six-layout typing engine, complete original practice catalog, configurable exam simulator, offline result history, multi-tool converter, opt-in Windows Direct Typing bridge, Drizzle schema, Supabase migrations, and repository boundaries are implemented. Stenography, a signed Windows TSF IME, and structure-preserving document import remain roadmap modules.
 
 ![BhashaYantra implemented UI](docs/assets/bhashayantra-implemented-ui.png)
 
@@ -29,7 +29,8 @@ The approved design source is preserved at [docs/assets/bhashayantra-final-refer
 - Live local KrutiDev 010 ↔ Unicode text conversion in both directions with warnings.
 - Three separate converter workflows so encoding and language are not confused: verified legacy-font conversion, offline Roman Hindi transliteration, and meaning-preserving cloud translation.
 - Secure English/Hindi/Marathi/Punjabi/Bengali/Gujarati translation boundary through a Supabase Edge Function and Google Cloud Translation; the provider key remains server-side and the UI stays disabled until configured.
-- Windows **Use Anywhere** bridge in both Start Typing and Converter: keep the cursor in Word, Excel, a website, or another Windows field, then send the complete Unicode result into the previous active app.
+- Windows **Direct Typing** switch in Start Typing: turn it on once, BhashaYantra minimizes, and selected-layout keys are converted per keystroke in standard Word, Excel, browser, and Windows text fields. It ignores injected events and BhashaYantra's own process, preserves Ctrl/Alt/Win shortcuts, resets composition on focus/navigation changes, and provides `Ctrl + Alt + F12` emergency-off.
+- Direct Unicode typing prevents the earlier raw-key-plus-converted-text duplication. Legacy output remains real KrutiDev encoding, so the target editor must use the Kruti Dev 010 font.
 - Text-file open, paste, clear, copy, and download actions.
 - Selectable Unicode preview fonts: Noto Sans Devanagari, Mangal, Nirmala UI, and Segoe UI for English.
 - Original 2,820-exercise professional curriculum: 470 exercises for each ready layout, split into Learn Keys (60), alphabetic and professional Practice Words (200), Sentences (120), and Paragraphs (90).
@@ -52,7 +53,7 @@ The approved design source is preserved at [docs/assets/bhashayantra-final-refer
 - Local and Supabase user-preference repository implementations.
 - Tauri 2 configuration with allowlisted dialog and text-file permissions.
 - Tested Free/Pro/Institution feature-entitlement vocabulary for future secure billing integration.
-- Fifty-five automated converter/typing/training/document/repository/licensing tests, strict TypeScript checking, and production frontend build.
+- Fifty-eight frontend converter/typing/training/document/repository/licensing tests plus five native Direct Typing composition/lifecycle tests, strict TypeScript checking, Rust Clippy, and production builds.
 
 ## Final product direction
 
@@ -60,7 +61,7 @@ The approved design source is preserved at [docs/assets/bhashayantra-final-refer
 - `Simple Smart Mode`: natural Roman Hindi typing with automatic matra and joint-character composition.
 - `Advanced Classic Mode`: shortcuts, Alt combinations, custom mappings, and expert controls.
 - Central workspace: bidirectional `KrutiDev / Legacy ↔ Unicode` Exchange Converter.
-- The practical Windows bridge sends completed Unicode text to the previous active application. A true per-keystroke Windows keyboard requires a separately signed Text Services Framework IME and is not represented as complete.
+- The development Direct Typing bridge provides explicit opt-in per-keystroke input while BhashaYantra is running. It uses a low-level Windows hook and `SendInput`, so it is limited to standard apps at the same or lower integrity level. The final distributable system keyboard remains a separately signed Text Services Framework IME.
 - Additional modules: structure-preserving document conversion, stenography, exportable reports, signed Pro entitlements, and optional cloud sync.
 
 ## Approved technology stack
@@ -99,11 +100,9 @@ Local Windows packages produced from this source tree:
 
 | Download type | Location |
 |---|---|
-| Setup executable | [BhashaYantra_0.1.0_x64-setup.exe](src-tauri/target/release/bundle/nsis/BhashaYantra_0.1.0_x64-setup.exe) |
-| MSI installer | [BhashaYantra_0.1.0_x64_en-US.msi](src-tauri/target/release/bundle/msi/BhashaYantra_0.1.0_x64_en-US.msi) |
 | Portable build output | [bhashayantra.exe](src-tauri/target/release/bhashayantra.exe) |
 
-These local packages are unsigned development builds. Before public distribution, add Windows code signing and publish the source and signed installers to the project's repository release page.
+The portable executable is an unsigned private development build. Before public distribution, complete the signed TSF/input-service work, add Windows code signing, and publish intentionally from the repository release page.
 
 ### Download from GitHub Actions
 
@@ -111,7 +110,7 @@ The repository includes [`.github/workflows/build.yml`](.github/workflows/build.
 
 1. Install the locked Node.js and Rust dependencies on a Windows runner.
 2. Run the TypeScript check and converter tests.
-3. Build the Tauri portable executable, MSI, and Setup executable.
+3. Run native Direct Typing tests and build one portable Tauri executable.
 4. Store them for 14 days in the workflow run under **Artifacts → BhashaYantra-Windows**.
 
 The repository is private and in active development. Do not create a public GitHub Release or version tag yet. When all release gates are complete, the maintainer can intentionally create a version tag:
@@ -121,7 +120,7 @@ git tag v0.1.0
 git push origin v0.1.0
 ```
 
-Only that future version-tag workflow will create a release and attach all three Windows downloads:
+Only that future version-tag workflow will create a release and attach the portable Windows download:
 
 | Published item | URL |
 |---|---|
@@ -222,15 +221,15 @@ npm run db:test
 # Create a production frontend build
 npm run build
 
-# Create Windows installers
-npm run tauri build
+# Create one portable Windows executable without installer bundles
+npx tauri build --no-bundle
 ```
 
 The first Tauri build can take longer because Rust dependencies must be downloaded and compiled.
 
 ## Verified build status
 
-The current workspace has passed strict TypeScript checking, fifty-five converter/typing/training/document/repository/licensing unit tests, eight database/RLS tests, Drizzle configuration validation, Supabase schema linting, Rust formatting and Clippy checks, frontend production build, browser interaction QA, desktop executable build, and both Windows installer builds.
+The current workspace has passed strict TypeScript checking, fifty-eight frontend unit tests, five native Direct Typing tests, eight database/RLS tests, Drizzle configuration validation, Supabase schema linting, Rust formatting and Clippy checks, frontend production build, browser interaction QA, and the portable desktop executable build.
 
 ## Database workflow
 
@@ -246,7 +245,8 @@ The current workspace has passed strict TypeScript checking, fifty-five converte
 - Secret keys and direct database credentials remain outside the desktop bundle.
 - File conversion is local by default; user documents are not uploaded unless the user explicitly enables a cloud feature.
 - Roman Hindi transliteration and legacy conversion remain offline. Only the explicit Translation tool sends its entered text to the configured provider.
-- The Windows bridge is user-triggered, sends only the visible result, and does not install a keyboard hook or monitor background keystrokes.
+- Direct Typing installs a low-level keyboard and focus hook only after the user explicitly turns it on. It transforms keystrokes in memory, stores no captured keys, sends nothing to the network, excludes BhashaYantra's own process, and unhooks on off/emergency-off/application exit.
+- The bridge cannot inject into a higher-integrity target because Windows UIPI blocks that path. Do not run Word, Excel, or the browser as administrator when using Direct Typing.
 - Tauri capabilities grant only the native permissions required by each feature.
 
 ## License

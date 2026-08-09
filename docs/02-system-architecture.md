@@ -21,7 +21,7 @@ flowchart TB
     REPO --> SB["Supabase client adapter"]
     NATIVE --> RUST["Tauri/Rust native layer"]
     RUST --> FS["Windows file system and dialogs"]
-    RUST --> INPUT["User-triggered Windows Unicode injection"]
+    RUST --> INPUT["Opt-in Windows Direct Typing service"]
     SB --> AUTH["Supabase Auth"]
     SB --> PG["Supabase PostgreSQL + RLS"]
     SB --> STORAGE["Supabase Storage — opt-in only"]
@@ -87,10 +87,12 @@ Technology: Tauri 2 and its Rust project under `src-tauri/`.
 - Safe file reads and atomic writes.
 - Document parsing/conversion capabilities that require native access.
 - OS integration and packaging.
-- User-triggered Unicode delivery to the previous active Windows application.
+- Explicitly enabled per-keystroke Direct Typing for standard Windows applications.
 - Exposes a small allowlisted command surface to the webview.
 
-The current **Use Anywhere** feature sends a completed string only after the user presses its button. It is not a global keylogger and does not claim to be a Windows IME. A future per-keystroke system keyboard must be implemented as a digitally signed Text Services Framework component and reviewed as a separate security boundary.
+The current **Direct Typing** development bridge uses dedicated keyboard/focus-hook and composition threads. Physical printable keys are suppressed once, transformed with the selected in-memory layout profile, and injected once at the target caret. Injected events, BhashaYantra's own process, and Ctrl/Alt/Win shortcuts are excluded. Mouse clicks and navigation reset the transient word buffer; `Ctrl + Alt + F12` is the unconditional emergency-off path. No captured source text is persisted or uploaded.
+
+This bridge is not represented as the final Windows IME. `SendInput` is limited by Windows integrity isolation, and low-level hooks require the BhashaYantra process to remain running. A production system keyboard must use a digitally signed Text Services Framework component with its own installation and security review.
 
 ### Cloud and database layer
 

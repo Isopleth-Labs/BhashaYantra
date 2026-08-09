@@ -16,6 +16,7 @@ Updated: 9 August 2026
 - Remington GAIL/CBI include dedicated on-screen keyboards, before/after short-i behavior, Unicode conversion routes, acceptance fixtures, and complete course catalogs. DevLys/Shree-Lipi remain validation-pending legacy encodings.
 - Hindi-first UI localization with a persistent Hindi/English interface selector.
 - Complete in-app Start Typing workspace with familiar-key input and live Unicode/Legacy output switching.
+- Explicit Windows Direct Typing switch with native per-keystroke composition, automatic minimize, layout/output profile updates, BhashaYantra-process exclusion, shortcut pass-through, focus reset, duplicate-input prevention, and `Ctrl + Alt + F12` emergency-off.
 - Automatic matra, reph, conjunct, and normalization behavior shared with the tested conversion engine.
 - Clickable Smart, Classic Hindi, INSCRIPT, and English QWERTY keyboards with normal/Shift layers and a five-group Hindi character palette.
 - Searchable complete character and shortcut dialogs with direct insertion into the typing pad.
@@ -41,10 +42,10 @@ Updated: 9 August 2026
 - Supabase schema migrations, Auth ownership foreign keys, RLS policies, triggers, constraints, seed data, and pgTAP policy tests.
 - Local and Supabase preference repository implementations.
 - Free/Pro/Institution product-entitlement vocabulary and profitability-focused packaging documentation.
-- Strict TypeScript, fifty-two converter/typing/training/document/repository/licensing tests, production web build, and browser visual/interaction QA at 1724×986 and 1280×720.
+- Strict TypeScript, fifty-eight frontend tests, five native Direct Typing composition/lifecycle tests, production web build, and browser visual/interaction QA at 1724×986 and 1280×720.
 - Local Supabase reset, eight pgTAP/RLS tests, and schema linting.
 - Rust formatting and Clippy checks.
-- Local development desktop executable, MSI installer, and NSIS setup executable.
+- One local portable development executable; old debug/installer application builds are intentionally not retained.
 
 ## Current verification commands
 
@@ -52,11 +53,12 @@ Updated: 9 August 2026
 npm run typecheck
 npm run test
 npm run build
-npm run tauri build -- --debug --no-bundle
+npx tauri build --no-bundle
 npm run db:reset
 npm run db:test
 npx supabase db lint --local
-cargo clippy --manifest-path .\src-tauri\Cargo.toml -- -D warnings
+cargo test --manifest-path .\src-tauri\Cargo.toml
+cargo clippy --manifest-path .\src-tauri\Cargo.toml --all-targets -- -D warnings
 ```
 
 ## Partially implemented
@@ -65,7 +67,7 @@ cargo clippy --manifest-path .\src-tauri\Cargo.toml -- -D warnings
 |---|---|---|
 | KrutiDev profile | Common alphabet, matras, conjuncts, digits, and acceptance fixtures | Validate/expand against a licensed full test corpus |
 | Document converter | Drop-zone UI and text-file flow | RTF/DOC/DOCX parsing with structure-preserving native conversion |
-| Keyboard modes | Own Smart phonetic, Classic familiar-key, INSCRIPT, Remington GAIL, Remington CBI, and English QWERTY inputs; per-layout drafts, keyboards, round-trip fixtures, and custom layers | Expand INSCRIPT and Remington AltGr/escape-key acceptance corpora, then optional Windows IME integration |
+| Keyboard modes | Own Smart phonetic, Classic familiar-key, INSCRIPT, Remington GAIL, Remington CBI, and English QWERTY inputs; per-layout drafts, keyboards, round-trip fixtures, custom layers, and an opt-in low-level Direct Typing development bridge | Expand AltGr/escape-key acceptance corpora, then replace the development bridge with a signed TSF IME for public distribution |
 | Legacy encoding profiles | KrutiDev 010 working; DevLys and Shree-Lipi registered as validation-pending | Add licensed fixtures and round-trip acceptance corpora before enabling each profile |
 | Shortcut manager | Built-in shortcuts, custom creation/deletion, conflict validation, persistence, import/export, and reset | Editing existing custom entries in place and cloud sync |
 | Typing practice/test | 2,820 professional exercises with alphabetic and domain progression, multi-round patterns, mastery gates, depth checks, a distraction-free fixed-height workstation, 60 original papers/layout, 18 profiles including 16 official-reference profiles, WPM/NWPM/KDPH/RRB practice scoring, weak-key analysis, and local history | Independently validate remaining recruitment-specific deduction rules, then add adaptive lessons and exportable reports |

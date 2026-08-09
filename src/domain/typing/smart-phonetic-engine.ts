@@ -3,7 +3,7 @@ import { HINDI_PROFESSIONAL_LEXICON } from "@/domain/typing/hindi-professional-l
 
 const VIRAMA = "्";
 
-const WORD_DICTIONARY: Readonly<Record<string, string>> = {
+export const SMART_PHONETIC_DICTIONARY: Readonly<Record<string, string>> = {
   ...HINDI_PROFESSIONAL_LEXICON,
   aadhar: "आधार",
   aaj: "आज",
@@ -203,7 +203,7 @@ function characterCount(value: string) {
 }
 
 function transliterateRomanWord(word: string) {
-  const dictionaryMatch = WORD_DICTIONARY[word.toLocaleLowerCase()];
+  const dictionaryMatch = SMART_PHONETIC_DICTIONARY[word.toLocaleLowerCase()];
   if (dictionaryMatch) return dictionaryMatch;
 
   let output = "";

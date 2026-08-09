@@ -32,7 +32,7 @@ import {
   type ProductivityExportFormat,
 } from "@/application/document-export";
 import { Button } from "@/components/ui/button";
-import { UseAnywherePanel } from "@/components/UseAnywherePanel";
+import { DirectTypingPanel } from "@/components/DirectTypingPanel";
 import {
   findMatchingShortcut,
   formatShortcut,
@@ -417,6 +417,13 @@ export function TypingWorkspace({
         </div>
       </div>
 
+      <DirectTypingPanel
+        layout={layout}
+        outputMode={outputMode}
+        customMappings={mode === "advanced" ? customMappings : []}
+        shortcuts={mode === "advanced" ? shortcuts : []}
+      />
+
       {naturalEnglishMismatch && (
         <div className="typing-input-warning" role="alert">
           <AlertTriangle aria-hidden="true" />
@@ -543,8 +550,6 @@ export function TypingWorkspace({
           </Button>
         </div>
       </div>
-
-      <UseAnywherePanel text={naturalEnglishMismatch ? "" : displayedOutput} format={outputMode === "legacy" ? "krutidev" : "unicode"} />
 
       {mode === "simple" && isSmart && (
         <div className="typing-suggestions" aria-label="Hindi word suggestions">

@@ -1370,19 +1370,26 @@ label svg,
   white-space: nowrap;
 }
 
-.use-anywhere-panel {
+.direct-typing-panel {
   display: grid;
-  grid-template-columns: auto minmax(260px, 1fr) auto auto;
+  grid-template-columns: auto minmax(280px, 1fr) minmax(170px, auto) auto auto;
   align-items: center;
   gap: 12px;
-  margin-top: 10px;
+  margin: 12px 0;
   padding: 12px 14px;
   border: 1px solid color-mix(in srgb, var(--primary) 24%, var(--border));
   border-radius: 10px;
   background: color-mix(in srgb, var(--primary) 4%, var(--surface));
+  transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
 }
 
-.use-anywhere-icon {
+.direct-typing-panel.active {
+  border-color: color-mix(in srgb, var(--success) 58%, var(--border));
+  background: color-mix(in srgb, var(--success) 6%, var(--surface));
+  box-shadow: inset 3px 0 0 var(--success);
+}
+
+.direct-typing-icon {
   display: grid;
   place-items: center;
   width: 38px;
@@ -1392,27 +1399,48 @@ label svg,
   background: var(--primary-soft);
 }
 
-.use-anywhere-icon svg {
+.direct-typing-icon svg {
   width: 19px;
   height: 19px;
 }
 
-.use-anywhere-copy {
+.direct-typing-copy {
   min-width: 0;
 }
 
-.use-anywhere-copy strong {
+.direct-typing-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.direct-typing-copy strong {
   font-size: 13px;
 }
 
-.use-anywhere-copy p {
+.direct-status {
+  padding: 2px 7px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted-foreground);
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.direct-status.active {
+  border-color: color-mix(in srgb, var(--success) 52%, var(--border));
+  color: var(--success);
+  background: color-mix(in srgb, var(--success) 8%, transparent);
+}
+
+.direct-typing-copy p {
   margin: 2px 0;
   color: var(--muted-foreground);
   font-size: 11px;
   line-height: 1.45;
 }
 
-.use-anywhere-copy > span {
+.direct-typing-copy > span {
   display: block;
   overflow: hidden;
   color: var(--primary);
@@ -1421,20 +1449,40 @@ label svg,
   white-space: nowrap;
 }
 
-.use-anywhere-badges {
+.direct-typing-profile {
   display: flex;
-  gap: 5px;
+  min-width: 0;
+  flex-direction: column;
+  padding-left: 12px;
+  border-left: 1px solid var(--border);
 }
 
-.use-anywhere-badges span {
-  padding: 3px 7px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
+.direct-typing-profile strong,
+.direct-typing-profile span,
+.direct-typing-profile small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.direct-typing-profile strong { font-size: 11px; }
+.direct-typing-profile span { color: var(--primary); font-size: 10px; font-weight: 800; }
+.direct-typing-profile small { color: var(--legacy); font-size: 9px; }
+
+.direct-typing-safety {
+  display: flex;
+  align-items: center;
+  gap: 7px;
   color: var(--muted-foreground);
-  background: var(--surface);
-  font-size: 9px;
-  font-weight: 800;
-  text-transform: uppercase;
+}
+
+.direct-typing-safety svg { width: 17px; color: var(--success); }
+.direct-typing-safety span { display: flex; flex-direction: column; }
+.direct-typing-safety strong { color: var(--foreground); font-size: 10px; white-space: nowrap; }
+.direct-typing-safety small { font-size: 9px; }
+
+.direct-typing-toggle {
+  min-width: 154px;
 }
 
 .translation-provider-note {
@@ -4834,11 +4882,12 @@ body:has(.mock-exam-page.session-active) .mock-exam-page {
     grid-column: 1 / -1;
   }
 
-  .use-anywhere-panel {
+  .direct-typing-panel {
     grid-template-columns: auto minmax(0, 1fr) auto;
   }
 
-  .use-anywhere-badges {
+  .direct-typing-profile,
+  .direct-typing-safety {
     display: none;
   }
 }
@@ -5061,11 +5110,11 @@ body:has(.mock-exam-page.session-active) .mock-exam-page {
     justify-self: center;
   }
 
-  .use-anywhere-panel {
+  .direct-typing-panel {
     grid-template-columns: auto minmax(0, 1fr);
   }
 
-  .use-anywhere-panel > button {
+  .direct-typing-panel > button {
     grid-column: 1 / -1;
     justify-self: stretch;
   }

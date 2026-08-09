@@ -28,7 +28,6 @@ import {
 } from "@/application/translation-service";
 import { convertText } from "@/application/use-cases/convert-text";
 import { Button } from "@/components/ui/button";
-import { UseAnywherePanel } from "@/components/UseAnywherePanel";
 import { isSupabaseConfigured } from "@/data/supabase/client";
 import type { ConversionDirection } from "@/domain/conversion/types";
 import { typingSourceToUnicode } from "@/domain/typing/typing-engine";
@@ -380,11 +379,6 @@ export function ExchangeConverter() {
         {tool === "translation" ? <Cloud aria-hidden="true" /> : <FileText aria-hidden="true" />}<span>{status}</span>
         {warnings.length > 0 && <span className="warning-summary">{warnings.slice(0, 2).join(" • ")}</span>}
       </div>
-
-      <UseAnywherePanel
-        text={outputText}
-        format={(tool === "legacy" && direction === "unicode-to-legacy") || (tool === "roman-hindi" && romanOutputFormat === "krutidev") ? "krutidev" : "unicode"}
-      />
 
       {tool === "legacy" && (
         <div className="converter-profile-coverage" aria-label={t("profileCoverage")}>
