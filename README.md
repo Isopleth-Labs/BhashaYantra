@@ -1,4 +1,10 @@
-# BhashaYantra
+<p align="center">
+  <img src="docs/assets/bhashayantra-app-icon.svg" alt="BhashaYantra logo" width="112" />
+</p>
+
+<h1 align="center">BhashaYantra</h1>
+
+<p align="center"><strong>Smart Hindi typing, legacy-font conversion, practice, and exam preparation for Windows.</strong></p>
 
 BhashaYantra is a Windows-first Hindi typing, legacy-font conversion, typing-practice, testing, and stenography desktop application.
 
