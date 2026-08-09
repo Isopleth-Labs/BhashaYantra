@@ -21,9 +21,12 @@ flowchart TB
     REPO --> SB["Supabase client adapter"]
     NATIVE --> RUST["Tauri/Rust native layer"]
     RUST --> FS["Windows file system and dialogs"]
+    RUST --> INPUT["User-triggered Windows Unicode injection"]
     SB --> AUTH["Supabase Auth"]
     SB --> PG["Supabase PostgreSQL + RLS"]
     SB --> STORAGE["Supabase Storage — opt-in only"]
+    SB --> EDGE["Translation Edge Function"]
+    EDGE --> TRANSLATE["Google Cloud Translation"]
     DRIZZLE["Drizzle schema"] --> MIGRATIONS["Supabase SQL migrations"]
     MIGRATIONS --> PG
 ```
@@ -84,7 +87,10 @@ Technology: Tauri 2 and its Rust project under `src-tauri/`.
 - Safe file reads and atomic writes.
 - Document parsing/conversion capabilities that require native access.
 - OS integration and packaging.
+- User-triggered Unicode delivery to the previous active Windows application.
 - Exposes a small allowlisted command surface to the webview.
+
+The current **Use Anywhere** feature sends a completed string only after the user presses its button. It is not a global keylogger and does not claim to be a Windows IME. A future per-keystroke system keyboard must be implemented as a digitally signed Text Services Framework component and reviewed as a separate security boundary.
 
 ### Cloud and database layer
 
@@ -93,6 +99,7 @@ Technology: Tauri 2 and its Rust project under `src-tauri/`.
 - Row Level Security enforces ownership.
 - Storage is used only for explicitly uploaded content.
 - Drizzle defines the application schema and generates reviewed SQL migrations.
+- The optional `translate-text` Edge Function keeps the Google Cloud Translation credential server-side and accepts only allowlisted language pairs and bounded text.
 
 ## 4. Security boundary
 

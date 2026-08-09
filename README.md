@@ -2,7 +2,7 @@
 
 BhashaYantra is a Windows-first Hindi typing, legacy-font conversion, typing-practice, testing, and stenography desktop application.
 
-> Project status: the React/Tauri foundation, six-layout typing engine, complete original practice catalog, configurable exam simulator, offline result history, local bidirectional text converter, Drizzle schema, Supabase migrations, and repository boundaries are implemented. Stenography and complex document conversion remain roadmap modules.
+> Project status: the React/Tauri foundation, six-layout typing engine, complete original practice catalog, configurable exam simulator, offline result history, multi-tool converter, Windows Use Anywhere bridge, Drizzle schema, Supabase migrations, and repository boundaries are implemented. Stenography, a signed Windows TSF IME, and structure-preserving document import remain roadmap modules.
 
 ![BhashaYantra implemented UI](docs/assets/bhashayantra-implemented-ui.png)
 
@@ -27,6 +27,9 @@ The approved design source is preserved at [docs/assets/bhashayantra-final-refer
 - Native offline productivity exports for Microsoft Word (`.docx`), Microsoft Excel (`.xlsx`), and browser-ready (`.html`) documents from both typing and conversion workspaces.
 - Live words, characters, lines, elapsed-session WPM, and mapping-warning feedback.
 - Live local KrutiDev 010 ↔ Unicode text conversion in both directions with warnings.
+- Three separate converter workflows so encoding and language are not confused: verified legacy-font conversion, offline Roman Hindi transliteration, and meaning-preserving cloud translation.
+- Secure English/Hindi/Marathi/Punjabi/Bengali/Gujarati translation boundary through a Supabase Edge Function and Google Cloud Translation; the provider key remains server-side and the UI stays disabled until configured.
+- Windows **Use Anywhere** bridge in both Start Typing and Converter: keep the cursor in Word, Excel, a website, or another Windows field, then send the complete Unicode result into the previous active app.
 - Text-file open, paste, clear, copy, and download actions.
 - Selectable Unicode preview fonts: Noto Sans Devanagari, Mangal, Nirmala UI, and Segoe UI for English.
 - Original 2,820-exercise professional curriculum: 470 exercises for each ready layout, split into Learn Keys (60), alphabetic and professional Practice Words (200), Sentences (120), and Paragraphs (90).
@@ -49,7 +52,7 @@ The approved design source is preserved at [docs/assets/bhashayantra-final-refer
 - Local and Supabase user-preference repository implementations.
 - Tauri 2 configuration with allowlisted dialog and text-file permissions.
 - Tested Free/Pro/Institution feature-entitlement vocabulary for future secure billing integration.
-- Fifty-two automated converter/typing/training/document/repository/licensing tests, strict TypeScript checking, and production frontend build.
+- Fifty-five automated converter/typing/training/document/repository/licensing tests, strict TypeScript checking, and production frontend build.
 
 ## Final product direction
 
@@ -57,6 +60,7 @@ The approved design source is preserved at [docs/assets/bhashayantra-final-refer
 - `Simple Smart Mode`: natural Roman Hindi typing with automatic matra and joint-character composition.
 - `Advanced Classic Mode`: shortcuts, Alt combinations, custom mappings, and expert controls.
 - Central workspace: bidirectional `KrutiDev / Legacy ↔ Unicode` Exchange Converter.
+- The practical Windows bridge sends completed Unicode text to the previous active application. A true per-keystroke Windows keyboard requires a separately signed Text Services Framework IME and is not represented as complete.
 - Additional modules: structure-preserving document conversion, stenography, exportable reports, signed Pro entitlements, and optional cloud sync.
 
 ## Approved technology stack
@@ -164,7 +168,7 @@ npm run dev
 
 For the full desktop window, install the Tauri Windows prerequisites and run `npm run tauri dev`.
 
-For local Supabase, start Docker Desktop and run `npx supabase start`. Supabase is optional for the local converter and dashboard.
+For local Supabase, start Docker Desktop and run `npx supabase start`. Supabase is optional for typing, legacy conversion, Roman Hindi, training, and tests; it is required only for cloud translation and optional sync.
 
 ## Environment variables
 
@@ -181,7 +185,14 @@ Database credentials are for migration tooling or trusted backend environments o
 DATABASE_URL=
 ```
 
-Never expose `DATABASE_URL`, a service-role key, or any other server secret through a `VITE_` variable or bundle it into the Tauri application.
+Meaning-preserving language translation uses the `translate-text` Supabase Edge Function. Configure the Google provider secret only in Supabase, never in `.env.local` or a `VITE_` variable:
+
+```powershell
+npx supabase secrets set GOOGLE_CLOUD_TRANSLATE_KEY=your-server-side-key
+npx supabase functions deploy translate-text
+```
+
+Never expose `DATABASE_URL`, a service-role key, `GOOGLE_CLOUD_TRANSLATE_KEY`, or any other server secret through a `VITE_` variable or bundle it into the Tauri application.
 
 ## Development commands
 
@@ -219,7 +230,7 @@ The first Tauri build can take longer because Rust dependencies must be download
 
 ## Verified build status
 
-The current workspace has passed strict TypeScript checking, forty-three converter/typing/training/repository/licensing unit tests, eight database/RLS tests, Drizzle configuration validation, Supabase schema linting, Rust formatting and Clippy checks, frontend production build, browser interaction QA, desktop executable build, and both Windows installer builds.
+The current workspace has passed strict TypeScript checking, fifty-five converter/typing/training/document/repository/licensing unit tests, eight database/RLS tests, Drizzle configuration validation, Supabase schema linting, Rust formatting and Clippy checks, frontend production build, browser interaction QA, desktop executable build, and both Windows installer builds.
 
 ## Database workflow
 
@@ -234,6 +245,8 @@ The current workspace has passed strict TypeScript checking, forty-three convert
 - Desktop code uses only the Supabase publishable key.
 - Secret keys and direct database credentials remain outside the desktop bundle.
 - File conversion is local by default; user documents are not uploaded unless the user explicitly enables a cloud feature.
+- Roman Hindi transliteration and legacy conversion remain offline. Only the explicit Translation tool sends its entered text to the configured provider.
+- The Windows bridge is user-triggered, sends only the visible result, and does not install a keyboard hook or monitor background keystrokes.
 - Tauri capabilities grant only the native permissions required by each feature.
 
 ## License

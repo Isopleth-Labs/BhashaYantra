@@ -32,6 +32,7 @@ import {
   type ProductivityExportFormat,
 } from "@/application/document-export";
 import { Button } from "@/components/ui/button";
+import { UseAnywherePanel } from "@/components/UseAnywherePanel";
 import {
   findMatchingShortcut,
   formatShortcut,
@@ -542,6 +543,8 @@ export function TypingWorkspace({
           </Button>
         </div>
       </div>
+
+      <UseAnywherePanel text={naturalEnglishMismatch ? "" : displayedOutput} />
 
       {mode === "simple" && isSmart && (
         <div className="typing-suggestions" aria-label="Hindi word suggestions">
