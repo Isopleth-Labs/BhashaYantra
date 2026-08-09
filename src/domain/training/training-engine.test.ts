@@ -21,6 +21,25 @@ describe("training engine", () => {
     expect(calculateTrainingScore("भारत", "भारतx")).toMatchObject({ accuracy: 80, complete: false });
   });
 
+  it("does not treat untouched trailing copy as a live typing error", () => {
+    expect(calculateTrainingScore("भारत", "भार", "live")).toMatchObject({ accuracy: 100, complete: false });
+  });
+
+  it("resynchronizes after a missing or extra character", () => {
+    expect(calculateTrainingScore("abcd", "abxcd")).toMatchObject({
+      correctCharacters: 4,
+      extraCharacters: 1,
+      substitutedCharacters: 0,
+      accuracy: 80,
+    });
+    expect(calculateTrainingScore("abcd", "acd")).toMatchObject({
+      correctCharacters: 3,
+      missingCharacters: 1,
+      substitutedCharacters: 0,
+      accuracy: 75,
+    });
+  });
+
   it("calculates standard five-character words per minute", () => {
     expect(calculateWpm(50, 60)).toBe(10);
     expect(calculateWpm(0, 60)).toBe(0);

@@ -265,22 +265,22 @@ function buildKeyLesson(index: number, english: boolean): CanonicalLessonSeed {
     {
       label: "Warm-up",
       purpose: "Set finger position and establish a controlled rhythm.",
-      content: fillDrill(units.repeated, index * 3, 72 + moduleIndex * 2),
+      content: fillDrill(units.repeated, index * 3, 44 + moduleIndex),
     },
     {
       label: "Control",
       purpose: "Alternate the active keys without watching the keyboard.",
-      content: fillDrill(units.alternated, index * 5 + 1, 84 + variation * 12),
+      content: fillDrill(units.alternated, index * 5 + 1, 56 + variation * 8),
     },
     {
       label: "Application",
       purpose: "Mix the new movement with previously learned keys.",
-      content: fillDrill(units.grouped, index * 7 + 2, 96 + moduleIndex * 3),
+      content: fillDrill(units.grouped, index * 7 + 2, 68 + moduleIndex * 2),
     },
     {
       label: "Checkpoint",
       purpose: "Finish one uninterrupted accuracy run at the lesson target.",
-      content: fillDrill(units.all, index * 11 + 3, 120 + moduleIndex * 4),
+      content: fillDrill(units.all, index * 11 + 3, 80 + moduleIndex * 3),
     },
   ];
   const content = drillBlocks.map((block) => block.content).join("\n");

@@ -18,6 +18,7 @@ import {
   Settings2,
   Square,
   Trash2,
+  Volume2,
 } from "lucide-react";
 import {
   useEffect,
@@ -28,6 +29,7 @@ import {
 } from "react";
 
 import { Button } from "@/components/ui/button";
+import { playTypingFeedback } from "@/application/typing-feedback";
 import { getCurriculumCourse } from "@/domain/training/curriculum-catalog";
 import { getExamPassage, getExamProfilesForLayout, type BackspacePolicy } from "@/domain/training/exam-profiles";
 import {
@@ -70,6 +72,11 @@ function createAttemptId() {
   return globalThis.crypto?.randomUUID?.() ?? `attempt-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
+function loadBoolean(key: string, fallback: boolean) {
+  const value = localStorage.getItem(key);
+  return value === null ? fallback : value === "true";
+}
+
 function formatTime(seconds: number) {
   const minutes = Math.floor(seconds / 60);
   return `${String(minutes).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
@@ -102,6 +109,8 @@ export function TypingMockExam({ layout, displayFont }: TypingMockExamProps) {
   const [fontSize, setFontSize] = useState(24);
   const [useCustomPassage, setUseCustomPassage] = useState(false);
   const [customPassage, setCustomPassage] = useState("");
+  const [soundOnError, setSoundOnError] = useState(() => loadBoolean("bhashayantra:exam:sound-v2", true));
+  const [errorPulse, setErrorPulse] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const passageRef = useRef<HTMLDivElement>(null);
 
@@ -125,10 +134,10 @@ export function TypingMockExam({ layout, displayFont }: TypingMockExamProps) {
     [applyLimit, builtInPassage.keys, customKeys, textOptions, wordLimit],
   );
   const actual = useMemo(() => typingSourceToUnicode(source, layout).output, [layout, source]);
-  const score = useMemo(() => calculateTrainingScore(expected, actual), [actual, expected]);
+  const finished = status === "submitted" || status === "expired";
+  const score = useMemo(() => calculateTrainingScore(expected, actual, finished ? "final" : "live"), [actual, expected, finished]);
   const segments = useMemo(() => getHighlightSegments(expected, actual, highlightMode), [actual, expected, highlightMode]);
   const remainingSeconds = Math.max(0, testDuration - elapsedSeconds);
-  const finished = status === "submitted" || status === "expired";
   const measuredSeconds = Math.max(1, elapsedSeconds);
   const grossWpm = calculateWpm(Array.from(source).length, measuredSeconds);
   const wpm = calculateWpm(score.correctCharacters, measuredSeconds);
@@ -209,6 +218,10 @@ export function TypingMockExam({ layout, displayFont }: TypingMockExamProps) {
     setPaperIndex(0);
     resetToReady();
   }, [course.id, examProfiles]);
+
+  useEffect(() => {
+    localStorage.setItem("bhashayantra:exam:sound-v2", String(soundOnError));
+  }, [soundOnError]);
 
   useEffect(() => {
     if (status !== "running" || !runStartedAt) return;
@@ -330,6 +343,15 @@ export function TypingMockExam({ layout, displayFont }: TypingMockExamProps) {
       event.preventDefault();
       return;
     }
+    if (!event.ctrlKey && !event.altKey && !event.metaKey && event.key !== "Backspace") {
+      const enteredKey = event.key === "Enter" ? "\n" : event.key === "Tab" ? "\t" : event.key.length === 1 ? event.key : undefined;
+      const expectedKey = Array.from(expectedKeys)[event.currentTarget.selectionStart];
+      if (enteredKey && enteredKey !== expectedKey) {
+        if (soundOnError) playTypingFeedback("error");
+        setErrorPulse(true);
+        window.setTimeout(() => setErrorPulse(false), 180);
+      }
+    }
     if (event.key === "Tab") {
       event.preventDefault();
       if (!allowTabs) return;
@@ -438,8 +460,8 @@ export function TypingMockExam({ layout, displayFont }: TypingMockExamProps) {
             </div>
           </div>
 
-          <section className={`mock-typing-card ${status}`}>
-            <div className="mock-card-header"><div><span>{t("yourTyping")}</span><small>{status === "ready" ? t("examNotStarted") : statusLabel}</small></div><div className="mock-typing-counts"><span>{countWords(source)} {t("typedWords")}</span><span>{Array.from(source).length} {t("characters")}</span><span>{backspaceCount} {t("corrections")}</span></div></div>
+          <section className={`mock-typing-card ${status} ${errorPulse ? "error-pulse" : ""}`}>
+            <div className="mock-card-header"><div><span>{t("yourTyping")}</span><small>{status === "ready" ? t("examNotStarted") : statusLabel}</small></div><div className="mock-typing-counts"><span>{countWords(source)} {t("typedWords")}</span><span>{score.correctCharacters} {t("correctCharacters")}</span><span>{score.substitutedCharacters + score.extraCharacters} {t("errors")}</span><span>{backspaceCount} {t("corrections")}</span></div></div>
             <div className={layout === "english-qwerty" ? "mock-answer-editor direct" : "mock-answer-editor converted"}>
               <textarea
                 ref={textareaRef}
@@ -501,6 +523,11 @@ export function TypingMockExam({ layout, displayFont }: TypingMockExamProps) {
             <legend>{t("scrollOptions")}</legend>
             <CheckOption checked={showScrollbar} onChange={setShowScrollbar} label={t("showScrollbar")} />
             <CheckOption checked={autoScroll} onChange={setAutoScroll} label={t("autoScroll")} />
+          </fieldset>
+          <fieldset>
+            <legend>{t("soundOnError")}</legend>
+            <CheckOption checked={soundOnError} onChange={setSoundOnError} label={t("soundOnError")} />
+            <Button size="sm" variant="outline" onClick={() => playTypingFeedback("preview")}><Volume2 aria-hidden="true" /> {t("testSound")}</Button>
           </fieldset>
           <fieldset disabled={!canConfigure}>
             <legend>{t("paragraphSettings")}</legend>

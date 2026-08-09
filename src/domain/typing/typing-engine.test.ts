@@ -12,6 +12,7 @@ import {
   unicodeToTypingKeys,
   unicodeToTypingSource,
 } from "./typing-engine";
+import { looksLikeNaturalEnglish } from "./input-guard";
 
 describe("Start Typing engine", () => {
   it("produces live Unicode from familiar KrutiDev keys", () => {
@@ -70,5 +71,13 @@ describe("Start Typing engine", () => {
       words: 4,
       lines: 2,
     });
+  });
+});
+
+describe("typing input guard", () => {
+  it("separates natural English prose from familiar Hindi key sequences", () => {
+    expect(looksLikeNaturalEnglish("now I want you to make the same thing for my project")).toBe(true);
+    expect(looksLikeNaturalEnglish('esjk uke Hkk"kk ;a= gS')).toBe(false);
+    expect(looksLikeNaturalEnglish("yir;e")).toBe(false);
   });
 });

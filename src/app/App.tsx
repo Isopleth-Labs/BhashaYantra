@@ -1,22 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  BarChart3,
   BookOpen,
   ChevronRight,
   CircleHelp,
-  CloudUpload,
-  FileSpreadsheet,
   FileText,
   Gauge,
   Globe2,
   Home,
   Keyboard,
-  Menu,
   Mic2,
   Moon,
   Search,
   Settings,
-  ShieldCheck,
   Sparkles,
   Sun,
   TerminalSquare,
@@ -26,8 +21,6 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { summarizeTrainingAttempts, type TrainingAttempt } from "@/domain/training/training-attempt";
 import {
   DEFAULT_SHORTCUTS,
   formatShortcut,
@@ -51,10 +44,6 @@ import { TypingMockExam } from "@/features/training/TypingMockExam";
 import { TypingTraining } from "@/features/training/TypingTraining";
 import { TypingWorkspace } from "@/features/typing/TypingWorkspace";
 import { useI18n } from "@/i18n/I18nProvider";
-import {
-  LocalTrainingAttemptsRepository,
-  TRAINING_ATTEMPTS_UPDATED_EVENT,
-} from "@/data/repositories/local-training-attempts-repository";
 
 const navItems = [
   { id: "start", labelKey: "startTyping", icon: Home },
@@ -93,7 +82,6 @@ const characterGroups = {
 } as const;
 
 type Theme = "light" | "dark";
-type StartTool = "typing" | "converter";
 type CharacterTab = keyof typeof characterGroups;
 type NavId = (typeof navItems)[number]["id"] | "settings";
 
@@ -145,8 +133,6 @@ export default function App() {
   });
   const [outputMode, setOutputMode] = useState<TypingOutputMode>(() => localStorage.getItem("bhashayantra-typing-layout") !== "english-qwerty" && localStorage.getItem("bhashayantra-output-mode") === "legacy" ? "legacy" : "unicode");
   const [activeNav, setActiveNav] = useState<NavId>("start");
-  const [startTool, setStartTool] = useState<StartTool>("typing");
-  const [shortcutQuery, setShortcutQuery] = useState("");
   const [characterTab, setCharacterTab] = useState<CharacterTab>("स्वर");
   const [typingDrafts, setTypingDrafts] = useState<Record<ReadyTypingLayoutId, string>>(() => ({
     "bhashayantra-smart": localStorage.getItem("bhashayantra-smart-draft") ?? "",
@@ -193,19 +179,12 @@ export default function App() {
     [activeCustomShortcuts, typingLanguage],
   );
   const typingSource = typingDrafts[typingLayout];
-  const filteredShortcuts = useMemo(() => {
-    const query = shortcutQuery.trim().toLocaleLowerCase();
-    if (!query) return shortcuts;
-    return shortcuts.filter((shortcut) => `${shortcut.character} ${formatShortcut(shortcut)}`.toLocaleLowerCase().includes(query));
-  }, [shortcutQuery, shortcuts]);
-
   function insertCharacter(character: string) {
     setTypingDrafts((current) => ({
       ...current,
       [typingLayout]: `${current[typingLayout]}${unicodeToTypingSource(character, typingLayout).output}`,
     }));
     setActiveNav("start");
-    setStartTool("typing");
   }
 
   function scrollToAdvancedManager() {
@@ -217,7 +196,6 @@ export default function App() {
     setTypingMode(mode);
     setTypingLayout(mode === "simple" ? "bhashayantra-smart" : "classic-hindi");
     setDisplayFont((current) => current === "segoe-ui" ? "noto-devanagari" : current);
-    setStartTool("typing");
     if (mode === "advanced") {
       setAdvancedOpen(true);
       scrollToAdvancedManager();
@@ -236,7 +214,6 @@ export default function App() {
       return current === "segoe-ui" ? "noto-devanagari" : current;
     });
     if (language === "en") setOutputMode("unicode");
-    if (activeNav === "start") setStartTool("typing");
     setAdvancedOpen(false);
   }
 
@@ -253,7 +230,6 @@ export default function App() {
       setDisplayFont("noto-devanagari");
     }
     setActiveNav("start");
-    setStartTool("typing");
     setAdvancedOpen(false);
   }
 
@@ -274,7 +250,6 @@ export default function App() {
   function openAdvancedManager() {
     setShortcutLibraryOpen(false);
     setActiveNav("start");
-    setStartTool("typing");
     setTypingMode("advanced");
     setTypingLayout("classic-hindi");
     setAdvancedOpen(true);
@@ -308,11 +283,6 @@ export default function App() {
               <Settings aria-hidden="true" /><span>{t("settings")}</span>
             </button>
           </nav>
-          <Card className="pro-card">
-            <div className="pro-title"><ShieldCheck aria-hidden="true" /> BhashaYantra Pro</div>
-            <p>{t("proDescription")}</p>
-            <button type="button">{t("activateNow")}</button>
-          </Card>
         </aside>
 
         <section className="workspace">
@@ -329,20 +299,20 @@ export default function App() {
 
           {activeNav === "start" ? (
             <>
-              <div className="workspace-tool-switch" role="tablist" aria-label={t("startTyping")}>
-                <button type="button" role="tab" aria-selected={startTool === "typing"} onClick={() => setStartTool("typing")}><Keyboard aria-hidden="true" /> {t("typingPad")}</button>
-                <button type="button" role="tab" aria-selected={startTool === "converter"} onClick={() => setStartTool("converter")}><Sparkles aria-hidden="true" /> {t("exchangeConverter")}</button>
-              </div>
-              {startTool === "typing" ? (
-                <TypingWorkspace
-                  mode={typingMode} layout={typingLayout} displayFont={displayFont} outputMode={outputMode} source={typingSource} onSourceChange={updateTypingSource}
-                  shortcuts={shortcuts} customShortcuts={activeCustomShortcuts} onCustomShortcutsChange={replaceActiveCustomShortcuts}
-                  customMappings={activeCustomMappings} onCustomMappingsChange={replaceActiveCustomMappings}
-                  advancedOpen={advancedOpen} onAdvancedOpenChange={setAdvancedOpen}
-                />
-              ) : <ExchangeConverter />}
+              <TypingWorkspace
+                mode={typingMode} layout={typingLayout} displayFont={displayFont} outputMode={outputMode} source={typingSource} onSourceChange={updateTypingSource}
+                shortcuts={shortcuts} customShortcuts={activeCustomShortcuts} onCustomShortcutsChange={replaceActiveCustomShortcuts}
+                customMappings={activeCustomMappings} onCustomMappingsChange={replaceActiveCustomMappings}
+                advancedOpen={advancedOpen} onAdvancedOpenChange={setAdvancedOpen}
+                onUseSmartMode={() => chooseTypingMode("simple")}
+                onUseEnglishMode={() => chooseTypingLanguage("en")}
+                onOpenConverter={() => setActiveNav("documents")}
+                onOpenShortcutLibrary={() => setShortcutLibraryOpen(true)}
+              />
               {typingLanguage === "hi" && <CharacterBrowser activeTab={characterTab} onTabChange={setCharacterTab} onInsertCharacter={insertCharacter} onOpenAll={() => setCharacterLibraryOpen(true)} />}
             </>
+          ) : activeNav === "documents" ? (
+            <ExchangeConverter />
           ) : activeNav === "practice" ? (
             <TypingTraining kind="practice" layout={typingLayout} displayFont={displayFont} />
           ) : activeNav === "test" ? (
@@ -350,13 +320,6 @@ export default function App() {
           ) : <FeaturePlaceholder title={activeNavLabel} onReturn={() => setActiveNav("start")} />}
         </section>
 
-        {activeNav !== "test" && activeNav !== "practice" && (
-          <aside className="right-rail" aria-label={t("shortcutManager")}>
-            {typingLanguage === "hi" && <ShortcutManager query={shortcutQuery} onQueryChange={setShortcutQuery} shortcuts={filteredShortcuts} onInsert={insertCharacter} onOpen={() => setShortcutLibraryOpen(true)} />}
-            <DocumentConverter onOpen={() => { setActiveNav("start"); setStartTool("converter"); }} />
-            <TypingSummary onOpen={() => setActiveNav("test")} />
-          </aside>
-        )}
       </div>
 
       {characterLibraryOpen && <CharacterLibraryModal onClose={() => setCharacterLibraryOpen(false)} onInsert={insertCharacter} />}
@@ -391,11 +354,8 @@ function TopBar({ theme, onThemeChange, typingLanguage, onTypingLanguageChange, 
         <span className="top-divider" />
         <label><span>{t("output")}:</span><select value={outputMode} aria-label={t("output")} onChange={(event) => onOutputModeChange(event.target.value as TypingOutputMode)}><option value="unicode">{t("unicode")}</option><option value="legacy" disabled={typingLanguage === "en"}>{t("legacy")}</option></select></label>
         <label><span>{t("displayFont")}:</span><select value={displayFont} aria-label={t("displayFont")} onChange={(event) => onDisplayFontChange(event.target.value as UnicodeDisplayFontId)}>{displayFontsForLanguage(typingLanguage).map((font) => <option key={font.id} value={font.id}>{font.name}</option>)}</select></label>
-        <span className="top-divider" />
-        <div className="works-in"><span>{t("worksIn")}:</span><span><FileText aria-hidden="true" /> Word</span><span><FileSpreadsheet aria-hidden="true" /> Excel</span><span><Globe2 aria-hidden="true" /> Browser</span></div>
       </div>
       <div className="top-actions">
-        <Button variant="ghost" size="icon" aria-label={t("menu")}><Menu aria-hidden="true" /></Button>
         <Button variant="ghost" size="icon" aria-label={t("help")}><CircleHelp aria-hidden="true" /></Button>
         <Button variant="ghost" size="icon" aria-label={theme === "light" ? t("useDarkTheme") : t("useLightTheme")} onClick={() => onThemeChange(theme === "light" ? "dark" : "light")}>
           {theme === "light" ? <Moon aria-hidden="true" /> : <Sun aria-hidden="true" />}
@@ -418,25 +378,6 @@ function CharacterBrowser({ activeTab, onTabChange, onInsertCharacter, onOpenAll
       <Button variant="outline" size="sm" onClick={onOpenAll}>{t("viewAllCharacters")} <ChevronRight aria-hidden="true" /></Button>
       <span className="character-help">{t("insertCharacterHelp")}</span>
     </section>
-  );
-}
-
-function ShortcutManager({ query, onQueryChange, shortcuts, onInsert, onOpen }: {
-  readonly query: string; readonly onQueryChange: (value: string) => void; readonly shortcuts: readonly ShortcutDefinition[];
-  readonly onInsert: (character: string) => void; readonly onOpen: () => void;
-}) {
-  const { t } = useI18n();
-  return (
-    <Card className="rail-card shortcut-card">
-      <div className="rail-card-title"><strong>{t("shortcutManager")}</strong><Settings aria-hidden="true" /></div>
-      <label className="search-field"><Search aria-hidden="true" /><span className="sr-only">{t("searchShortcut")}</span><input value={query} onChange={(event) => onQueryChange(event.target.value)} placeholder={t("searchShortcut")} /></label>
-      <div className="shortcut-table" role="table">
-        <div className="shortcut-row shortcut-header" role="row"><span role="columnheader">{t("character")}</span><span role="columnheader">{t("shortcut")}</span></div>
-        {shortcuts.slice(0, 6).map((shortcut) => <button className="shortcut-row shortcut-insert-row" role="row" key={shortcut.id} type="button" onClick={() => onInsert(shortcut.character)} title={`${t("insert")} ${shortcut.character}`}><strong role="cell">{shortcut.character}</strong><span role="cell">{formatShortcut(shortcut)}</span></button>)}
-        {shortcuts.length === 0 && <p className="empty-shortcuts">{t("noMatchingShortcut")}</p>}
-      </div>
-      <button type="button" className="rail-link" onClick={onOpen}>{t("viewAllShortcuts")} <ChevronRight aria-hidden="true" /></button>
-    </Card>
   );
 }
 
@@ -490,52 +431,6 @@ function ShortcutLibraryModal({ shortcuts, customShortcuts, onCustomShortcutsCha
     </div>
   );
 }
-
-function DocumentConverter({ onOpen }: { readonly onOpen: () => void }) {
-  const { t } = useI18n();
-  return (
-    <Card className="rail-card document-card">
-      <div className="rail-card-title document-title"><span className="green-icon"><FileText aria-hidden="true" /></span><strong>{t("documentConverter")}</strong></div>
-      <div className="drop-zone"><CloudUpload aria-hidden="true" /><span>{t("documentEnginePlanned")}</span><small>{t("documentFormatsPlanned")}</small><button type="button" className="document-button" onClick={onOpen}><Sparkles aria-hidden="true" /> {t("openExchangeConverter")}</button><small>{t("supportedFonts")}</small></div>
-    </Card>
-  );
-}
-
-const trainingAttemptsRepository = new LocalTrainingAttemptsRepository();
-
-function TypingSummary({ onOpen }: { readonly onOpen: () => void }) {
-  const { t } = useI18n();
-  const [attempts, setAttempts] = useState<readonly TrainingAttempt[]>([]);
-  const summary = useMemo(() => summarizeTrainingAttempts(attempts), [attempts]);
-  const trendPoints = useMemo(() => {
-    if (summary.recentWpm.length < 2) return "";
-    const highest = Math.max(1, ...summary.recentWpm);
-    return summary.recentWpm.map((value, index) => {
-      const x = (index / (summary.recentWpm.length - 1)) * 360;
-      const y = 60 - (value / highest) * 48;
-      return `${x.toFixed(1)},${y.toFixed(1)}`;
-    }).join(" ");
-  }, [summary.recentWpm]);
-
-  useEffect(() => {
-    function load() {
-      void trainingAttemptsRepository.list().then(setAttempts);
-    }
-    load();
-    window.addEventListener(TRAINING_ATTEMPTS_UPDATED_EVENT, load);
-    return () => window.removeEventListener(TRAINING_ATTEMPTS_UPDATED_EVENT, load);
-  }, []);
-
-  return (
-    <Card className="rail-card typing-summary">
-      <div className="rail-card-title"><span className="summary-title"><BarChart3 aria-hidden="true" /> {t("attemptHistory")}</span><button type="button" onClick={onOpen}>{t("viewHistory")}</button></div>
-      <div className="metric-grid"><Metric label={t("bestWpm")} value={summary.attemptCount ? String(summary.bestWpm) : "—"} note={`${summary.attemptCount} ${t("attempts")}`} /><Metric label={t("averageAccuracy")} value={summary.attemptCount ? `${summary.averageAccuracy}%` : "—"} note={`${summary.completedExerciseCount} ${t("completedExercises")}`} /><Metric label={t("bestKdph")} value={summary.attemptCount ? String(summary.bestKdph) : "—"} note={t("autosavedOffline")} /></div>
-      {trendPoints ? <svg className="trend-chart" viewBox="0 0 360 68" role="img" aria-label={t("typingTest")}><polyline points={trendPoints} fill="none" stroke="#0b63f6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg> : <p className="summary-empty">{t("noAttempts")}</p>}
-    </Card>
-  );
-}
-
-function Metric({ label, value, note }: { readonly label: string; readonly value: string; readonly note: string }) { return <div className="metric"><span>{label}</span><strong>{value}</strong><small>{note}</small></div>; }
 
 function FeaturePlaceholder({ title, onReturn }: { readonly title: string; readonly onReturn: () => void }) {
   const { t } = useI18n();

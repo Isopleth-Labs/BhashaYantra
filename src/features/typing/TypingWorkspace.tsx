@@ -7,6 +7,7 @@ import {
   useState,
 } from "react";
 import {
+  AlertTriangle,
   CheckCircle2,
   Copy,
   Download,
@@ -44,6 +45,7 @@ import {
   getDisplayFont,
   type UnicodeDisplayFontId,
 } from "@/domain/typing/typing-profiles";
+import { looksLikeNaturalEnglish } from "@/domain/typing/input-guard";
 import { useI18n } from "@/i18n/I18nProvider";
 
 const SUGGESTIONS = ["नमस्ते", "भारत", "हिंदी", "भाषा", "धन्यवाद"] as const;
@@ -62,6 +64,10 @@ interface TypingWorkspaceProps {
   readonly onCustomMappingsChange: (mappings: readonly CustomKeyMapping[]) => void;
   readonly advancedOpen: boolean;
   readonly onAdvancedOpenChange: (open: boolean) => void;
+  readonly onUseSmartMode: () => void;
+  readonly onUseEnglishMode: () => void;
+  readonly onOpenConverter: () => void;
+  readonly onOpenShortcutLibrary: () => void;
 }
 
 function isTauriRuntime() {
@@ -92,13 +98,17 @@ export function TypingWorkspace({
   onCustomMappingsChange,
   advancedOpen,
   onAdvancedOpenChange,
+  onUseSmartMode,
+  onUseEnglishMode,
+  onOpenConverter,
+  onOpenShortcutLibrary,
 }: TypingWorkspaceProps) {
   const { t } = useI18n();
   const sourceRef = useRef<HTMLTextAreaElement>(null);
   const sourceFileRef = useRef<HTMLInputElement>(null);
   const configFileRef = useRef<HTMLInputElement>(null);
   const [shifted, setShifted] = useState(false);
-  const [keyboardVisible, setKeyboardVisible] = useState(true);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
   const isEnglish = layout === "english-qwerty";
   const isSmart = layout === "bhashayantra-smart";
   const isInscript = layout === "inscript";
@@ -118,6 +128,7 @@ export function TypingWorkspace({
   const legacyResult = useMemo(() => unicodeToTypingKeys(unicodeResult.output), [unicodeResult.output]);
   const displayedOutput = outputMode === "unicode" ? unicodeResult.output : legacyResult.output;
   const activeWarnings = outputMode === "unicode" ? unicodeResult.warnings : legacyResult.warnings;
+  const naturalEnglishMismatch = !isEnglish && !isSmart && looksLikeNaturalEnglish(source);
   const keyboard = keyboardForLayout(layout);
   const outputFontStack = getDisplayFont(displayFont).cssStack;
   const metrics = useMemo(() => getTypingMetrics(unicodeResult.output), [unicodeResult.output]);
@@ -366,6 +377,18 @@ export function TypingWorkspace({
         </div>
       </div>
 
+      {naturalEnglishMismatch && (
+        <div className="typing-input-warning" role="alert">
+          <AlertTriangle aria-hidden="true" />
+          <div><strong>{t("legacyInputMismatchTitle")}</strong><p>{t("legacyInputMismatchDescription")}</p></div>
+          <div className="typing-input-warning-actions">
+            <Button size="sm" onClick={onUseEnglishMode}>{t("useEnglishTyping")}</Button>
+            <Button size="sm" variant="outline" onClick={onUseSmartMode}>{t("useSmartMode")}</Button>
+            <Button size="sm" variant="outline" onClick={onOpenConverter}>{t("openConverter")}</Button>
+          </div>
+        </div>
+      )}
+
       <div className="typing-editor-grid">
         <div className="typing-editor-panel typing-source-panel">
           <div className="typing-panel-heading">
@@ -403,7 +426,7 @@ export function TypingWorkspace({
             id="typing-output"
             className={outputMode === "unicode" ? "devanagari" : undefined}
             style={outputMode === "unicode" ? { fontFamily: outputFontStack } : undefined}
-            value={displayedOutput}
+            value={naturalEnglishMismatch ? "" : displayedOutput}
             readOnly
             aria-label={`${outputMode} typing output`}
             placeholder={t("outputPlaceholder")}
@@ -444,10 +467,10 @@ export function TypingWorkspace({
           </Button>
         </div>
         <div className="action-group action-group-right">
-          <Button variant="success" onClick={copyOutput} disabled={!displayedOutput}>
+          <Button variant="success" onClick={copyOutput} disabled={!displayedOutput || naturalEnglishMismatch}>
             <Copy aria-hidden="true" /> {t("copyOutput")}
           </Button>
-          <Button variant="success" onClick={saveOutput} disabled={!displayedOutput}>
+          <Button variant="success" onClick={saveOutput} disabled={!displayedOutput || naturalEnglishMismatch}>
             <Download aria-hidden="true" /> {t("saveText")}
           </Button>
         </div>
@@ -505,10 +528,15 @@ export function TypingWorkspace({
 
       {mode === "advanced" && (
         <div className="advanced-toggle-row">
-          <Button variant="outline" onClick={() => onAdvancedOpenChange(!advancedOpen)}>
-            <Settings2 aria-hidden="true" />
-            {advancedOpen ? t("closeAdvancedManager") : t("openAdvancedManager")}
-          </Button>
+          <div className="action-group">
+            <Button variant="outline" onClick={() => onAdvancedOpenChange(!advancedOpen)}>
+              <Settings2 aria-hidden="true" />
+              {advancedOpen ? t("closeAdvancedManager") : t("openAdvancedManager")}
+            </Button>
+            <Button variant="outline" onClick={onOpenShortcutLibrary}>
+              <Keyboard aria-hidden="true" /> {t("viewAllShortcuts")}
+            </Button>
+          </div>
           <span>{t("protectedDefaults")}</span>
         </div>
       )}

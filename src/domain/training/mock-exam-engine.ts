@@ -1,3 +1,5 @@
+import { alignText } from "@/domain/training/text-alignment";
+
 export type MockExamStatus = "ready" | "running" | "paused" | "submitted" | "expired";
 export type PassageHighlightMode = "word" | "error-word" | "letter" | "none";
 export type HighlightSegmentState = "correct" | "current" | "error" | "pending";
@@ -121,11 +123,6 @@ export function calculateRrbTypingScore(expectedText: string, actualText: string
   return { typedWords, fullMistakes, halfMistakes, ignoredMistakes, finalMistakes, wpm };
 }
 
-function firstProgressIndex(expected: readonly string[], actual: readonly string[]) {
-  const mismatch = expected.findIndex((character, index) => actual[index] !== undefined && actual[index] !== character);
-  return mismatch >= 0 ? mismatch : Math.min(actual.length, expected.length);
-}
-
 export function getHighlightSegments(
   expectedText: string,
   actualText: string,
@@ -134,19 +131,22 @@ export function getHighlightSegments(
   if (mode === "none") return [{ text: expectedText, state: "pending", current: false }];
 
   const expected = Array.from(expectedText);
-  const actual = Array.from(actualText);
-  const progressIndex = firstProgressIndex(expected, actual);
+  const alignment = alignText(expectedText, actualText);
+  const states = Array<HighlightSegmentState>(expected.length).fill("pending");
+  for (const operation of alignment) {
+    if (operation.expectedIndex === undefined || operation.expectedIndex >= expected.length) continue;
+    if (operation.kind === "correct") states[operation.expectedIndex] = "correct";
+    else if (operation.kind === "substitution" || (operation.kind === "missing" && operation.actualIndex !== undefined)) states[operation.expectedIndex] = "error";
+    else if (operation.kind === "extra") states[operation.expectedIndex] = "error";
+  }
+  const progressIndex = alignment.find(
+    (operation) => operation.expectedIndex !== undefined && operation.kind === "missing" && operation.actualIndex === undefined,
+  )?.expectedIndex ?? Math.min(expected.length, Array.from(actualText).length);
 
   if (mode === "letter") {
     return expected.map((text, index) => {
       const current = index === progressIndex;
-      const state: HighlightSegmentState = current
-        ? "current"
-        : actual[index] === undefined
-          ? "pending"
-          : actual[index] === text
-            ? "correct"
-            : "error";
+      const state: HighlightSegmentState = current ? "current" : states[index];
       return { text, state, current };
     });
   }
@@ -161,14 +161,12 @@ export function getHighlightSegments(
     if (/^\s+$/u.test(text)) return { text, state: "pending" as const, current: false };
 
     const current = progressIndex >= start && progressIndex < end;
-    const comparedEnd = Math.min(actual.length, end);
-    const hasError = mode === "error-word" && Array.from({ length: Math.max(0, comparedEnd - start) })
-      .some((_, index) => actual[start + index] !== expected[start + index]);
+    const hasError = mode === "error-word" && states.slice(start, end).includes("error");
     const state: HighlightSegmentState = hasError
       ? "error"
       : current
         ? "current"
-        : end <= actual.length
+        : states.slice(start, end).every((value) => value === "correct")
           ? "correct"
           : "pending";
     return { text, state, current };

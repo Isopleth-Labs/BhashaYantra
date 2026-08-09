@@ -1,4 +1,5 @@
 import type { ReadyTypingLayoutId } from "@/domain/typing/typing-profiles";
+import { alignText } from "@/domain/training/text-alignment";
 
 export interface TrainingLesson {
   readonly id: string;
@@ -76,28 +77,27 @@ export const TRAINING_LESSONS: Readonly<Record<ReadyTypingLayoutId, readonly Tra
   ],
 } as const;
 
-export function calculateTrainingScore(expected: string, actual: string): TrainingScore {
+export function calculateTrainingScore(expected: string, actual: string, mode: "final" | "live" = "final"): TrainingScore {
   const expectedCharacters = Array.from(expected);
   const actualCharacters = Array.from(actual);
-  const comparedLength = Math.max(expectedCharacters.length, actualCharacters.length);
-  let correctCharacters = 0;
-  let substitutedCharacters = 0;
-
-  for (let index = 0; index < comparedLength; index += 1) {
-    if (expectedCharacters[index] !== undefined && expectedCharacters[index] === actualCharacters[index]) {
-      correctCharacters += 1;
-    } else if (expectedCharacters[index] !== undefined && actualCharacters[index] !== undefined) {
-      substitutedCharacters += 1;
-    }
-  }
+  const operations = alignText(expected, actual);
+  const correctCharacters = operations.filter((operation) => operation.kind === "correct").length;
+  const substitutedCharacters = operations.filter((operation) => operation.kind === "substitution").length;
+  const missingCharacters = operations.filter((operation) => operation.kind === "missing").length;
+  const extraCharacters = operations.filter((operation) => operation.kind === "extra").length;
+  const attemptedMissingCharacters = operations.filter(
+    (operation) => operation.kind === "missing" && operation.actualIndex !== undefined,
+  ).length;
+  const comparedLength = correctCharacters + substitutedCharacters + extraCharacters
+    + (mode === "final" ? missingCharacters : attemptedMissingCharacters);
 
   return {
     accuracy: comparedLength === 0 ? 100 : Math.round((correctCharacters / comparedLength) * 100),
     correctCharacters,
     expectedCharacters: expectedCharacters.length,
     typedCharacters: actualCharacters.length,
-    missingCharacters: Math.max(0, expectedCharacters.length - actualCharacters.length),
-    extraCharacters: Math.max(0, actualCharacters.length - expectedCharacters.length),
+    missingCharacters,
+    extraCharacters,
     substitutedCharacters,
     complete: expected.length > 0 && actual === expected,
   };
@@ -136,16 +136,15 @@ export function calculateWordSpeed(expected: string, actual: string, elapsedSeco
 }
 
 export function analyzeWeakKeys(expected: string, actual: string): readonly KeyMistake[] {
-  const expectedKeys = Array.from(expected);
-  const actualKeys = Array.from(actual);
   const stats = new Map<string, { attempts: number; errors: number }>();
-
-  expectedKeys.forEach((key, index) => {
+  alignText(expected, actual).forEach((operation) => {
+    const key = operation.expected;
+    if (key === undefined || (operation.kind === "missing" && operation.actualIndex === undefined)) return;
     if (/\s/u.test(key)) return;
     const normalized = key.toLocaleLowerCase();
     const current = stats.get(normalized) ?? { attempts: 0, errors: 0 };
     current.attempts += 1;
-    if (actualKeys[index] !== key) current.errors += 1;
+    if (operation.kind !== "correct") current.errors += 1;
     stats.set(normalized, current);
   });
 
