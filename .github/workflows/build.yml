@@ -60,14 +60,14 @@ jobs:
       - name: Run converter tests
         run: npm run test
 
+      - name: Build web assets
+        run: npm run build
+
       - name: Test native Direct Typing engine
         run: cargo test --manifest-path src-tauri/Cargo.toml
 
       - name: Lint Rust targets
         run: cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
-
-      - name: Build web assets
-        run: npm run build
 
       - name: Build portable Windows app
         run: cargo build --release --manifest-path src-tauri/Cargo.toml
