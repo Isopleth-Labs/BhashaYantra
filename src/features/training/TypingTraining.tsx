@@ -91,9 +91,7 @@ export function TypingTraining({ kind, layout, displayFont }: TypingTrainingProp
   const [attempts, setAttempts] = useState<readonly TrainingAttempt[]>([]);
   const [showInstructions, setShowInstructions] = useState(false);
   const [showKeyboard, setShowKeyboard] = useState(() => loadBoolean("bhashayantra:training:keyboard-v2", false));
-  const [soundOnError, setSoundOnError] = useState(() => loadBoolean("bhashayantra:training:sound-v2", true));
-  const [moveOnError, setMoveOnError] = useState(() => loadBoolean("bhashayantra:training:move-on-error-v2", false));
-  const [preventedErrors, setPreventedErrors] = useState(0);
+  const [soundOnError, setSoundOnError] = useState(() => loadBoolean("bhashayantra:training:sound-v3", false));
   const [errorPulse, setErrorPulse] = useState(false);
   const [fontSize, setFontSize] = useState(() => Number(localStorage.getItem("bhashayantra:training:font-size")) || 24);
   const [backspacePolicy, setBackspacePolicy] = useState<BackspacePolicy>(kind === "practice" ? "full" : examProfiles[0]?.backspacePolicy ?? "full");
@@ -106,11 +104,12 @@ export function TypingTraining({ kind, layout, displayFont }: TypingTrainingProp
     : getExamPassage(selectedProfile, layout, examAttemptIndex);
   const expected = exercise.target;
   const actual = useMemo(() => typingSourceToUnicode(source, layout).output, [layout, source]);
+  const practiceComplete = kind === "practice" && exercise.keys.length > 0 && Array.from(source).length >= Array.from(exercise.keys).length;
   const exactComplete = expected.length > 0 && actual === expected;
-  const score = useMemo(() => calculateTrainingScore(expected, actual, exactComplete ? "final" : "live"), [actual, exactComplete, expected]);
+  const score = useMemo(() => calculateTrainingScore(expected, actual, practiceComplete || exactComplete ? "final" : "live"), [actual, exactComplete, expected, practiceComplete]);
   const remainingSeconds = kind === "test" ? Math.max(0, testDuration - elapsedSeconds) : 0;
   const finished = kind === "practice"
-    ? score.complete
+    ? practiceComplete
     : score.complete || (remainingSeconds === 0 && Boolean(startedAt));
   const measuredSeconds = Math.max(1, elapsedSeconds);
   const wpm = calculateWpm(score.correctCharacters, measuredSeconds);
@@ -142,7 +141,7 @@ export function TypingTraining({ kind, layout, displayFont }: TypingTrainingProp
   const layoutAttempts = attempts.filter((attempt) => attempt.layoutId === layout && attempt.kind === "practice");
   const layoutName = TYPING_LAYOUT_PROFILES.find((profile) => profile.id === layout)?.name ?? layout;
   const fontStack = getDisplayFont(displayFont).cssStack;
-  const countedErrors = score.substitutedCharacters + score.extraCharacters + preventedErrors;
+  const countedErrors = score.substitutedCharacters + score.extraCharacters;
   const effectiveAccuracy = score.correctCharacters + countedErrors === 0
     ? 100
     : Math.round((score.correctCharacters / (score.correctCharacters + countedErrors)) * 100);
@@ -194,10 +193,9 @@ export function TypingTraining({ kind, layout, displayFont }: TypingTrainingProp
 
   useEffect(() => {
     localStorage.setItem("bhashayantra:training:keyboard-v2", String(showKeyboard));
-    localStorage.setItem("bhashayantra:training:sound-v2", String(soundOnError));
-    localStorage.setItem("bhashayantra:training:move-on-error-v2", String(moveOnError));
+    localStorage.setItem("bhashayantra:training:sound-v3", String(soundOnError));
     localStorage.setItem("bhashayantra:training:font-size", String(fontSize));
-  }, [fontSize, moveOnError, showKeyboard, soundOnError]);
+  }, [fontSize, showKeyboard, soundOnError]);
 
   useEffect(() => {
     if (!startedAt || finished) return;
@@ -237,7 +235,6 @@ export function TypingTraining({ kind, layout, displayFont }: TypingTrainingProp
     setStartedAt(undefined);
     setElapsedSeconds(0);
     setAttemptSaved(false);
-    setPreventedErrors(0);
     setErrorPulse(false);
     window.requestAnimationFrame(() => textareaRef.current?.focus());
   }
@@ -297,10 +294,8 @@ export function TypingTraining({ kind, layout, displayFont }: TypingTrainingProp
     if (soundOnError) playTypingFeedback("error");
     setErrorPulse(true);
     window.setTimeout(() => setErrorPulse(false), 180);
-    if (!moveOnError) {
-      event.preventDefault();
-      setPreventedErrors((current) => current + 1);
-    }
+    // Lessons always continue after an error. The inline key stream marks it red,
+    // matching professional typing tutors without trapping the learner on one key.
   }
 
   function insertVirtualKey(key: string) {
@@ -309,11 +304,6 @@ export function TypingTraining({ kind, layout, displayFont }: TypingTrainingProp
       if (soundOnError) playTypingFeedback("error");
       setErrorPulse(true);
       window.setTimeout(() => setErrorPulse(false), 180);
-      if (!moveOnError) {
-        setPreventedErrors((current) => current + 1);
-        window.requestAnimationFrame(() => textareaRef.current?.focus());
-        return;
-      }
     }
     updateSource(`${source}${key}`);
     window.requestAnimationFrame(() => textareaRef.current?.focus());
@@ -415,6 +405,7 @@ export function TypingTraining({ kind, layout, displayFont }: TypingTrainingProp
                 <textarea ref={textareaRef} id="training-input" className={errorPulse ? "error-pulse" : undefined} value={source} onChange={(event) => updateSource(event.target.value)} onKeyDown={handleKeyDown} placeholder={t("trainingPlaceholder")} spellCheck={false} disabled={finished} autoFocus />
                 {layout !== "english-qwerty" && <div className="academy-unicode-preview" style={{ fontFamily: fontStack, fontSize }}><span>Unicode preview</span><strong>{actual || "—"}</strong></div>}
               </div>
+              <PracticeKeyStream expected={exercise.keys} actual={source} />
             </section>
           </div>
 
@@ -427,7 +418,7 @@ export function TypingTraining({ kind, layout, displayFont }: TypingTrainingProp
           <div className="coach-score"><strong>{effectiveAccuracy}%</strong><span>accuracy</span><progress value={effectiveAccuracy} max="100" /></div>
           <div className="coach-metrics"><TrainingMetric label="WPM" value={String(wpm)} /><TrainingMetric label="KDPH" value={String(kdph)} /><TrainingMetric label="Correct" value={`${score.correctCharacters}/${score.expectedCharacters}`} /><TrainingMetric label={t("errors")} value={String(countedErrors)} /></div>
           <div className="coach-mastery"><span>Mastery contract</span><strong>{projectedMasteryPasses}/{exercise.requiredPasses} clean runs</strong><small>Each run needs {exercise.minimumAccuracy}% accuracy at {exercise.targetWpm} WPM recommended pace.</small></div>
-          <details className="coach-settings"><summary><Settings2 aria-hidden="true" /> Session controls</summary><label>{t("backspacePolicy")}<select value={backspacePolicy} onChange={(event) => setBackspacePolicy(event.target.value as BackspacePolicy)}><option value="full">{t("fullBackspace")}</option><option value="current-word">{t("currentWordOnly")}</option><option value="disabled">{t("disableBackspace")}</option></select></label><label><input type="checkbox" checked={showKeyboard} onChange={(event) => setShowKeyboard(event.target.checked)} /> {t("showKeyboard")}</label><label><input type="checkbox" checked={soundOnError} onChange={(event) => setSoundOnError(event.target.checked)} /> {t("soundOnError")}</label><label><input type="checkbox" checked={moveOnError} onChange={(event) => setMoveOnError(event.target.checked)} /> {t("moveOnError")}</label><Button size="sm" variant="outline" onClick={() => playTypingFeedback("preview")}><Volume2 aria-hidden="true" /> {t("testSound")}</Button><label>{t("fontSize")}<input type="range" min="18" max="36" step="2" value={fontSize} onChange={(event) => setFontSize(Number(event.target.value))} /></label></details>
+          <details className="coach-settings"><summary><Settings2 aria-hidden="true" /> Session controls</summary><label>{t("backspacePolicy")}<select value={backspacePolicy} onChange={(event) => setBackspacePolicy(event.target.value as BackspacePolicy)}><option value="full">{t("fullBackspace")}</option><option value="current-word">{t("currentWordOnly")}</option><option value="disabled">{t("disableBackspace")}</option></select></label><label><input type="checkbox" checked={showKeyboard} onChange={(event) => setShowKeyboard(event.target.checked)} /> {t("showKeyboard")}</label><label><input type="checkbox" checked={soundOnError} onChange={(event) => setSoundOnError(event.target.checked)} /> Optional error sound</label>{soundOnError && <Button size="sm" variant="outline" onClick={() => playTypingFeedback("preview")}><Volume2 aria-hidden="true" /> {t("testSound")}</Button>}<p className="coach-setting-note">Wrong keys always continue and stay marked red in the live key stream.</p><label>{t("fontSize")}<input type="range" min="18" max="36" step="2" value={fontSize} onChange={(event) => setFontSize(Number(event.target.value))} /></label></details>
           {source.length > 0 && weakKeys.length > 0 && <div className="coach-weak"><strong>{t("weakKeys")}</strong>{weakKeys.slice(0, 6).map((item) => <span key={item.key}><kbd>{item.key}</kbd><small>{item.errors}/{item.attempts} errors</small></span>)}</div>}
           <div className={finished ? lessonMastered ? "coach-status mastered" : "coach-status repeat" : "coach-status"}>{finished ? lessonMastered ? <><CheckCircle2 aria-hidden="true" /><strong>Lesson mastered</strong><span>All lessons remain available.</span></> : lessonPassed ? <><RotateCcw aria-hidden="true" /><strong>Clean run recorded</strong><span>Repeat once more for mastery.</span></> : <><AlertTriangle aria-hidden="true" /><strong>Accuracy gate missed</strong><span>Review errors and repeat.</span></> : <><Target aria-hidden="true" /><strong>Ready to train</strong><span>Start anywhere; mastery tracking stays active.</span></>}</div>
           <div className="academy-actions"><Button variant="outline" onClick={previousExercise} disabled={exerciseIndex === 0}><ChevronLeft aria-hidden="true" /> Previous</Button><Button variant="outline" onClick={resetSession}><RotateCcw aria-hidden="true" /> Reset</Button><Button onClick={nextExercise}>Next <ChevronRight aria-hidden="true" /></Button></div>
@@ -463,4 +454,21 @@ function CourseOrientation({ stageLabels, stageIds }: { readonly stageLabels: Re
 
 function TrainingMetric({ label, value }: { readonly label: string; readonly value: string }) {
   return <div className="training-metric"><span>{label}</span><strong>{value}</strong></div>;
+}
+
+function PracticeKeyStream({ expected, actual }: { readonly expected: string; readonly actual: string }) {
+  const expectedKeys = Array.from(expected);
+  const actualKeys = Array.from(actual);
+  const start = Math.max(0, actualKeys.length - 36);
+  const end = Math.min(expectedKeys.length, Math.max(110, actualKeys.length + 74));
+  return <div className="practice-key-stream" aria-label="Live typed key accuracy">
+    <div><strong>Live key accuracy</strong><span><i className="correct" /> correct <i className="wrong" /> wrong <i className="current" /> next</span></div>
+    <code>{start > 0 && <em>…</em>}{expectedKeys.slice(start, end).map((expectedKey, offset) => {
+      const index = start + offset;
+      const typedKey = actualKeys[index];
+      const state = typedKey === undefined ? index === actualKeys.length ? "current" : "pending" : typedKey === expectedKey ? "correct" : "wrong";
+      const shown = state === "wrong" ? typedKey : expectedKey;
+      return <span className={state} title={state === "wrong" ? `Expected ${JSON.stringify(expectedKey)}` : undefined} key={`${index}-${expectedKey}`}>{shown === " " ? "·" : shown === "\n" ? "↵" : shown}</span>;
+    })}{end < expectedKeys.length && <em>…</em>}</code>
+  </div>;
 }

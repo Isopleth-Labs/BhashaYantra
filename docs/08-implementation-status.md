@@ -33,7 +33,10 @@ Updated: 10 August 2026
 - Live correct/gross/net WPM, KDPH, accuracy, missing/extra/substituted counts, weak-key analysis, completion state, RRB published-formula practice estimate, and once-only attempt saving.
 - Verified official duration/correction locking and a layout/font environment guard for profiles with an explicit requirement.
 - Versioned local attempt repository, layout-specific history deletion, real dashboard summaries, and recent-speed trend.
-- Responsive Stenography Studio with fourteen original Hindi/English courtroom, office, SSC, and High Court profiles, Windows-native narration with chunked web fallback, voice test, local audio import/playback, strict exam phases, editable Listen & Type practice, word-aligned scoring, transcript WPM, and offline recent-attempt history.
+- Responsive Stenography Studio with fourteen original Hindi/English courtroom, office, SSC, and High Court profiles, matching-language voice detection, chunked web fallback, voice test, human-recording import/playback, strict exam phases, editable Listen & Type practice, word-aligned scoring, transcript WPM, detailed result card, and offline recent-attempt history.
+- Non-blocking practice feedback: wrong keys advance, appear red in a live physical-key stream, and are retained in scoring; error sound is opt-in.
+- Word & Excel Efficiency workspace with functional document-formatting and register-entry simulations, validation, accuracy, workflow, and speed results.
+- Mock-test result report now separates keystroke, word, and error analysis, including aligned colour-coded copy and word-level correct/wrong/omitted/extra rows.
 - Separate Student and Institute Supabase Auth entry screens with signup/sign-in, email-confirmation handling, profile-role verification, mismatch sign-out, and no local authentication bypass.
 - Functional Settings control center with interface/theme controls, typing defaults, persisted training feedback preferences, offline/privacy status, and a safe preference reset that preserves drafts and attempt history.
 - Responsive BhashaYantra Pro pricing and order-preview surface with selectable 30-day, 90-day, annual, and institution hypotheses; checkout is intentionally disabled and the development client cannot collect payment.

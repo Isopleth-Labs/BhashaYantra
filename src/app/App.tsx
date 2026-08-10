@@ -44,6 +44,7 @@ import {
 } from "@/domain/typing/typing-profiles";
 import { ExchangeConverter } from "@/features/converter/ExchangeConverter";
 import { PricingWorkspace } from "@/features/billing/PricingWorkspace";
+import { OfficeEfficiencyWorkspace } from "@/features/office/OfficeEfficiencyWorkspace";
 import { SettingsWorkspace } from "@/features/settings/SettingsWorkspace";
 import { StenographyWorkspace } from "@/features/stenography/StenographyWorkspace";
 import { TypingMockExam } from "@/features/training/TypingMockExam";
@@ -89,7 +90,7 @@ const characterGroups = {
 
 type Theme = "light" | "dark";
 type CharacterTab = keyof typeof characterGroups;
-type NavId = (typeof navItems)[number]["id"] | "settings" | "pricing";
+type NavId = (typeof navItems)[number]["id"] | "office" | "settings" | "pricing";
 
 function isStoredShortcut(value: unknown): value is ShortcutDefinition {
   if (!value || typeof value !== "object") return false;
@@ -299,6 +300,9 @@ export default function App() {
                 <Icon aria-hidden="true" /><span>{t(labelKey)}</span>
               </button>
             ))}
+            <button type="button" aria-label="Word and Excel Efficiency" className={activeNav === "office" ? "nav-item active" : "nav-item"} onClick={() => chooseNavigation("office")}>
+              <FileSpreadsheet aria-hidden="true" /><span>Office Skills</span>
+            </button>
             <div className="nav-separator" />
             <button type="button" aria-label={t("settings")} className={activeNav === "settings" ? "nav-item active" : "nav-item"} onClick={() => chooseNavigation("settings")}>
               <Settings aria-hidden="true" /><span>{t("settings")}</span>
@@ -345,6 +349,8 @@ export default function App() {
             <TypingMockExam layout={typingLayout} displayFont={displayFont} />
           ) : activeNav === "stenography" ? (
             <StenographyWorkspace defaultLanguage={typingLanguage} />
+          ) : activeNav === "office" ? (
+            <OfficeEfficiencyWorkspace displayFont={displayFont} />
           ) : activeNav === "settings" ? (
             <SettingsWorkspace
               theme={theme} onThemeChange={setTheme}

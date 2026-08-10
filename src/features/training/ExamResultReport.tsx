@@ -1,10 +1,11 @@
 import { Award, CheckCircle2, ExternalLink, FileCheck2, Gauge, Printer, RotateCcw, ShieldAlert, Target } from "lucide-react";
-import type { CSSProperties } from "react";
+import { useMemo, useState, type CSSProperties } from "react";
 
 import { Button } from "@/components/ui/button";
 import { DEFAULT_STUDENT_WORKSPACE, readStoredObject, STUDENT_WORKSPACE_KEY } from "@/domain/accounts/account-workspaces";
 import type { ExamProfile } from "@/domain/training/exam-profiles";
 import type { KeyMistake } from "@/domain/training/training-engine";
+import { alignText } from "@/domain/training/text-alignment";
 
 interface ExamResultReportProps {
   readonly passed: boolean;
@@ -29,9 +30,37 @@ interface ExamResultReportProps {
   readonly extraCharacters: number;
   readonly substitutedCharacters: number;
   readonly corrections: number;
+  readonly expectedText: string;
+  readonly actualText: string;
   readonly weakKeys: readonly KeyMistake[];
   readonly endedByTimer: boolean;
   readonly onNewTest: () => void;
+}
+
+type ResultDetailTab = "keystrokes" | "words" | "errors";
+
+function splitWords(text: string) {
+  return text.trim().split(/\s+/u).filter(Boolean);
+}
+
+function WordReview({ expectedText, actualText }: { readonly expectedText: string; readonly actualText: string }) {
+  const expectedWords = splitWords(expectedText);
+  const actualWords = splitWords(actualText);
+  const count = Math.max(expectedWords.length, actualWords.length);
+  const rows = Array.from({ length: count }, (_, index) => ({ expected: expectedWords[index], actual: actualWords[index] }));
+  const correct = rows.filter((row) => row.expected && row.expected === row.actual).length;
+  const wrong = rows.filter((row) => row.expected && row.actual && row.expected !== row.actual).length;
+  const omitted = rows.filter((row) => row.expected && !row.actual).length;
+  const added = rows.filter((row) => !row.expected && row.actual).length;
+  return <div className="result-detail-body"><div className="result-word-summary"><span><small>Reference words</small><strong>{expectedWords.length}</strong></span><span className="good"><small>Correct words</small><strong>{correct}</strong></span><span className="bad"><small>Incorrect words</small><strong>{wrong}</strong></span><span className="bad"><small>Omitted words</small><strong>{omitted}</strong></span><span><small>Extra words</small><strong>{added}</strong></span></div><div className="result-word-table"><div><b>#</b><b>Reference</b><b>Typed</b><b>Status</b></div>{rows.slice(0, 180).map((row, index) => <div key={`${index}-${row.expected}-${row.actual}`}><span>{index + 1}</span><code>{row.expected ?? "—"}</code><code>{row.actual ?? "—"}</code><strong className={row.expected === row.actual ? "correct" : "error"}>{row.expected === row.actual ? "Correct" : !row.actual ? "Omitted" : !row.expected ? "Extra" : "Wrong"}</strong></div>)}</div></div>;
+}
+
+function KeystrokeReview({ expectedText, actualText }: { readonly expectedText: string; readonly actualText: string }) {
+  const operations = useMemo(() => alignText(expectedText, actualText), [actualText, expectedText]);
+  return <div className="result-detail-body"><div className="result-comparison-copy" aria-label="Character-by-character comparison">{operations.map((operation, index) => {
+    const text = operation.kind === "extra" ? operation.actual : operation.expected;
+    return <span className={operation.kind} title={operation.kind === "substitution" ? `Typed ${JSON.stringify(operation.actual)} instead of ${JSON.stringify(operation.expected)}` : operation.kind} key={`${index}-${operation.kind}`}>{text === " " ? "·" : text === "\n" ? "↵" : text}</span>;
+  })}</div><div className="result-error-legend"><span><i className="correct" />Correct key</span><span><i className="substitution" />Wrong key</span><span><i className="missing" />Omitted key</span><span><i className="extra" />Extra key</span></div></div>;
 }
 
 function formatDuration(seconds: number) {
@@ -45,6 +74,7 @@ function ResultMetric({ label, value, note }: { readonly label: string; readonly
 }
 
 export function ExamResultReport(props: ExamResultReportProps) {
+  const [detailTab, setDetailTab] = useState<ResultDetailTab>("keystrokes");
   const student = readStoredObject(STUDENT_WORKSPACE_KEY, DEFAULT_STUDENT_WORKSPACE);
   const scoreLabel = props.profile.scoringModel === "kdph" ? "KDPH" : props.profile.scoringModel === "net-wpm" ? "NWPM" : props.profile.scoringModel === "rrb-wpm" ? "RRB WPM" : "WPM";
   const resultName = student.displayName.trim() || "Local candidate";
@@ -89,6 +119,17 @@ export function ExamResultReport(props: ExamResultReportProps) {
         <ResultMetric label="Substituted" value={String(props.substitutedCharacters)} />
         <ResultMetric label="Corrections" value={String(props.corrections)} />
       </div>
+
+      <section className="exam-result-detail" aria-label="Detailed result analysis">
+        <div className="exam-result-tabs" role="tablist">
+          <button type="button" role="tab" aria-selected={detailTab === "keystrokes"} className={detailTab === "keystrokes" ? "active" : ""} onClick={() => setDetailTab("keystrokes")}>Keystroke result</button>
+          <button type="button" role="tab" aria-selected={detailTab === "words"} className={detailTab === "words" ? "active" : ""} onClick={() => setDetailTab("words")}>Word result</button>
+          <button type="button" role="tab" aria-selected={detailTab === "errors"} className={detailTab === "errors" ? "active" : ""} onClick={() => setDetailTab("errors")}>Error analysis</button>
+        </div>
+        {detailTab === "keystrokes" && <KeystrokeReview expectedText={props.expectedText} actualText={props.actualText} />}
+        {detailTab === "words" && <WordReview expectedText={props.expectedText} actualText={props.actualText} />}
+        {detailTab === "errors" && <div className="result-detail-body result-error-analysis"><article><strong>Substitution</strong><b>{props.substitutedCharacters}</b><p>A typed character replaced the expected character.</p></article><article><strong>Omission</strong><b>{props.missingCharacters}</b><p>An expected character or unfinished tail was not typed.</p></article><article><strong>Addition</strong><b>{props.extraCharacters}</b><p>An extra character appeared in the answer.</p></article><article><strong>Corrections</strong><b>{props.corrections}</b><p>Backspace actions recorded during the attempt.</p></article><p className="result-method-note">Character results use alignment with local re-synchronisation so one omission does not incorrectly mark the entire remaining passage. Word results compare ordered words separately.</p></div>}
+      </section>
 
       <div className="exam-report-footer-grid">
         <div><span className="exam-report-section-title"><span><Target /> Weak-key review</span></span>{props.weakKeys.length ? <div className="exam-report-weak-keys">{props.weakKeys.slice(0, 10).map((item) => <span key={item.key}><kbd>{item.key}</kbd><b>{item.errors}</b><small>errors / {item.attempts} presses</small></span>)}</div> : <p className="exam-report-empty">No repeated weak key was detected in this attempt.</p>}</div>

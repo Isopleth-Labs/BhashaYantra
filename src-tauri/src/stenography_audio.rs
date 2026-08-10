@@ -15,6 +15,7 @@ pub struct NativeSpeechStatus {
     pub engine: &'static str,
     pub language: String,
     pub rate: i32,
+    pub voice: String,
 }
 
 #[derive(Default)]
@@ -51,14 +52,32 @@ impl StenographyAudioManager {
             } else {
                 "en"
             };
+            let voice_query = format!(
+                "Add-Type -AssemblyName System.Speech; $s=New-Object System.Speech.Synthesis.SpeechSynthesizer; \
+                 $v=$s.GetInstalledVoices() | Where-Object {{ $_.Enabled -and $_.VoiceInfo.Culture.Name -like '{}*' }} | Select-Object -First 1; \
+                 if($v){{$v.VoiceInfo.Name}}; $s.Dispose();",
+                culture_prefix
+            );
+            let mut query = Command::new("powershell.exe");
+            query
+                .args(["-NoLogo", "-NoProfile", "-NonInteractive", "-Command", &voice_query])
+                .creation_flags(CREATE_NO_WINDOW);
+            let query_output = query.output().map_err(|error| format!("Windows voice inventory could not run: {error}"))?;
+            let voice_name = String::from_utf8_lossy(&query_output.stdout).trim().to_string();
+            if voice_name.is_empty() {
+                return Err(format!(
+                    "No {} narration voice is installed. Add a {} speech voice in Windows Settings or import a human recording.",
+                    if culture_prefix == "hi" { "Hindi" } else { "English" },
+                    if culture_prefix == "hi" { "Hindi" } else { "matching English" }
+                ));
+            }
             let rate = (((words_per_minute as i32) - 80) / 15).clamp(-4, 4);
             let script = format!(
                 "$text=[Console]::In.ReadToEnd(); Add-Type -AssemblyName System.Speech; \
                  $speaker=New-Object System.Speech.Synthesis.SpeechSynthesizer; \
-                 $voice=$speaker.GetInstalledVoices() | Where-Object {{ $_.Enabled -and $_.VoiceInfo.Culture.Name -like '{}*' }} | Select-Object -First 1; \
-                 if($voice){{$speaker.SelectVoice($voice.VoiceInfo.Name)}}; \
+                 $speaker.SelectVoice('{}'); \
                  $speaker.Rate={}; $speaker.Volume=100; $speaker.Speak($text); $speaker.Dispose();",
-                culture_prefix, rate
+                voice_name, rate
             );
 
             let mut command = Command::new("powershell.exe");
@@ -95,6 +114,7 @@ impl StenographyAudioManager {
                 engine: "Windows native voice",
                 language: culture_prefix.into(),
                 rate,
+                voice: voice_name,
             })
         }
     }

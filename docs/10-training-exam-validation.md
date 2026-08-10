@@ -35,6 +35,8 @@ Every exercise stores a stable ID, phase, module position, competency, practice 
 
 Hindi Learn Keys content keeps every intended letter or syllable as a separate drill unit. It never concatenates Roman source tokens in a way that silently creates a different Devanagari syllable. Practice Words uses 20 ordered alphabetic-control modules plus 30 professional vocabulary modules per layout, with four distinct lessons per module. The academy uses a fixed-height workstation with independently scrollable source, keyboard, course, and coach panels so typing focus does not move the browser page.
 
+Practice error handling is deliberately non-blocking: a wrong physical key remains in the answer, is marked red in the live key stream, and the next character remains available. Sound is optional and defaults off. Mock results expose separate keystroke, word, and error-analysis views with local alignment, correction counts, speed measures, and print support. Word and Excel Efficiency are separate functional simulations rather than labels inside the typing test.
+
 Mock papers are assembled from original English and Hindi administrative passages covering public records, recruitment, railways, courts, accounts and audit, public health, rural development, disaster response, education, environment, digital services, and election duty. They reproduce the size and interaction contract of the selected profile without copying a competitor or an authority's test passage.
 
 ## Remington validation

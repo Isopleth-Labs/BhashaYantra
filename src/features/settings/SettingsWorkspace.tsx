@@ -118,9 +118,8 @@ export function SettingsWorkspace({
   const role = auth.identity?.role ?? selectedRole;
   const [student, setStudent] = useState(() => readStoredObject(STUDENT_WORKSPACE_KEY, DEFAULT_STUDENT_WORKSPACE));
   const [institute, setInstitute] = useState(() => readStoredObject(INSTITUTE_WORKSPACE_KEY, DEFAULT_INSTITUTE_WORKSPACE));
-  const [soundOnError, setSoundOnError] = useState(() => loadBoolean("bhashayantra:training:sound-v2", true));
+  const [soundOnError, setSoundOnError] = useState(() => loadBoolean("bhashayantra:training:sound-v3", false));
   const [showKeyboard, setShowKeyboard] = useState(() => loadBoolean("bhashayantra:training:keyboard-v2", false));
-  const [moveOnError, setMoveOnError] = useState(() => loadBoolean("bhashayantra:training:move-on-error-v2", false));
   const [examSound, setExamSound] = useState(() => loadBoolean("bhashayantra:exam:sound-v2", true));
   const [examConfirm, setExamConfirm] = useState(() => loadBoolean("bhashayantra:exam:confirm-submit-v1", true));
   const [examAutoScroll, setExamAutoScroll] = useState(() => loadBoolean("bhashayantra:exam:auto-scroll-v1", true));
@@ -154,9 +153,8 @@ export function SettingsWorkspace({
     if (!window.confirm("Reset interface, typing, and training preferences to their defaults? Account workspaces, drafts, and attempt history will stay untouched.")) return;
     onResetPreferences();
     setLanguage("en");
-    setSoundOnError(true);
+    setSoundOnError(false);
     setShowKeyboard(false);
-    setMoveOnError(false);
     setExamSound(true);
     setExamConfirm(true);
     setExamAutoScroll(true);
@@ -165,7 +163,7 @@ export function SettingsWorkspace({
     setDirectTypingAtStartup(false);
     setCrashReports(false);
     const defaults: readonly [string, boolean][] = [
-      ["bhashayantra:training:sound-v2", true], ["bhashayantra:training:keyboard-v2", false], ["bhashayantra:training:move-on-error-v2", false],
+      ["bhashayantra:training:sound-v3", false], ["bhashayantra:training:keyboard-v2", false],
       ["bhashayantra:exam:sound-v2", true], ["bhashayantra:exam:confirm-submit-v1", true], ["bhashayantra:exam:auto-scroll-v1", true],
       ["bhashayantra:steno:countdown-v1", true], ["bhashayantra:steno:voice-v1", true], ["bhashayantra:direct:start-v1", false], ["bhashayantra:privacy:crash-v1", false],
     ];
@@ -200,7 +198,7 @@ export function SettingsWorkspace({
 
     if (section === "typing") return <SettingsCard icon={<Keyboard />} title="Typing engine defaults" description="Language, layout, font, and output"><div className="settings-control-grid"><label><span>Typing language</span><small>Choose the active writing language.</small><select value={typingLanguage} onChange={(event) => onTypingLanguageChange(event.target.value as TypingLanguageCode)}><option value="hi">Hindi</option><option value="en">English</option></select></label><label><span>Keyboard layout</span><small>Physical key mapping and composition rules.</small><select value={typingLayout} onChange={(event) => onTypingLayoutChange(event.target.value as ReadyTypingLayoutId)}>{layoutsForLanguage(typingLanguage).map((profile) => <option key={profile.id} value={profile.id}>{profile.name}</option>)}</select></label><label><span>Display font</span><small>Changes preview only, not Unicode content.</small><select value={displayFont} onChange={(event) => onDisplayFontChange(event.target.value as UnicodeDisplayFontId)}>{displayFontsForLanguage(typingLanguage).map((font) => <option key={font.id} value={font.id}>{font.name}</option>)}</select></label><label><span>Default output</span><small>Unicode is recommended for modern applications.</small><select value={outputMode} onChange={(event) => onOutputModeChange(event.target.value as TypingOutputMode)}><option value="unicode">Unicode</option><option value="legacy" disabled={typingLanguage === "en"}>Legacy / KrutiDev</option></select></label></div></SettingsCard>;
 
-    if (section === "practice") return <SettingsCard icon={<BookOpenCheck />} title="Practice preferences" description="Applied when a lesson starts"><div className="settings-toggle-list"><SettingsToggle checked={soundOnError} onChange={(value) => saveBoolean("bhashayantra:training:sound-v2", value, setSoundOnError)} label="Sound on error" description="Play a short local cue for a wrong key." /><SettingsToggle checked={showKeyboard} onChange={(value) => saveBoolean("bhashayantra:training:keyboard-v2", value, setShowKeyboard)} label="Show on-screen keyboard" description="Open lessons with layout and finger guidance visible." /><SettingsToggle checked={moveOnError} onChange={(value) => saveBoolean("bhashayantra:training:move-on-error-v2", value, setMoveOnError)} label="Continue after an error" description="Advance instead of blocking on the incorrect character." /></div></SettingsCard>;
+    if (section === "practice") return <SettingsCard icon={<BookOpenCheck />} title="Practice preferences" description="Applied when a lesson starts"><div className="settings-toggle-list"><SettingsToggle checked={soundOnError} onChange={(value) => saveBoolean("bhashayantra:training:sound-v3", value, setSoundOnError)} label="Optional error sound" description="Off by default. Wrong keys are always accepted and marked red." /><SettingsToggle checked={showKeyboard} onChange={(value) => saveBoolean("bhashayantra:training:keyboard-v2", value, setShowKeyboard)} label="Show on-screen keyboard" description="Open lessons with layout and finger guidance visible." /></div><div className="settings-note"><BookOpenCheck /><span><strong>Continuous error marking</strong><small>Practice never blocks a wrong key. The live key stream shows the wrong character in red and keeps the exercise moving.</small></span></div></SettingsCard>;
 
     if (section === "exam") return <SettingsCard icon={<Gauge />} title="Exam workstation" description="Rules for new mock-test sessions"><div className="settings-toggle-list"><SettingsToggle checked={examSound} onChange={(value) => saveBoolean("bhashayantra:exam:sound-v2", value, setExamSound)} label="Error sound" description="Play feedback only when the selected exam profile allows it." /><SettingsToggle checked={examConfirm} onChange={(value) => saveBoolean("bhashayantra:exam:confirm-submit-v1", value, setExamConfirm)} label="Confirm before final submission" description="Prevent accidental early submission during practice profiles." /><SettingsToggle checked={examAutoScroll} onChange={(value) => saveBoolean("bhashayantra:exam:auto-scroll-v1", value, setExamAutoScroll)} label="Keep current passage line visible" description="Scroll only the passage panel; the page itself stays fixed." /></div><div className="settings-note"><FileCheck2 /><span><strong>Official-reference profiles remain read-only</strong><small>Duration, target speed, backspace rules, and layout requirements come from their linked notice. Always verify the current recruitment notice.</small></span></div></SettingsCard>;
 

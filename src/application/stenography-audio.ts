@@ -42,6 +42,9 @@ async function startBrowserNarration(text: string, language: TypingLanguageCode,
   const voices = window.speechSynthesis.getVoices();
   const matchingVoice = voices.find((voice) => voice.lang.toLocaleLowerCase().startsWith(language));
   window.speechSynthesis.cancel();
+  if (!matchingVoice) {
+    return { engine: "unavailable", label: `${language === "hi" ? "Hindi" : "English"} narration voice is not installed` };
+  }
 
   const speakChunk = (index: number) => {
     if (generation !== browserGeneration || index >= chunks.length) return;
@@ -60,14 +63,17 @@ async function startBrowserNarration(text: string, language: TypingLanguageCode,
 
 export async function startStenographyNarration(text: string, language: TypingLanguageCode, wordsPerMinute: number): Promise<NarrationStatus> {
   try {
-    const status = await invoke<{ engine: string }>("start_stenography_voice", {
+    const status = await invoke<{ engine: string; voice: string }>("start_stenography_voice", {
       text,
       language,
       wordsPerMinute,
     });
-    return { engine: "native", label: status.engine };
-  } catch {
-    return startBrowserNarration(text, language, wordsPerMinute);
+    return { engine: "native", label: `${status.engine} · ${status.voice}` };
+  } catch (error) {
+    const browserStatus = await startBrowserNarration(text, language, wordsPerMinute);
+    if (browserStatus.engine !== "unavailable") return browserStatus;
+    const nativeMessage = error instanceof Error ? error.message : String(error);
+    return { engine: "unavailable", label: nativeMessage.includes("No Hindi narration voice") ? "Hindi voice is not installed. Install one in Windows Speech settings or import a human recording." : browserStatus.label };
   }
 }
 
@@ -83,8 +89,7 @@ export async function stopStenographyNarration() {
 
 export async function testStenographyNarration(language: TypingLanguageCode) {
   const text = language === "hi"
-    ? "BhashaYantra ki aawaz jaanch safal hai. Ab aap dictation shuru kar sakte hain."
+    ? "भाषायंत्र की आवाज़ जाँच सफल है। अब आप श्रुतलेख शुरू कर सकते हैं।"
     : "BhashaYantra voice check is working. You can now start the dictation.";
   return startStenographyNarration(text, language, 80);
 }
-
