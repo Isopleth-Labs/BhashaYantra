@@ -125,8 +125,10 @@ The start screen contains both typing modes, the Exchange Converter, character b
 
 ### 5.8 Stenography
 
-- Original Hindi and English professional dictation sets plus user-supplied local audio.
-- 60–140 WPM cue pacing, synthesized voice option, native audio playback, and explicit ready/running/paused/finished session states.
+- Fourteen original Hindi and English courtroom, government-office, SSC, and High Court practice profiles plus user-supplied local audio.
+- Native Windows narration with browser speech fallback, pre-session voice test, 60–140 WPM practice pacing, and explicit ready/running/paused/finished session states.
+- Two explicit workflows: strict exam simulation keeps shorthand dictation and transcription separate; Listen & Type practice keeps the editor open while the original audio plays.
+- Official-reference profiles reproduce public timing and speed rules with original copy. Confidential, leaked, competitor-owned, or authority-owned examination recordings are not bundled.
 - Unicode transcript editor with offline draft behavior.
 - Word-aligned transcript comparison that distinguishes correct, missing, extra, and substituted words.
 - Accuracy, transcript WPM, dictation speed, and offline recent-attempt history.
@@ -143,7 +145,8 @@ The start screen contains both typing modes, the Exchange Converter, character b
 ## 6. Data and account behavior
 
 - Account is optional for offline typing and conversion.
-- Supabase account enables cross-device settings, saved layouts, history, and future institute features.
+- Supabase email/password Auth provides separate Student and Institute entry. The verified `profiles.account_role` determines the workspace; a local role switch never grants access.
+- Supabase account enables cross-device settings, saved layouts, history, and institute features.
 - A user can delete cloud history and account-owned records.
 - Local-only documents are not uploaded automatically.
 

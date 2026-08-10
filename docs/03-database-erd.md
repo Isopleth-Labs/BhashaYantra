@@ -6,6 +6,8 @@ Supabase PostgreSQL stores account-linked settings, layouts, shortcuts, conversi
 
 Supabase owns `auth.users`. Application tables reference its UUID but do not duplicate authentication credentials.
 
+The new-user trigger accepts `account_role` only as `student` or `institute`, stores the normalized role in `profiles`, and creates `student_profiles` only for Student registrations. React never decides institute authority: ownership and active membership remain enforced by RLS.
+
 ## 2. Entity relationship diagram
 
 ```mermaid

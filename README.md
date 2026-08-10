@@ -53,7 +53,8 @@ The approved design source is preserved at [docs/assets/bhashayantra-final-refer
 - Completed mock results include accuracy, correct WPM, gross WPM, NWPM, KDPH, correct/missing/extra/substituted characters, correction count, weak-key analysis, and the scoring-rule notice.
 - Official-profile environment guard blocks a test when a verified layout/font requirement is not selected, such as Devanagari INSCRIPT with Mangal for the referenced Allahabad High Court Hindi profile.
 - Versioned offline attempt repository with per-layout history, completed-exercise count, best scores, average accuracy, recent-speed trend, and history deletion.
-- Functional Stenography Studio with Hindi/English dictation sets, 60–140 WPM pacing, pause/resume/reset lifecycle, optional synthesized voice cues, local audio import and playback, Unicode transcript editing, word-aligned accuracy/missing/extra/substitution scoring, transcript WPM, and offline recent-attempt history.
+- Functional Stenography Studio with fourteen original Hindi/English courtroom, government-office, SSC, and High Court profiles; native Windows narration with chunked browser fallback; a pre-session voice test; local audio import; strict separate-phase exam simulation; an editable Listen & Type mode; word-aligned scoring; transcript WPM; and offline recent-attempt history. Official-reference profiles reproduce public timing rules with original practice copy, never confidential exam audio.
+- Separate Student and Institute account entry backed by Supabase email/password Auth. The authenticated profile role decides which workspace opens, role mismatch signs the session out, and no insecure local-login bypass is provided when cloud configuration is absent.
 - Professional Settings control center for interface, theme, typing defaults, training feedback, privacy status, safe preference reset, and a responsive Pro plan entry point.
 - Non-purchasable Buy Now/plan-selection preview for 30-day, 90-day, annual, and institution packaging. It clearly identifies hypothesis pricing and keeps secure checkout disabled so the development build never collects payment.
 - Light/dark design tokens and Hindi font fallbacks.
@@ -63,7 +64,7 @@ The approved design source is preserved at [docs/assets/bhashayantra-final-refer
 - Local and Supabase user-preference repository implementations.
 - Tauri 2 configuration with allowlisted dialog and text-file permissions.
 - Tested Free/Pro/Institution feature-entitlement vocabulary and development plan-catalog safety checks for future secure billing integration.
-- Sixty-seven frontend converter/typing/training/document/stenography/repository/licensing tests plus seven native Direct Typing composition/lifecycle tests, strict TypeScript checking, Rust Clippy, and production builds.
+- Seventy-three frontend converter/typing/training/document/stenography/repository/licensing tests, seven native Direct Typing tests, Windows narration compile checks, strict TypeScript checking, Rust Clippy, and production builds.
 
 ## Final product direction
 
@@ -123,7 +124,7 @@ The repository includes [`.github/workflows/build.yml`](.github/workflows/build.
 3. Run native Direct Typing tests and build one portable Tauri executable.
 4. Store them for 14 days in the workflow run under **Artifacts → BhashaYantra-Windows**.
 
-The repository is private and in active development. Do not create a public GitHub Release or version tag yet. When all release gates are complete, the maintainer can intentionally create a version tag:
+The source repository is public and the product is still in active development. Do not create a GitHub Release or version tag yet. When all release gates are complete, the maintainer can intentionally create a version tag:
 
 ```powershell
 git tag v0.1.0
@@ -177,7 +178,7 @@ npm run dev
 
 For the full desktop window, install the Tauri Windows prerequisites and run `npm run tauri dev`.
 
-For local Supabase, start Docker Desktop and run `npx supabase start`. Supabase is optional for typing, legacy conversion, Roman Hindi, training, and tests; it is required only for cloud translation and optional sync.
+For local Supabase, start Docker Desktop and run `npx supabase start`. Supabase remains optional for offline typing, legacy conversion, Roman Hindi, training, and tests; it is required for Student/Institute login, cloud translation, and account sync.
 
 ## Environment variables
 
@@ -247,7 +248,7 @@ The first Tauri build can take longer because Rust dependencies must be download
 
 ## Verified build status
 
-The current workspace has passed strict TypeScript checking, sixty frontend unit tests, seven native Direct Typing tests, eight database/RLS tests, Drizzle configuration validation, Supabase schema linting, Rust formatting and Clippy checks, frontend production build, browser interaction QA, and the portable desktop executable build.
+The current workspace has passed strict TypeScript checking, seventy-three frontend unit tests, seven native Direct Typing tests, database/RLS checks, Drizzle configuration validation, Rust formatting and Clippy checks, frontend production build, browser interaction QA, and the desktop executable build.
 
 ## Database workflow
 

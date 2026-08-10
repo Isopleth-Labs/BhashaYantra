@@ -26,11 +26,9 @@ import {
 
 import { Button } from "@/components/ui/button";
 import {
-  ACTIVE_WORKSPACE_ROLE_KEY,
   DEFAULT_INSTITUTE_WORKSPACE,
   DEFAULT_STUDENT_WORKSPACE,
   INSTITUTE_WORKSPACE_KEY,
-  isAccountWorkspaceRole,
   readStoredObject,
   sanitizeSeatLimit,
   STUDENT_WORKSPACE_KEY,
@@ -39,6 +37,8 @@ import {
   type InstituteWorkspaceProfile,
   type StudentWorkspaceProfile,
 } from "@/domain/accounts/account-workspaces";
+import { WorkspaceLoginPanel } from "@/features/settings/WorkspaceLoginPanel";
+import { useWorkspaceAuth } from "@/features/settings/useWorkspaceAuth";
 import type { TypingOutputMode } from "@/domain/typing/typing-engine";
 import {
   displayFontsForLanguage,
@@ -113,10 +113,9 @@ export function SettingsWorkspace({
 }: SettingsWorkspaceProps) {
   const { language, setLanguage } = useI18n();
   const [section, setSection] = useState<SettingsSection>("account");
-  const [role, setRole] = useState<AccountWorkspaceRole>(() => {
-    const value = localStorage.getItem(ACTIVE_WORKSPACE_ROLE_KEY);
-    return isAccountWorkspaceRole(value) ? value : "student";
-  });
+  const auth = useWorkspaceAuth();
+  const [selectedRole, setSelectedRole] = useState<AccountWorkspaceRole>("student");
+  const role = auth.identity?.role ?? selectedRole;
   const [student, setStudent] = useState(() => readStoredObject(STUDENT_WORKSPACE_KEY, DEFAULT_STUDENT_WORKSPACE));
   const [institute, setInstitute] = useState(() => readStoredObject(INSTITUTE_WORKSPACE_KEY, DEFAULT_INSTITUTE_WORKSPACE));
   const [soundOnError, setSoundOnError] = useState(() => loadBoolean("bhashayantra:training:sound-v2", true));
@@ -135,12 +134,6 @@ export function SettingsWorkspace({
     setter(value);
     localStorage.setItem(key, String(value));
     setSavedMessage("Saved locally just now.");
-  }
-
-  function chooseRole(nextRole: AccountWorkspaceRole) {
-    setRole(nextRole);
-    localStorage.setItem(ACTIVE_WORKSPACE_ROLE_KEY, nextRole);
-    setSavedMessage(`${nextRole === "student" ? "Student" : "Institute"} workspace selected.`);
   }
 
   function saveStudent(patch: Partial<StudentWorkspaceProfile>) {
@@ -183,27 +176,23 @@ export function SettingsWorkspace({
   function renderSection() {
     if (section === "account") return (
       <>
-        <SettingsCard icon={<UserRound />} title="Account and workspace" description="Student and institute data are stored separately">
-          <div className="workspace-role-grid" role="radiogroup" aria-label="Workspace role">
-            {(["student", "institute"] as const).map((item) => <button type="button" role="radio" aria-checked={role === item} className={role === item ? "active" : ""} onClick={() => chooseRole(item)} key={item}>{item === "student" ? <GraduationCap /> : <Building2 />}<span><strong>{item === "student" ? "Student workspace" : "Institute workspace"}</strong><small>{item === "student" ? "Personal learning, attempts, and exam targets" : "Batches, assignments, lab defaults, and reports"}</small></span>{role === item && <Check />}</button>)}
-          </div>
-        </SettingsCard>
-        {role === "student" ? <SettingsCard icon={<GraduationCap />} title="Student profile" description="Private learning identity">
+        <WorkspaceLoginPanel auth={auth} selectedRole={selectedRole} onSelectedRoleChange={setSelectedRole} />
+        {auth.identity && role === "student" ? <SettingsCard icon={<GraduationCap />} title="Student profile" description="Private learning identity">
           <div className="settings-control-grid">
             <label><span>Student name</span><small>Shown on local result reports.</small><input value={student.displayName} onChange={(event) => saveStudent({ displayName: event.target.value })} placeholder="Your full name" /></label>
             <label><span>Candidate ID</span><small>Your institute or exam reference, optional.</small><input value={student.candidateId} onChange={(event) => saveStudent({ candidateId: event.target.value })} placeholder="e.g. STU-1042" /></label>
             <label><span>Target exam</span><small>Personalizes the dashboard and recommended practice.</small><select value={student.targetExam} onChange={(event) => saveStudent({ targetExam: event.target.value })}><option>SSC Stenographer</option><option>SSC CHSL / DEST</option><option>High Court Typing</option><option>RRB Typing Skill Test</option><option>General office typing</option></select></label>
             <label><span>Study language</span><small>Does not change the app interface.</small><select value={student.studyLanguage} onChange={(event) => saveStudent({ studyLanguage: event.target.value as "hi" | "en" })}><option value="hi">Hindi</option><option value="en">English</option></select></label>
           </div>
-        </SettingsCard> : <SettingsCard icon={<Building2 />} title="Institute profile" description="Organization workspace preview">
+        </SettingsCard> : auth.identity && role === "institute" ? <SettingsCard icon={<Building2 />} title="Institute profile" description="Authenticated organization workspace">
           <div className="settings-control-grid">
             <label><span>Institute name</span><small>Organization displayed in institute reports.</small><input value={institute.instituteName} onChange={(event) => saveInstitute({ instituteName: event.target.value })} placeholder="Institute name" /></label>
             <label><span>Institute code</span><small>Unique joining code after server verification.</small><input value={institute.instituteCode} onChange={(event) => saveInstitute({ instituteCode: event.target.value.toUpperCase() })} placeholder="e.g. BY-JPR-01" /></label>
             <label><span>Administrator</span><small>Primary local admin contact.</small><input value={institute.administratorName} onChange={(event) => saveInstitute({ administratorName: event.target.value })} placeholder="Administrator name" /></label>
             <label><span>Planned seats</span><small>Used for plan estimation; no seats are activated yet.</small><input type="number" min={1} max={5000} value={institute.seatLimit} onChange={(event) => saveInstitute({ seatLimit: Number(event.target.value) })} /></label>
           </div>
-          <div className="institute-module-preview"><span><b>Roster</b><small>Add students after sign-in is connected</small></span><span><b>Assignments</b><small>Publish courses and mock tests</small></span><span><b>Reports</b><small>View server-verified batch results</small></span></div>
-        </SettingsCard>}
+          <div className="institute-module-preview"><span><b>Roster</b><small>Manage verified students and batches</small></span><span><b>Assignments</b><small>Publish courses and mock tests</small></span><span><b>Reports</b><small>View server-verified batch results</small></span></div>
+        </SettingsCard> : null}
       </>
     );
 
@@ -221,7 +210,7 @@ export function SettingsWorkspace({
 
     if (section === "privacy") return <SettingsCard icon={<LockKeyhole />} title="Data and privacy" description="Offline-first storage and optional services"><div className="privacy-status-grid"><span><Database /><b>Local workspace</b><small>Drafts, preferences, lessons, and attempts stay on this device.</small></span><span><ShieldCheck /><b>No typing telemetry</b><small>Typing content is not uploaded unless you choose a cloud feature.</small></span><span><Info /><b>Optional cloud</b><small>Translation and institute sync require configured providers.</small></span></div><div className="settings-toggle-list"><SettingsToggle checked={crashReports} onChange={(value) => saveBoolean("bhashayantra:privacy:crash-v1", value, setCrashReports)} label="Anonymous crash reports" description="Disabled by default. This development build does not upload reports." /></div><div className="settings-danger-row"><span><strong>Reset preferences</strong><small>Account workspaces, drafts, and attempt history are not deleted.</small></span><Button variant="outline" onClick={resetPreferences}><RotateCcw /> Reset preferences</Button></div></SettingsCard>;
 
-    return <SettingsCard icon={<Info />} title="About BhashaYantra" description="Build and support information"><div className="about-settings"><span><b>Product</b><small>BhashaYantra Desktop</small></span><span><b>Build channel</b><small>Development · no public release</small></span><span><b>Core mode</b><small>Offline-first typing and training</small></span><span><b>Account status</b><small>Local workspace preview; Supabase sign-in is not connected yet</small></span></div></SettingsCard>;
+    return <SettingsCard icon={<Info />} title="About BhashaYantra" description="Build and support information"><div className="about-settings"><span><b>Product</b><small>BhashaYantra Desktop</small></span><span><b>Build channel</b><small>Development · no public release</small></span><span><b>Core mode</b><small>Offline-first typing and training</small></span><span><b>Account status</b><small>{auth.identity ? `${auth.identity.role} account authenticated` : auth.configured ? "Sign-in required" : "Supabase Auth configuration required"}</small></span></div></SettingsCard>;
   }
 
   return (
@@ -232,9 +221,9 @@ export function SettingsWorkspace({
         <div className="settings-sections">{renderSection()}</div>
         <aside className="settings-context-panel">
           <span className="settings-context-icon">{role === "student" ? <GraduationCap /> : <Building2 />}</span>
-          <small>ACTIVE WORKSPACE</small><h2>{role === "student" ? "Student" : "Institute"}</h2>
+          <small>{auth.identity ? "ACTIVE WORKSPACE" : "LOGIN TARGET"}</small><h2>{role === "student" ? "Student" : "Institute"}</h2>
           <ul>{WORKSPACE_PERMISSIONS[role].map((permission) => <li key={permission}><Check /> {permission}</li>)}</ul>
-          <div className="settings-auth-warning"><LockKeyhole /><span><strong>Local preview</strong><small>Production institute access needs Supabase sign-in and server-verified membership. Selecting this role does not grant admin permissions.</small></span></div>
+          <div className="settings-auth-warning"><LockKeyhole /><span><strong>{auth.identity ? "Authenticated session" : "Login required"}</strong><small>{auth.identity ? `${auth.identity.email} is verified as a ${auth.identity.role} account. The other workspace cannot open in this session.` : "Choose the correct account type and sign in. Student and institute workspaces use separate verified roles."}</small></span></div>
           <Button variant="outline" onClick={onOpenPricing}><Sparkles /> Compare plans</Button>
         </aside>
       </div>

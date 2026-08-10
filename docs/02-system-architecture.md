@@ -97,6 +97,8 @@ This bridge is not represented as the final Windows IME. `SendInput` is limited 
 ### Cloud and database layer
 
 - Supabase Auth identifies users.
+- Account signup metadata may request only the allowlisted `student` or `institute` role. The database trigger normalizes that value into `profiles.account_role`; every login reloads the server profile and rejects a mismatched workspace.
+- Offline product tools remain usable without an account, but Student and Institute dashboards have no local authentication bypass.
 - PostgreSQL stores user-owned metadata, settings, layouts, and result history.
 - Row Level Security enforces ownership.
 - Storage is used only for explicitly uploaded content.

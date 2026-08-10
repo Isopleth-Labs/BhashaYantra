@@ -102,6 +102,30 @@ const AHC_SOURCE = "https://www.allahabadhighcourt.in/event/Admit_card_notice_St
 
 export const STENOGRAPHY_PROFILES: readonly StenographyProfile[] = [
   {
+    id: "court-hi-foundation", name: "Courtroom Orders · Hindi Foundation", shortName: "Court HI 60", authority: "BhashaYantra Practice Lab",
+    language: "hi", environment: "courtroom", verification: "practice", dictationSeconds: 180, transcriptionSeconds: 900, dictationWpm: 60, seed: 8,
+    description: "Original district-court order and registry vocabulary at a controlled foundation pace.",
+    rules: ["3-minute original practice narration", "Listen-and-type mode available", "Not an official or leaked examination recording"],
+  },
+  {
+    id: "court-hi-advanced", name: "Courtroom Proceedings · Hindi Advanced", shortName: "Court HI 100", authority: "BhashaYantra Practice Lab",
+    language: "hi", environment: "courtroom", verification: "practice", dictationSeconds: 300, transcriptionSeconds: 1800, dictationWpm: 100, seed: 9,
+    description: "Long-form procedural Hindi for advanced shorthand and judicial transcription practice.",
+    rules: ["5-minute original practice narration", "Pause available outside exam simulation", "Accuracy report after submission"],
+  },
+  {
+    id: "court-en-foundation", name: "Courtroom Orders · English Foundation", shortName: "Court EN 80", authority: "BhashaYantra Practice Lab",
+    language: "en", environment: "courtroom", verification: "practice", dictationSeconds: 180, transcriptionSeconds: 900, dictationWpm: 80, seed: 10,
+    description: "Original English court orders, appearances, registry directions, and evidence vocabulary.",
+    rules: ["3-minute original practice narration", "Listen-and-type mode available", "Not an official or leaked examination recording"],
+  },
+  {
+    id: "court-en-advanced", name: "Courtroom Proceedings · English Advanced", shortName: "Court EN 120", authority: "BhashaYantra Practice Lab",
+    language: "en", environment: "courtroom", verification: "practice", dictationSeconds: 300, transcriptionSeconds: 1800, dictationWpm: 120, seed: 11,
+    description: "High-speed judicial copy for personal-assistant and court-stenographer preparation.",
+    rules: ["5-minute original practice narration", "Pause available outside exam simulation", "Accuracy report after submission"],
+  },
+  {
     id: "office-hi-guided", name: "Government Office · Hindi Guided", shortName: "Office HI", authority: "BhashaYantra",
     language: "hi", environment: "office", verification: "practice", dictationSeconds: 120, transcriptionSeconds: 600, dictationWpm: 80, seed: 0,
     description: "Original administrative dictation for shorthand, note-taking, and clean transcription.",
@@ -112,6 +136,18 @@ export const STENOGRAPHY_PROFILES: readonly StenographyProfile[] = [
     language: "en", environment: "office", verification: "practice", dictationSeconds: 120, transcriptionSeconds: 600, dictationWpm: 80, seed: 1,
     description: "Original government-office copy with procedural vocabulary and complete sentences.",
     rules: ["3-second preparation countdown", "Pause and early transcription are allowed", "Original BhashaYantra practice script"],
+  },
+  {
+    id: "office-hi-speed", name: "Government Note & Dispatch · Hindi Speed", shortName: "Office HI 100", authority: "BhashaYantra Practice Lab",
+    language: "hi", environment: "office", verification: "practice", dictationSeconds: 300, transcriptionSeconds: 1800, dictationWpm: 100, seed: 12,
+    description: "Original noting, dispatch, public-service, and administrative-review copy at advanced pace.",
+    rules: ["5-minute original office narration", "Listen-and-type mode available", "Local result and error analysis"],
+  },
+  {
+    id: "office-en-speed", name: "Government Note & Dispatch · English Speed", shortName: "Office EN 100", authority: "BhashaYantra Practice Lab",
+    language: "en", environment: "office", verification: "practice", dictationSeconds: 300, transcriptionSeconds: 1800, dictationWpm: 100, seed: 13,
+    description: "Original administrative English copy covering noting, registers, dispatch, and records.",
+    rules: ["5-minute original office narration", "Listen-and-type mode available", "Local result and error analysis"],
   },
   {
     id: "ssc-d-hi", name: "SSC Stenographer Grade D · Hindi", shortName: "SSC D HI", authority: "Staff Selection Commission",

@@ -198,7 +198,12 @@ stateDiagram-v2
     Evaluated --> [*]
 ```
 
-The selected session profile controls audio speed, pause/seek permissions, reading duration, transcription duration, and scoring.
+The selected session profile controls audio speed, pause/seek permissions, reading duration, transcription duration, and scoring. Desktop narration first uses the narrowly allowlisted Windows speech command and falls back to a chunked browser queue in web preview. The user can test the voice before committing to a timed session.
+
+Two interaction contracts are intentionally separate:
+
+- `exam-simulation`: the transcript remains disabled through countdown and dictation, then opens for the selected transcription duration.
+- `listen-type`: the transcript opens when dictation starts so the learner can practise office-style live transcription; this mode is clearly labelled training and does not claim to reproduce an official shorthand phase.
 
 ## 9. Initial application use cases
 

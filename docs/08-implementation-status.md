@@ -33,7 +33,8 @@ Updated: 10 August 2026
 - Live correct/gross/net WPM, KDPH, accuracy, missing/extra/substituted counts, weak-key analysis, completion state, RRB published-formula practice estimate, and once-only attempt saving.
 - Verified official duration/correction locking and a layout/font environment guard for profiles with an explicit requirement.
 - Versioned local attempt repository, layout-specific history deletion, real dashboard summaries, and recent-speed trend.
-- Responsive Stenography Studio with original Hindi/English professional dictation sets, configurable 60–140 WPM pacing, optional synthesized voice, local audio import/playback, explicit session states, Unicode transcript entry, word-aligned scoring, transcript WPM, and offline recent-attempt history.
+- Responsive Stenography Studio with fourteen original Hindi/English courtroom, office, SSC, and High Court profiles, Windows-native narration with chunked web fallback, voice test, local audio import/playback, strict exam phases, editable Listen & Type practice, word-aligned scoring, transcript WPM, and offline recent-attempt history.
+- Separate Student and Institute Supabase Auth entry screens with signup/sign-in, email-confirmation handling, profile-role verification, mismatch sign-out, and no local authentication bypass.
 - Functional Settings control center with interface/theme controls, typing defaults, persisted training feedback preferences, offline/privacy status, and a safe preference reset that preserves drafts and attempt history.
 - Responsive BhashaYantra Pro pricing and order-preview surface with selectable 30-day, 90-day, annual, and institution hypotheses; checkout is intentionally disabled and the development client cannot collect payment.
 - Live bidirectional KrutiDev 010 ↔ Unicode text converter.
@@ -74,8 +75,8 @@ cargo clippy --manifest-path .\src-tauri\Cargo.toml --all-targets -- -D warnings
 | Legacy encoding profiles | KrutiDev 010 working; DevLys and Shree-Lipi registered as validation-pending | Add licensed fixtures and round-trip acceptance corpora before enabling each profile |
 | Shortcut manager | Built-in shortcuts, custom creation/deletion, conflict validation, persistence, import/export, and reset | Editing existing custom entries in place and cloud sync |
 | Typing practice/test | 2,820 professional exercises with alphabetic and domain progression, multi-round patterns, mastery gates, depth checks, a distraction-free fixed-height workstation, 60 original papers/layout, 18 profiles including 16 official-reference profiles, WPM/NWPM/KDPH/RRB practice scoring, weak-key analysis, and local history | Independently validate remaining recruitment-specific deduction rules, then add adaptive lessons and exportable reports |
-| Stenography | Offline dictation workspace, local audio, paced lifecycle, transcript editor, deterministic word-level evaluation, and history | Recruitment-profile rules, licensed/official audio sets, and exportable reports |
-| Supabase | Schema, repositories, local configuration | Auth UI and opt-in sync wiring |
+| Stenography | Fourteen original audio profiles, native/browser narration, strict exam and Listen & Type workflows, deterministic evaluation, and history | Licensed publisher partnerships, more validated recruitment profiles, and exportable reports |
+| Supabase | Schema, RLS, role-aware signup trigger, separate Student/Institute Auth UI, repositories, and local configuration | Production project values, institute onboarding transactions, and opt-in result sync |
 
 ## Not yet release-ready
 
