@@ -34,8 +34,9 @@ The approved design source is preserved at [docs/assets/bhashayantra-final-refer
 - Live words, characters, lines, elapsed-session WPM, and mapping-warning feedback.
 - Live local KrutiDev 010 ↔ Unicode text conversion in both directions with warnings.
 - Three separate converter workflows so encoding and language are not confused: verified legacy-font conversion, offline Roman Hindi transliteration, and meaning-preserving cloud translation.
-- Secure English/Hindi/Marathi/Punjabi/Bengali/Gujarati translation boundary through a Supabase Edge Function and Google Cloud Translation; the provider key remains server-side and the UI stays disabled until configured.
-- Windows **Direct Typing** switch in Start Typing: turn it on once, BhashaYantra minimizes, and selected-layout keys are converted per keystroke in standard Word, Excel, browser, and Windows text fields. It ignores injected events and BhashaYantra's own process, preserves Ctrl/Alt/Win shortcuts, resets composition on focus/navigation changes, and provides `Ctrl + Alt + F12` emergency-off.
+- Selectable translation providers: local/self-hosted LibreTranslate for free open-source English/Hindi/Bengali translation, or a Supabase Edge Function for Google Cloud English/Hindi/Marathi/Punjabi/Bengali/Gujarati translation.
+- Translation responses are accepted only from the selected provider, rejected when unchanged, and checked against the selected target-language script before export.
+- Windows **Direct Typing** switch in Start Typing: turn it on once, BhashaYantra minimizes, and selected-layout keys are converted per keystroke in standard Word, Excel, browser, and Windows text fields. Office-safe delta rendering preserves the stable Unicode prefix and changes only the composed suffix instead of repeatedly selecting/replacing the whole word. It ignores injected events and BhashaYantra's own process, preserves Ctrl/Alt/Win shortcuts, resets composition on focus/navigation changes, and provides `Ctrl + Alt + F12` emergency-off.
 - Direct Unicode typing prevents the earlier raw-key-plus-converted-text duplication. Legacy output remains real KrutiDev encoding, so the target editor must use the Kruti Dev 010 font.
 - Text-file open, paste, clear, copy, and download actions.
 - Selectable Unicode preview fonts: Noto Sans Devanagari, Mangal, Nirmala UI, and Segoe UI for English.
@@ -59,7 +60,7 @@ The approved design source is preserved at [docs/assets/bhashayantra-final-refer
 - Local and Supabase user-preference repository implementations.
 - Tauri 2 configuration with allowlisted dialog and text-file permissions.
 - Tested Free/Pro/Institution feature-entitlement vocabulary for future secure billing integration.
-- Fifty-eight frontend converter/typing/training/document/repository/licensing tests plus five native Direct Typing composition/lifecycle tests, strict TypeScript checking, Rust Clippy, and production builds.
+- Sixty frontend converter/typing/training/document/repository/licensing tests plus seven native Direct Typing composition/lifecycle tests, strict TypeScript checking, Rust Clippy, and production builds.
 
 ## Final product direction
 
@@ -199,6 +200,14 @@ npx supabase functions deploy translate-text
 
 Never expose `DATABASE_URL`, a service-role key, `GOOGLE_CLOUD_TRANSLATE_KEY`, or any other server secret through a `VITE_` variable or bundle it into the Tauri application.
 
+For a free open-source local provider, start the included LibreTranslate stack:
+
+```powershell
+docker compose -f infra/libretranslate/compose.yml up -d
+```
+
+Then select **Convert Document → Translation → LibreTranslate** and use **Check provider**. The default endpoint is `http://127.0.0.1:5000`; no API key is required. See [infra/libretranslate/README.md](infra/libretranslate/README.md) for model coverage and operating instructions.
+
 ## Development commands
 
 ```powershell
@@ -235,7 +244,7 @@ The first Tauri build can take longer because Rust dependencies must be download
 
 ## Verified build status
 
-The current workspace has passed strict TypeScript checking, fifty-eight frontend unit tests, five native Direct Typing tests, eight database/RLS tests, Drizzle configuration validation, Supabase schema linting, Rust formatting and Clippy checks, frontend production build, browser interaction QA, and the portable desktop executable build.
+The current workspace has passed strict TypeScript checking, sixty frontend unit tests, seven native Direct Typing tests, eight database/RLS tests, Drizzle configuration validation, Supabase schema linting, Rust formatting and Clippy checks, frontend production build, browser interaction QA, and the portable desktop executable build.
 
 ## Database workflow
 

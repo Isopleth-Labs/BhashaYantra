@@ -1164,6 +1164,93 @@ label svg,
   line-height: 1.5;
 }
 
+.translation-provider-config {
+  display: grid;
+  grid-template-columns: 210px minmax(260px, 1fr) 180px auto;
+  gap: 10px;
+  align-items: end;
+  margin-bottom: 12px;
+  padding: 11px 13px;
+  border: 1px solid color-mix(in srgb, var(--primary) 24%, var(--border));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--primary) 4%, var(--surface));
+}
+
+.translation-provider-field {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.translation-provider-field label {
+  color: var(--muted-foreground);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .02em;
+}
+
+.translation-provider-field label span {
+  font-weight: 500;
+}
+
+.translation-provider-field input,
+.translation-provider-field select {
+  width: 100%;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  outline: none;
+  color: var(--foreground);
+  background: var(--surface);
+  font: inherit;
+  font-size: 11px;
+}
+
+.translation-provider-field input:focus,
+.translation-provider-field select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 14%, transparent);
+}
+
+.translation-provider-config > button {
+  height: 36px;
+  white-space: nowrap;
+}
+
+.translation-provider-help {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: var(--muted-foreground);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.translation-provider-help svg {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+  color: var(--primary);
+}
+
+.translation-provider-help strong {
+  color: var(--foreground);
+}
+
+.translation-provider-message {
+  grid-column: span 2;
+  align-self: center;
+  color: var(--legacy);
+  font-size: 11px;
+}
+
+.translation-provider-message.ready {
+  color: var(--success);
+}
+
 .converter-status-chip {
   display: flex;
   align-items: center;
@@ -4774,6 +4861,10 @@ body:has(.mock-exam-page.session-active) .mock-exam-page {
     padding-inline: 10px;
   }
 
+  .translation-provider-config {
+    grid-template-columns: minmax(145px, .8fr) minmax(165px, 1.4fr) minmax(105px, .7fr) auto;
+  }
+
   .typing-actions {
     align-items: stretch;
     flex-direction: column;
@@ -4903,8 +4994,14 @@ body:has(.mock-exam-page.session-active) .mock-exam-page {
   .typing-editor-grid,
   .advanced-manager-grid,
   .converter-grid,
-  .converter-actions {
+  .converter-actions,
+  .translation-provider-config {
     grid-template-columns: 1fr;
+  }
+
+  .translation-provider-help,
+  .translation-provider-message {
+    grid-column: 1;
   }
 
   .typing-actions,

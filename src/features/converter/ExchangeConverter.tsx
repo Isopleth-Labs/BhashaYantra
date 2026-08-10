@@ -16,15 +16,22 @@ import {
   Globe2,
   Languages,
   LoaderCircle,
+  Server,
   SpellCheck2,
   Trash2,
+  Wifi,
 } from "lucide-react";
 
 import { saveProductivityExport, type ProductivityExportFormat } from "@/application/document-export";
 import {
   TRANSLATION_LANGUAGES,
+  TRANSLATION_PROVIDERS,
+  loadTranslationProviderSettings,
+  saveTranslationProviderSettings,
+  testTranslationProvider,
   translateText as translateLanguage,
   type TranslationLanguageId,
+  type TranslationProviderId,
 } from "@/application/translation-service";
 import { convertText } from "@/application/use-cases/convert-text";
 import { Button } from "@/components/ui/button";
@@ -75,6 +82,8 @@ export function ExchangeConverter() {
   const [translationOutput, setTranslationOutput] = useState("");
   const [sourceLanguage, setSourceLanguage] = useState<TranslationLanguageId>("en");
   const [targetLanguage, setTargetLanguage] = useState<TranslationLanguageId>("hi");
+  const [translationProvider, setTranslationProvider] = useState(loadTranslationProviderSettings);
+  const [checkingProvider, setCheckingProvider] = useState(false);
   const [warnings, setWarnings] = useState<readonly string[]>([]);
   const [status, setStatus] = useState(() => t("converterReady"));
   const [exportingFormat, setExportingFormat] = useState<ProductivityExportFormat>();
@@ -83,6 +92,13 @@ export function ExchangeConverter() {
 
   const activeLegacyProfile = READY_LEGACY_ENCODING_PROFILES.find((profile) => profile.id === legacyProfile) ?? READY_LEGACY_ENCODING_PROFILES[0];
   const activeUnicodeFont = getDisplayFont(unicodeFont);
+  const activeTranslationProvider = TRANSLATION_PROVIDERS.find((provider) => provider.id === translationProvider.provider) ?? TRANSLATION_PROVIDERS[0];
+  const availableTranslationLanguages = translationProvider.provider === "libretranslate"
+    ? TRANSLATION_LANGUAGES.filter((language) => ["en", "hi", "bn"].includes(language.id))
+    : TRANSLATION_LANGUAGES;
+  const translationProviderReady = translationProvider.provider === "libretranslate"
+    ? Boolean(translationProvider.libreTranslateUrl.trim())
+    : isSupabaseConfigured;
   const romanResult = useMemo(() => typingSourceToUnicode(romanText, "bhashayantra-smart"), [romanText]);
   const romanLegacyResult = useMemo(() => convertText({
     input: romanResult.output,
@@ -126,6 +142,16 @@ export function ExchangeConverter() {
     setStatus(t("transliterationLive"));
   }, [romanLegacyResult, romanOutputFormat, romanResult, t, tool]);
 
+  useEffect(() => {
+    saveTranslationProviderSettings(translationProvider);
+  }, [translationProvider]);
+
+  useEffect(() => {
+    if (translationProvider.provider !== "libretranslate") return;
+    if (!["en", "hi", "bn"].includes(sourceLanguage)) setSourceLanguage("en");
+    if (!["en", "hi", "bn"].includes(targetLanguage)) setTargetLanguage("hi");
+  }, [sourceLanguage, targetLanguage, translationProvider.provider]);
+
   function chooseTool(nextTool: ConverterTool) {
     setTool(nextTool);
     setWarnings([]);
@@ -145,13 +171,29 @@ export function ExchangeConverter() {
     setTranslating(true);
     setStatus(t("translationWorking"));
     try {
-      const result = await translateLanguage({ text: translationSource, sourceLanguage, targetLanguage });
+      const result = await translateLanguage(
+        { text: translationSource, sourceLanguage, targetLanguage },
+        translationProvider,
+      );
       setTranslationOutput(result.translatedText);
-      setStatus(t("translationComplete"));
+      setStatus(`${t("translationComplete")} — ${activeTranslationProvider.name}`);
     } catch (error) {
       setStatus(error instanceof Error ? error.message : t("translationFailed"));
     } finally {
       setTranslating(false);
+    }
+  }
+
+  async function checkProviderConnection() {
+    if (checkingProvider) return;
+    setCheckingProvider(true);
+    setStatus("Checking translation provider…");
+    try {
+      setStatus(await testTranslationProvider(translationProvider));
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : t("translationFailed"));
+    } finally {
+      setCheckingProvider(false);
     }
   }
 
@@ -286,9 +328,9 @@ export function ExchangeConverter() {
     <section className="converter-card" aria-labelledby="converter-title">
       <div className="converter-heading">
         <div><h1 id="converter-title">{t("exchangeConverter")}</h1><p>{t(tool === "legacy" ? "converterSubtitle" : tool === "roman-hindi" ? "romanConverterSubtitle" : "translationSubtitle")}</p></div>
-        <div className={`converter-status-chip${tool === "translation" && !isSupabaseConfigured ? " pending" : ""}`}>
-          {tool === "translation" && !isSupabaseConfigured ? <CloudOff aria-hidden="true" /> : <CheckCircle2 aria-hidden="true" />}
-          {tool === "legacy" ? <>{activeLegacyProfile.name} <ArrowLeftRight aria-hidden="true" /> Unicode</> : tool === "roman-hindi" ? <>Roman <ArrowRight aria-hidden="true" /> {romanOutputFormat === "krutidev" ? "Kruti Dev 010" : t("hindiUnicode")}</> : t(isSupabaseConfigured ? "translationOnline" : "translationSetupRequired")}
+        <div className={`converter-status-chip${tool === "translation" && !translationProviderReady ? " pending" : ""}`}>
+          {tool === "translation" && !translationProviderReady ? <CloudOff aria-hidden="true" /> : <CheckCircle2 aria-hidden="true" />}
+          {tool === "legacy" ? <>{activeLegacyProfile.name} <ArrowLeftRight aria-hidden="true" /> Unicode</> : tool === "roman-hindi" ? <>Roman <ArrowRight aria-hidden="true" /> {romanOutputFormat === "krutidev" ? "Kruti Dev 010" : t("hindiUnicode")}</> : activeTranslationProvider.name}
         </div>
       </div>
 
@@ -300,9 +342,57 @@ export function ExchangeConverter() {
         ))}
       </div>
 
-      {tool === "translation" && !isSupabaseConfigured && (
-        <div className="translation-setup-notice" role="status">
-          <CloudOff aria-hidden="true" /><div><strong>{t("translationSetupTitle")}</strong><p>{t("translationSetupDescription")}</p></div>
+      {tool === "translation" && (
+        <div className="translation-provider-config" aria-label="Translation provider settings">
+          <div className="translation-provider-field">
+            <label htmlFor="translation-provider">Provider</label>
+            <select
+              id="translation-provider"
+              value={translationProvider.provider}
+              onChange={(event) => setTranslationProvider((current) => ({
+                ...current,
+                provider: event.target.value as TranslationProviderId,
+              }))}
+            >
+              {TRANSLATION_PROVIDERS.map((provider) => <option key={provider.id} value={provider.id}>{provider.name}</option>)}
+            </select>
+          </div>
+          {translationProvider.provider === "libretranslate" ? (
+            <>
+              <div className="translation-provider-field translation-provider-url">
+                <label htmlFor="libretranslate-url">Server URL</label>
+                <input
+                  id="libretranslate-url"
+                  value={translationProvider.libreTranslateUrl}
+                  onChange={(event) => setTranslationProvider((current) => ({ ...current, libreTranslateUrl: event.target.value }))}
+                  placeholder="http://127.0.0.1:5000"
+                  spellCheck={false}
+                />
+              </div>
+              <div className="translation-provider-field">
+                <label htmlFor="libretranslate-key">API key <span>optional</span></label>
+                <input
+                  id="libretranslate-key"
+                  type="password"
+                  value={translationProvider.libreTranslateApiKey}
+                  onChange={(event) => setTranslationProvider((current) => ({ ...current, libreTranslateApiKey: event.target.value }))}
+                  placeholder="Session only"
+                  autoComplete="off"
+                />
+              </div>
+            </>
+          ) : (
+            <div className={`translation-provider-message${isSupabaseConfigured ? " ready" : ""}`}>
+              {isSupabaseConfigured ? "Supabase boundary configured" : "Add Supabase URL and publishable key to use Google Cloud."}
+            </div>
+          )}
+          <Button variant="outline" onClick={checkProviderConnection} disabled={checkingProvider || !translationProviderReady}>
+            {checkingProvider ? <LoaderCircle className="spin" aria-hidden="true" /> : <Wifi aria-hidden="true" />} Check provider
+          </Button>
+          <div className="translation-provider-help">
+            <Server aria-hidden="true" />
+            <span><strong>Free open-source mode</strong> runs against your own LibreTranslate server. API keys stay session-only; translation output is rejected when its script does not match the selected language.</span>
+          </div>
         </div>
       )}
 
@@ -312,7 +402,7 @@ export function ExchangeConverter() {
         ) : tool === "roman-hindi" ? (
           <EditorPanel id="roman-editor" tone="roman" title={t("romanHindiSource")} selectedOption="bhashayantra-smart" options={[{ id: "bhashayantra-smart", label: "BhashaYantra Smart — Roman Hindi" }]} onOptionChange={() => undefined} value={romanText} count={characterCounts.roman} isSource onChange={setRomanText} placeholder="mera naam bhasha yantra hai" />
         ) : (
-          <EditorPanel id="translation-source" tone="language" title={t("sourceLanguage")} selectedOption={sourceLanguage} options={TRANSLATION_LANGUAGES.map((language) => ({ id: language.id, label: language.name }))} onOptionChange={(value) => setSourceLanguage(value as TranslationLanguageId)} value={translationSource} count={characterCounts.translationSource} isSource onChange={setTranslationSource} placeholder={t("translationSourcePlaceholder")} />
+          <EditorPanel id="translation-source" tone="language" title={t("sourceLanguage")} selectedOption={sourceLanguage} options={availableTranslationLanguages.map((language) => ({ id: language.id, label: language.name }))} onOptionChange={(value) => setSourceLanguage(value as TranslationLanguageId)} value={translationSource} count={characterCounts.translationSource} isSource onChange={setTranslationSource} placeholder={t("translationSourcePlaceholder")} />
         )}
 
         <div className="converter-middle">
@@ -350,7 +440,7 @@ export function ExchangeConverter() {
             readOnly
           />
         ) : (
-          <EditorPanel id="translation-output" tone="unicode" title={t("targetLanguage")} selectedOption={targetLanguage} options={TRANSLATION_LANGUAGES.map((language) => ({ id: language.id, label: language.name }))} onOptionChange={(value) => setTargetLanguage(value as TranslationLanguageId)} fontFamily={targetLanguage === "en" ? undefined : activeUnicodeFont.cssStack} value={translationOutput} count={characterCounts.translationOutput} isSource={false} onChange={() => undefined} readOnly placeholder={t("translationOutputPlaceholder")} />
+          <EditorPanel id="translation-output" tone="unicode" title={t("targetLanguage")} selectedOption={targetLanguage} options={availableTranslationLanguages.map((language) => ({ id: language.id, label: language.name }))} onOptionChange={(value) => setTargetLanguage(value as TranslationLanguageId)} fontFamily={targetLanguage === "en" ? undefined : activeUnicodeFont.cssStack} value={translationOutput} count={characterCounts.translationOutput} isSource={false} onChange={() => undefined} readOnly placeholder={t("translationOutputPlaceholder")} />
         )}
       </div>
 
@@ -361,7 +451,7 @@ export function ExchangeConverter() {
           <Button variant="danger" onClick={clearSource}><Trash2 aria-hidden="true" /> {t("clear")}</Button>
         </div>
 
-        <Button className="convert-button" onClick={tool === "translation" ? runTranslation : tool === "legacy" ? runLegacyConversion : () => setStatus(t("transliterationLive"))} disabled={!sourceText.trim() || translating || (tool === "translation" && !isSupabaseConfigured)}>
+        <Button className="convert-button" onClick={tool === "translation" ? runTranslation : tool === "legacy" ? runLegacyConversion : () => setStatus(t("transliterationLive"))} disabled={!sourceText.trim() || translating || (tool === "translation" && !translationProviderReady)}>
           {translating ? <LoaderCircle className="spin" aria-hidden="true" /> : tool === "translation" ? <Languages aria-hidden="true" /> : <ArrowLeftRight aria-hidden="true" />}
           {t(tool === "translation" ? "translate" : tool === "roman-hindi" ? "transliterate" : "convert")}
         </Button>
@@ -390,7 +480,7 @@ export function ExchangeConverter() {
       )}
 
       {tool === "translation" && (
-        <div className="translation-provider-note"><Languages aria-hidden="true" /><span><strong>{t("supportedLanguages")}</strong> English, Hindi, Marathi, Punjabi, Bengali, Gujarati</span><small>{t("translationProvider")}</small></div>
+        <div className="translation-provider-note"><Languages aria-hidden="true" /><span><strong>{t("supportedLanguages")}</strong> {availableTranslationLanguages.map((language) => language.name).join(", ")}</span><small>{activeTranslationProvider.name}</small></div>
       )}
 
       <input ref={fileInputRef} type="file" accept=".txt,text/plain" hidden onChange={(event) => handleBrowserFile(event.target.files?.[0])} />

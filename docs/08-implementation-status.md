@@ -42,7 +42,7 @@ Updated: 9 August 2026
 - Supabase schema migrations, Auth ownership foreign keys, RLS policies, triggers, constraints, seed data, and pgTAP policy tests.
 - Local and Supabase preference repository implementations.
 - Free/Pro/Institution product-entitlement vocabulary and profitability-focused packaging documentation.
-- Strict TypeScript, fifty-eight frontend tests, five native Direct Typing composition/lifecycle tests, production web build, and browser visual/interaction QA at 1724×986 and 1280×720.
+- Strict TypeScript, sixty-one frontend tests, seven native Direct Typing composition/lifecycle tests, production web build, and browser visual/interaction QA at 1724×986 and 1280×720.
 - Local Supabase reset, eight pgTAP/RLS tests, and schema linting.
 - Rust formatting and Clippy checks.
 - One local portable development executable; old debug/installer application builds are intentionally not retained.

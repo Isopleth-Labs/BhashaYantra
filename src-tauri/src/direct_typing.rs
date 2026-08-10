@@ -563,11 +563,7 @@ mod windows_service {
                     }
                     if source.pop().is_some() {
                         let next = transform_source(&source, &profile);
-                        record_injection(replace_rendered(
-                            &rendered,
-                            &next,
-                            profile.output_mode == "legacy",
-                        ));
+                        record_injection(replace_rendered(&rendered, &next));
                         rendered = next;
                     } else {
                         record_injection(inject_virtual_key(VK_BACK));
@@ -590,11 +586,7 @@ mod windows_service {
 
                     source.push(character);
                     let next = transform_source(&source, &profile);
-                    record_injection(replace_rendered(
-                        &rendered,
-                        &next,
-                        profile.output_mode == "legacy",
-                    ));
+                    record_injection(replace_rendered(&rendered, &next));
                     rendered = next;
                 }
             }
@@ -888,34 +880,33 @@ mod windows_service {
         pending.clear();
     }
 
-    fn replace_rendered(previous: &str, next: &str, legacy: bool) -> Result<(), String> {
-        if previous.is_empty() {
-            return inject_unicode(next);
-        }
-        if legacy {
-            for _ in previous.chars() {
-                inject_virtual_key(VK_BACK)?;
+    #[derive(Debug, PartialEq, Eq)]
+    struct RenderDelta {
+        delete_characters: usize,
+        insert: String,
+    }
+
+    fn render_delta(previous: &str, next: &str) -> RenderDelta {
+        let mut prefix_bytes = 0usize;
+        for (previous_character, next_character) in previous.chars().zip(next.chars()) {
+            if previous_character != next_character {
+                break;
             }
-        } else {
-            inject_select_previous_word()?;
+            prefix_bytes += previous_character.len_utf8();
         }
-        if next.is_empty() {
-            inject_virtual_key(VK_BACK)
-        } else {
-            inject_unicode(next)
+
+        RenderDelta {
+            delete_characters: previous[prefix_bytes..].chars().count(),
+            insert: next[prefix_bytes..].to_string(),
         }
     }
 
-    fn inject_select_previous_word() -> Result<(), String> {
-        let inputs = vec![
-            virtual_input(VK_CONTROL, false),
-            virtual_input(VK_SHIFT, false),
-            virtual_input(VK_LEFT, false),
-            virtual_input(VK_LEFT, true),
-            virtual_input(VK_SHIFT, true),
-            virtual_input(VK_CONTROL, true),
-        ];
-        inject_inputs(&inputs)
+    fn replace_rendered(previous: &str, next: &str) -> Result<(), String> {
+        let delta = render_delta(previous, next);
+        for _ in 0..delta.delete_characters {
+            inject_virtual_key(VK_BACK)?;
+        }
+        inject_unicode(&delta.insert)
     }
 
     fn inject_shortcut_output(output: &str, shortcut: &DirectTypingShortcut) -> Result<(), String> {
@@ -1025,6 +1016,10 @@ mod windows_service {
                 legacy_to_unicode_pairs: vec![
                     ["d".to_string(), "क".to_string()],
                     ["f".to_string(), "ि".to_string()],
+                    ["e".to_string(), "म".to_string()],
+                    ["s".to_string(), "े".to_string()],
+                    ["j".to_string(), "र".to_string()],
+                    ["k".to_string(), "ा".to_string()],
                 ],
                 unicode_to_legacy_pairs: vec![
                     ["क".to_string(), "d".to_string()],
@@ -1067,6 +1062,53 @@ mod windows_service {
                 .custom_source_mappings
                 .insert("x".to_string(), "d".to_string());
             assert_eq!(transform_source("x", &configured), "क");
+        }
+
+        #[test]
+        fn office_delta_preserves_the_stable_unicode_prefix() {
+            assert_eq!(
+                render_delta("मेर", "मेरा"),
+                RenderDelta {
+                    delete_characters: 0,
+                    insert: "ा".to_string(),
+                }
+            );
+            assert_eq!(
+                render_delta("ि", "कि"),
+                RenderDelta {
+                    delete_characters: 1,
+                    insert: "कि".to_string(),
+                }
+            );
+            assert_eq!(
+                render_delta("मेरा", ""),
+                RenderDelta {
+                    delete_characters: 4,
+                    insert: String::new(),
+                }
+            );
+        }
+
+        #[test]
+        fn office_delta_reconstructs_the_classic_hindi_fixture() {
+            let configured = profile("classic-hindi", "unicode");
+            let mut source = String::new();
+            let mut rendered = String::new();
+            let mut document = String::new();
+
+            for character in "esjk".chars() {
+                source.push(character);
+                let next = transform_source(&source, &configured);
+                let delta = render_delta(&rendered, &next);
+                for _ in 0..delta.delete_characters {
+                    document.pop();
+                }
+                document.push_str(&delta.insert);
+                rendered = next;
+            }
+
+            assert_eq!(document, "मेरा");
+            assert_eq!(rendered, "मेरा");
         }
 
         #[test]

@@ -90,7 +90,7 @@ Technology: Tauri 2 and its Rust project under `src-tauri/`.
 - Explicitly enabled per-keystroke Direct Typing for standard Windows applications.
 - Exposes a small allowlisted command surface to the webview.
 
-The current **Direct Typing** development bridge uses dedicated keyboard/focus-hook and composition threads. Physical printable keys are suppressed once, transformed with the selected in-memory layout profile, and injected once at the target caret. Injected events, BhashaYantra's own process, and Ctrl/Alt/Win shortcuts are excluded. Mouse clicks and navigation reset the transient word buffer; `Ctrl + Alt + F12` is the unconditional emergency-off path. No captured source text is persisted or uploaded.
+The current **Direct Typing** development bridge uses dedicated keyboard/focus-hook and composition threads. Physical printable keys are suppressed once, transformed with the selected in-memory layout profile, and injected once at the target caret. Its Office-safe render delta finds the unchanged Unicode prefix and edits only the changed suffix; it does not rely on Word's language-dependent whole-word selection. Injected events, BhashaYantra's own process, and Ctrl/Alt/Win shortcuts are excluded. Mouse clicks and navigation reset the transient word buffer; `Ctrl + Alt + F12` is the unconditional emergency-off path. No captured source text is persisted or uploaded.
 
 This bridge is not represented as the final Windows IME. `SendInput` is limited by Windows integrity isolation, and low-level hooks require the BhashaYantra process to remain running. A production system keyboard must use a digitally signed Text Services Framework component with its own installation and security review.
 
@@ -102,6 +102,7 @@ This bridge is not represented as the final Windows IME. `SendInput` is limited 
 - Storage is used only for explicitly uploaded content.
 - Drizzle defines the application schema and generates reviewed SQL migrations.
 - The optional `translate-text` Edge Function keeps the Google Cloud Translation credential server-side and accepts only allowlisted language pairs and bounded text.
+- A provider port also supports a local LibreTranslate server. Its URL is validated, remote endpoints require HTTPS, optional keys remain session-only, and returned text must pass provider-identity, unchanged-output, and target-script checks.
 
 ## 4. Security boundary
 
