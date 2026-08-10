@@ -1,16 +1,40 @@
 begin;
-select plan(8);
+select plan(14);
 
 select has_table('public', 'profiles', 'profiles table exists');
 select has_table('public', 'keyboard_layouts', 'keyboard layouts table exists');
 select has_table('public', 'conversion_jobs', 'conversion jobs table exists');
 select has_table('public', 'practice_attempts', 'practice attempts table exists');
+select has_table('public', 'institutions', 'institutions table exists');
+select has_table('public', 'institution_members', 'institution members table exists');
+select has_table('public', 'student_profiles', 'student profiles table exists');
 
 select policies_are(
   'public',
   'profiles',
   array['profiles_select_own', 'profiles_update_own'],
   'profiles exposes only owner policies'
+);
+
+select policies_are(
+  'public',
+  'institutions',
+  array['institutions_create_own', 'institutions_delete_owner', 'institutions_read_membership', 'institutions_update_owner'],
+  'institutions are member-readable and owner-managed'
+);
+
+select policies_are(
+  'public',
+  'institution_members',
+  array['institution_members_manage_owner', 'institution_members_read_self_or_owner'],
+  'institution membership is owner managed'
+);
+
+select policies_are(
+  'public',
+  'student_profiles',
+  array['student_profiles_manage_own', 'student_profiles_read_own_or_institute_owner'],
+  'student profiles are private except verified institute reporting'
 );
 
 select policies_are(

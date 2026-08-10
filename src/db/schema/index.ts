@@ -23,6 +23,9 @@ export const conversionStatus = pgEnum("conversion_status", [
   "completed-with-warnings",
   "failed",
 ]);
+export const accountWorkspaceRole = pgEnum("account_workspace_role", ["student", "institute"]);
+export const institutionMemberRole = pgEnum("institution_member_role", ["owner", "admin", "instructor", "student"]);
+export const institutionMemberStatus = pgEnum("institution_member_status", ["invited", "active", "suspended"]);
 
 const timestamps = {
   createdAt: timestamp("created_at", { withTimezone: true })
@@ -36,7 +39,49 @@ const timestamps = {
 export const profiles = pgTable("profiles", {
   userId: uuid("user_id").primaryKey(),
   displayName: text("display_name"),
+  accountRole: accountWorkspaceRole("account_role").default("student").notNull(),
   preferredLanguage: text("preferred_language").default("hi").notNull(),
+  ...timestamps,
+});
+
+export const institutions = pgTable(
+  "institutions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    ownerUserId: uuid("owner_user_id").notNull(),
+    name: text("name").notNull(),
+    code: text("code").notNull(),
+    seatLimit: integer("seat_limit").default(25).notNull(),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("institutions_code_uidx").on(table.code),
+    index("institutions_owner_idx").on(table.ownerUserId),
+  ],
+);
+
+export const institutionMembers = pgTable(
+  "institution_members",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    institutionId: uuid("institution_id").references(() => institutions.id, { onDelete: "cascade" }).notNull(),
+    userId: uuid("user_id").notNull(),
+    role: institutionMemberRole("role").default("student").notNull(),
+    status: institutionMemberStatus("status").default("invited").notNull(),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("institution_members_institution_user_uidx").on(table.institutionId, table.userId),
+    index("institution_members_user_idx").on(table.userId),
+  ],
+);
+
+export const studentProfiles = pgTable("student_profiles", {
+  userId: uuid("user_id").primaryKey(),
+  institutionId: uuid("institution_id").references(() => institutions.id, { onDelete: "set null" }),
+  candidateId: text("candidate_id"),
+  targetExam: text("target_exam"),
+  studyLanguage: text("study_language").default("hi").notNull(),
   ...timestamps,
 });
 

@@ -2,13 +2,20 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react"
 import {
   AudioLines,
   BarChart3,
+  Building2,
   CheckCircle2,
   Clock3,
+  ExternalLink,
   FileAudio,
+  Gavel,
   Headphones,
+  LockKeyhole,
   Pause,
   Play,
+  Radio,
   RotateCcw,
+  ShieldCheck,
+  SkipForward,
   Square,
   Target,
   Volume2,
@@ -17,184 +24,198 @@ import {
 
 import { Button } from "@/components/ui/button";
 import {
+  buildOriginalStenographyScript,
+  STENOGRAPHY_PROFILES,
+  type StenographyEnvironment,
+  type StenographyProfile,
+} from "@/domain/stenography/stenography-profiles";
+import {
   calculateTranscriptWpm,
-  dictationIntervalMs,
   scoreTranscript,
   tokenizeStenographyText,
   type TranscriptScore,
 } from "@/domain/stenography/stenography-engine";
 import type { TypingLanguageCode } from "@/domain/typing/typing-profiles";
 
-type SessionStatus = "ready" | "running" | "paused" | "finished";
-
-interface DictationPassage {
-  readonly id: string;
-  readonly language: TypingLanguageCode;
-  readonly title: string;
-  readonly category: string;
-  readonly text: string;
-}
+type SessionPhase = "setup" | "countdown" | "dictation" | "paused" | "transcription" | "result";
 
 interface StenographyAttempt {
   readonly id: number;
+  readonly profileId: string;
   readonly title: string;
+  readonly environment: StenographyEnvironment;
   readonly speed: number;
   readonly accuracy: number;
   readonly transcriptWpm: number;
   readonly createdAt: string;
 }
 
-const ATTEMPT_KEY = "bhashayantra:stenography-attempts-v1";
-
-const passages: readonly DictationPassage[] = [
-  {
-    id: "office-order-hi",
-    language: "hi",
-    title: "कार्यालय आदेश",
-    category: "Government office",
-    text: "कार्यालय के सभी कर्मचारियों को सूचित किया जाता है कि मासिक प्रगति बैठक सोमवार को प्रातः दस बजे सम्मेलन कक्ष में आयोजित होगी। प्रत्येक अनुभाग अपना कार्य विवरण और लंबित मामलों की सूची बैठक से पहले प्रस्तुत करेगा।",
-  },
-  {
-    id: "court-note-hi",
-    language: "hi",
-    title: "न्यायालय कार्यवाही",
-    category: "Court practice",
-    text: "माननीय न्यायालय के समक्ष प्रस्तुत अभिलेखों का सावधानीपूर्वक परीक्षण किया गया। संबंधित पक्षों को अगली सुनवाई की तिथि से पूर्व आवश्यक दस्तावेज जमा करने का निर्देश दिया जाता है।",
-  },
-  {
-    id: "public-notice-hi",
-    language: "hi",
-    title: "लोक सूचना",
-    category: "Administrative",
-    text: "जनहित में जारी इस सूचना के अनुसार नागरिक अपनी शिकायत ऑनलाइन पोर्टल अथवा जिला सहायता केंद्र पर दर्ज कर सकते हैं। प्राप्त आवेदन का निस्तारण निर्धारित समय सीमा के भीतर किया जाएगा।",
-  },
-  {
-    id: "official-record-en",
-    language: "en",
-    title: "Official record",
-    category: "Government office",
-    text: "All section officers shall submit the monthly progress report before the review meeting. The report must include completed work, pending cases, and the action proposed for the following week.",
-  },
-  {
-    id: "court-proceeding-en",
-    language: "en",
-    title: "Court proceeding",
-    category: "Court practice",
-    text: "The documents placed on record have been examined carefully. Both parties are directed to file the required statements before the next date of hearing and provide a copy to the opposing counsel.",
-  },
-] as const;
+const ATTEMPT_KEY = "bhashayantra:stenography-attempts-v2";
 
 function loadAttempts(): readonly StenographyAttempt[] {
   try {
     const value: unknown = JSON.parse(localStorage.getItem(ATTEMPT_KEY) ?? "[]");
-    return Array.isArray(value) ? value.filter((item): item is StenographyAttempt => Boolean(item && typeof item === "object" && "accuracy" in item)) : [];
+    return Array.isArray(value) ? value.filter((item): item is StenographyAttempt => Boolean(item && typeof item === "object" && "profileId" in item)) : [];
   } catch {
     return [];
   }
 }
 
+function loadBoolean(key: string, fallback: boolean) {
+  const value = localStorage.getItem(key);
+  return value === null ? fallback : value === "true";
+}
+
 function formatTime(totalSeconds: number) {
-  const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, "0");
-  const seconds = (totalSeconds % 60).toString().padStart(2, "0");
+  const minutes = Math.floor(Math.max(0, totalSeconds) / 60).toString().padStart(2, "0");
+  const seconds = (Math.max(0, totalSeconds) % 60).toString().padStart(2, "0");
   return `${minutes}:${seconds}`;
 }
 
+function phaseLabel(phase: SessionPhase) {
+  if (phase === "countdown") return "Preparing";
+  if (phase === "dictation") return "Dictation live";
+  if (phase === "paused") return "Practice paused";
+  if (phase === "transcription") return "Transcription live";
+  if (phase === "result") return "Session scored";
+  return "Ready to begin";
+}
+
 export function StenographyWorkspace({ defaultLanguage }: { readonly defaultLanguage: TypingLanguageCode }) {
-  const [language, setLanguage] = useState<TypingLanguageCode>(defaultLanguage);
-  const availablePassages = useMemo(() => passages.filter((passage) => passage.language === language), [language]);
-  const [passageId, setPassageId] = useState(() => passages.find((passage) => passage.language === defaultLanguage)?.id ?? passages[0].id);
-  const passage = passages.find((item) => item.id === passageId) ?? availablePassages[0];
-  const words = useMemo(() => tokenizeStenographyText(passage.text), [passage.text]);
-  const [speed, setSpeed] = useState(80);
-  const [status, setStatus] = useState<SessionStatus>("ready");
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
-  const [revealedWords, setRevealedWords] = useState(0);
+  const defaultProfile = STENOGRAPHY_PROFILES.find((item) => item.language === defaultLanguage && item.verification === "practice") ?? STENOGRAPHY_PROFILES[0];
+  const [profileId, setProfileId] = useState(defaultProfile.id);
+  const profile: StenographyProfile = STENOGRAPHY_PROFILES.find((item) => item.id === profileId) ?? defaultProfile;
+  const script = useMemo(() => buildOriginalStenographyScript(profile), [profile]);
+  const [phase, setPhase] = useState<SessionPhase>("setup");
+  const [countdown, setCountdown] = useState(3);
+  const [dictationRemaining, setDictationRemaining] = useState(profile.dictationSeconds);
+  const [transcriptionRemaining, setTranscriptionRemaining] = useState(profile.transcriptionSeconds);
   const [transcript, setTranscript] = useState("");
-  const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [voiceEnabled, setVoiceEnabled] = useState(() => loadBoolean("bhashayantra:steno:voice-v1", true));
   const [score, setScore] = useState<TranscriptScore | null>(null);
   const [attempts, setAttempts] = useState<readonly StenographyAttempt[]>(loadAttempts);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [audioName, setAudioName] = useState("");
   const audioInputRef = useRef<HTMLInputElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const transcriptRef = useRef<HTMLTextAreaElement>(null);
+
+  const officialMode = profile.verification === "official-reference";
+  const dictationProgress = Math.round((1 - dictationRemaining / profile.dictationSeconds) * 100);
+  const transcriptionElapsed = Math.max(1, profile.transcriptionSeconds - transcriptionRemaining);
 
   useEffect(() => {
-    if (!availablePassages.some((item) => item.id === passageId)) {
-      setPassageId(availablePassages[0].id);
+    if (phase !== "countdown") return;
+    if (countdown <= 0) {
+      setPhase("dictation");
+      if (audioUrl) void audioRef.current?.play();
+      else speakScript(profile, script, voiceEnabled);
+      return;
     }
-  }, [availablePassages, passageId]);
+    const timer = window.setTimeout(() => setCountdown((value) => value - 1), 1000);
+    return () => window.clearTimeout(timer);
+  }, [audioUrl, countdown, phase, profile, script, voiceEnabled]);
 
   useEffect(() => {
-    if (status !== "running") return;
-    const timer = window.setInterval(() => setElapsedSeconds((value) => value + 1), 1000);
-    return () => window.clearInterval(timer);
-  }, [status]);
+    if (phase !== "dictation") return;
+    if (dictationRemaining <= 0) {
+      beginTranscription();
+      return;
+    }
+    const timer = window.setTimeout(() => setDictationRemaining((value) => value - 1), 1000);
+    return () => window.clearTimeout(timer);
+  }, [dictationRemaining, phase]);
 
   useEffect(() => {
-    if (status !== "running") return;
-    const timer = window.setInterval(() => {
-      setRevealedWords((value) => {
-        const next = Math.min(value + 1, words.length);
-        if (next >= words.length) window.setTimeout(() => setStatus("finished"), 0);
-        return next;
-      });
-    }, dictationIntervalMs(speed));
-    return () => window.clearInterval(timer);
-  }, [speed, status, words.length]);
+    if (phase !== "transcription") return;
+    if (transcriptionRemaining <= 0) {
+      finishTranscript();
+      return;
+    }
+    const timer = window.setTimeout(() => setTranscriptionRemaining((value) => value - 1), 1000);
+    return () => window.clearTimeout(timer);
+  }, [phase, transcriptionRemaining]);
 
   useEffect(() => () => {
     window.speechSynthesis?.cancel();
     if (audioUrl) URL.revokeObjectURL(audioUrl);
   }, [audioUrl]);
 
-  function speakPassage() {
-    if (!voiceEnabled || audioUrl || !("speechSynthesis" in window)) return;
+  function speakScript(nextProfile: StenographyProfile, text: string, enabled: boolean) {
+    if (!enabled || !("speechSynthesis" in window)) return;
     window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(passage.text);
-    utterance.lang = language === "hi" ? "hi-IN" : "en-IN";
-    utterance.rate = Math.min(1.8, Math.max(0.55, speed / 105));
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = nextProfile.language === "hi" ? "hi-IN" : "en-IN";
+    utterance.rate = Math.min(1.75, Math.max(0.6, nextProfile.dictationWpm / 100));
     window.speechSynthesis.speak(utterance);
   }
 
-  function startSession() {
-    if (status === "finished" || status === "ready") {
-      setElapsedSeconds(0);
-      setRevealedWords(0);
-      setTranscript("");
-      setScore(null);
-    }
-    setStatus("running");
-    if (status === "paused") window.speechSynthesis?.resume();
-    else speakPassage();
-  }
-
-  function pauseSession() {
-    setStatus("paused");
-    window.speechSynthesis?.pause();
-  }
-
-  function resetSession() {
-    setStatus("ready");
-    setElapsedSeconds(0);
-    setRevealedWords(0);
+  function resetSession(nextProfile = profile) {
+    setPhase("setup");
+    setCountdown(3);
+    setDictationRemaining(nextProfile.dictationSeconds);
+    setTranscriptionRemaining(nextProfile.transcriptionSeconds);
     setTranscript("");
     setScore(null);
     window.speechSynthesis?.cancel();
+    audioRef.current?.pause();
+    if (audioRef.current) audioRef.current.currentTime = 0;
   }
 
-  function submitTranscript() {
-    const nextScore = scoreTranscript(passage.text, transcript);
+  function chooseProfile(nextId: string) {
+    const nextProfile = STENOGRAPHY_PROFILES.find((item) => item.id === nextId) ?? profile;
+    setProfileId(nextProfile.id);
+    resetSession(nextProfile);
+  }
+
+  function chooseEnvironment(environment: StenographyEnvironment) {
+    const nextProfile = STENOGRAPHY_PROFILES.find((item) => item.environment === environment && item.language === profile.language)
+      ?? STENOGRAPHY_PROFILES.find((item) => item.environment === environment)
+      ?? profile;
+    chooseProfile(nextProfile.id);
+  }
+
+  function startSession() {
+    resetSession(profile);
+    const useCountdown = loadBoolean("bhashayantra:steno:countdown-v1", true);
+    setPhase(useCountdown ? "countdown" : "dictation");
+    if (!useCountdown) {
+      if (audioUrl) void audioRef.current?.play();
+      else speakScript(profile, script, voiceEnabled);
+    }
+  }
+
+  function pauseSession() {
+    if (officialMode || phase !== "dictation") return;
+    setPhase("paused");
+    window.speechSynthesis?.pause();
+    audioRef.current?.pause();
+  }
+
+  function resumeSession() {
+    setPhase("dictation");
+    window.speechSynthesis?.resume();
+    if (audioUrl) void audioRef.current?.play();
+  }
+
+  function beginTranscription() {
+    window.speechSynthesis?.cancel();
+    audioRef.current?.pause();
+    setPhase("transcription");
+    window.requestAnimationFrame(() => transcriptRef.current?.focus());
+  }
+
+  function finishTranscript() {
+    const nextScore = scoreTranscript(script, transcript);
     const attempt: StenographyAttempt = {
-      id: Date.now(),
-      title: passage.title,
-      speed,
-      accuracy: nextScore.accuracy,
-      transcriptWpm: calculateTranscriptWpm(nextScore.typedWords, Math.max(elapsedSeconds, 1)),
-      createdAt: new Date().toISOString(),
+      id: Date.now(), profileId: profile.id, title: profile.name, environment: profile.environment,
+      speed: profile.dictationWpm, accuracy: nextScore.accuracy,
+      transcriptWpm: calculateTranscriptWpm(nextScore.typedWords, transcriptionElapsed), createdAt: new Date().toISOString(),
     };
-    const nextAttempts = [attempt, ...attempts].slice(0, 8);
+    const nextAttempts = [attempt, ...attempts].slice(0, 12);
     setScore(nextScore);
     setAttempts(nextAttempts);
-    setStatus("finished");
+    setPhase("result");
     localStorage.setItem(ATTEMPT_KEY, JSON.stringify(nextAttempts));
     window.speechSynthesis?.cancel();
   }
@@ -205,71 +226,70 @@ export function StenographyWorkspace({ defaultLanguage }: { readonly defaultLang
     setAudioUrl(URL.createObjectURL(file));
     setAudioName(file.name);
     setVoiceEnabled(false);
-    resetSession();
+    resetSession(profile);
   }
 
-  const progress = words.length ? Math.round((revealedWords / words.length) * 100) : 0;
-  const activeWord = words[Math.min(revealedWords, words.length - 1)] ?? "—";
-
   return (
-    <section className="steno-studio">
+    <section className="steno-studio steno-exam-studio">
       <header className="steno-hero">
-        <div>
-          <span className="page-eyebrow"><AudioLines aria-hidden="true" /> PROFESSIONAL DICTATION WORKSPACE</span>
-          <h1>Stenography Studio</h1>
-          <p>Train listening, shorthand capture, and accurate transcription in one distraction-free session.</p>
-        </div>
-        <div className={`steno-session-status ${status}`}><span />{status === "running" ? "Dictation live" : status === "paused" ? "Session paused" : status === "finished" ? "Ready to review" : "Ready to begin"}</div>
+        <div><span className="page-eyebrow"><AudioLines /> DICTATION & TRANSCRIPTION LAB</span><h1>Stenography Studio</h1><p>Original courtroom and government-office scripts with separate exam-timed dictation and transcription phases.</p></div>
+        <div className={`steno-session-status ${phase}`}><span />{phaseLabel(phase)}</div>
       </header>
 
-      <div className="steno-toolbar">
-        <label><span>Language</span><select value={language} onChange={(event) => { setLanguage(event.target.value as TypingLanguageCode); resetSession(); }}><option value="hi">Hindi</option><option value="en">English</option></select></label>
-        <label className="steno-passage-select"><span>Dictation set</span><select value={passage.id} onChange={(event) => { setPassageId(event.target.value); resetSession(); }}>{availablePassages.map((item) => <option key={item.id} value={item.id}>{item.title} · {item.category}</option>)}</select></label>
-        <label><span>Target speed</span><select value={speed} onChange={(event) => { setSpeed(Number(event.target.value)); resetSession(); }}>{[60, 80, 100, 120, 140].map((value) => <option key={value} value={value}>{value} WPM</option>)}</select></label>
-        <button type="button" className={voiceEnabled ? "steno-voice active" : "steno-voice"} onClick={() => setVoiceEnabled((value) => !value)} disabled={Boolean(audioUrl)}>{voiceEnabled ? <Volume2 /> : <VolumeX />}<span>Voice cue</span><strong>{voiceEnabled ? "On" : "Off"}</strong></button>
+      <div className="steno-environment-grid">
+        <button type="button" className={profile.environment === "courtroom" ? "active" : ""} onClick={() => chooseEnvironment("courtroom")} disabled={phase !== "setup" && phase !== "result"}><Gavel /><span><small>ENVIRONMENT 01</small><strong>Courtroom</strong><em>Orders, evidence, registry, and hearing vocabulary</em></span></button>
+        <button type="button" className={profile.environment === "office" ? "active" : ""} onClick={() => chooseEnvironment("office")} disabled={phase !== "setup" && phase !== "result"}><Building2 /><span><small>ENVIRONMENT 02</small><strong>Government office</strong><em>Noting, dispatch, review, and public-service vocabulary</em></span></button>
       </div>
 
-      <div className="steno-workbench">
+      <div className="steno-profile-console">
+        <label><span>Exam / training profile</span><select value={profile.id} disabled={phase !== "setup" && phase !== "result"} onChange={(event) => chooseProfile(event.target.value)}>{STENOGRAPHY_PROFILES.map((item) => <option key={item.id} value={item.id}>{item.name} · {item.verification === "practice" ? "Guided" : "Official-reference"}</option>)}</select></label>
+        <div><span>Dictation</span><strong>{profile.dictationWpm} WPM · {profile.dictationSeconds / 60} min</strong></div>
+        <div><span>Transcription</span><strong>{profile.transcriptionSeconds / 60} min</strong></div>
+        <div className={`steno-verification ${officialMode ? "official" : "practice"}`}><ShieldCheck /><span>{officialMode ? "Official-reference rules" : "Guided practice"}</span></div>
+      </div>
+
+      <section className="steno-rule-strip">
+        <div><b>{profile.authority}</b><span>{profile.description}</span></div>
+        <ul>{profile.rules.map((rule) => <li key={rule}>{rule}</li>)}</ul>
+        {profile.sourceUrl ? <a href={profile.sourceUrl} target="_blank" rel="noreferrer">{profile.sourceLabel} <ExternalLink /></a> : <span className="original-script-label"><FileAudio /> Original BhashaYantra script</span>}
+      </section>
+
+      <div className="steno-phase-rail" aria-label="Session phases">
+        {(["setup", "dictation", "transcription", "result"] as const).map((item, index) => <div className={(phase === item || (phase === "countdown" && item === "dictation") || (phase === "paused" && item === "dictation")) ? "active" : ""} key={item}><span>{index + 1}</span><b>{item === "setup" ? "Briefing" : item[0].toUpperCase() + item.slice(1)}</b></div>)}
+      </div>
+
+      <div className="steno-workbench exam-phases">
         <article className="dictation-console">
-          <div className="panel-kicker"><Headphones aria-hidden="true" /><span>DICTATION CONSOLE</span><strong>{formatTime(elapsedSeconds)}</strong></div>
-          <div className="dictation-stage">
-            <div className="waveform" aria-hidden="true">{Array.from({ length: 28 }, (_, index) => <i key={index} style={{ height: `${18 + ((index * 17) % 45)}%` }} />)}</div>
-            <span className="dictation-label">{status === "running" ? "Current cue" : "Selected exercise"}</span>
-            <strong className={language === "hi" ? "devanagari" : ""}>{status === "running" ? activeWord : passage.title}</strong>
-            <p>{audioUrl ? `Using imported audio: ${audioName}` : `${words.length} words · synthetic ${language === "hi" ? "Hindi" : "English"} voice available`}</p>
+          <div className="panel-kicker"><Headphones /><span>DICTATION CONSOLE</span><strong>{formatTime(dictationRemaining)}</strong></div>
+          <div className="dictation-stage official-audio-stage">
+            <div className="waveform" aria-hidden="true">{Array.from({ length: 34 }, (_, index) => <i key={index} style={{ height: `${18 + ((index * 17) % 58)}%` }} />)}</div>
+            {phase === "countdown" ? <><span className="dictation-label">GET READY</span><strong className="countdown-number">{Math.max(1, countdown)}</strong><p>Keep your shorthand notebook ready. Transcript entry stays locked.</p></> : <><span className="dictation-label">{phase === "dictation" ? "AUDIO IN PROGRESS" : phase === "transcription" ? "DICTATION COMPLETE" : "SELECTED SESSION"}</span><strong>{profile.shortName}</strong><p>{audioUrl ? `Imported recording · ${audioName}` : `Local narration · original ${profile.language === "hi" ? "Hindi" : "English"} ${profile.environment} script`}</p></>}
           </div>
-          <div className="dictation-progress"><span style={{ width: `${progress}%` }} /></div>
-          {audioUrl && <audio className="steno-audio" controls src={audioUrl} />}
+          <div className="dictation-progress"><span style={{ width: `${dictationProgress}%` }} /></div>
+          {audioUrl && <audio ref={audioRef} className="steno-audio" controls={!officialMode} src={audioUrl} />}
           <div className="dictation-actions">
-            {status === "running" ? <Button onClick={pauseSession}><Pause /> Pause</Button> : <Button onClick={startSession}><Play /> {status === "paused" ? "Resume" : "Start dictation"}</Button>}
-            <Button variant="outline" onClick={resetSession}><RotateCcw /> Reset</Button>
-            <Button variant="outline" onClick={() => audioInputRef.current?.click()}><FileAudio /> Import audio</Button>
+            {(phase === "setup" || phase === "result") && <Button onClick={startSession}><Play /> Start session</Button>}
+            {phase === "dictation" && !officialMode && <Button variant="outline" onClick={pauseSession}><Pause /> Pause</Button>}
+            {phase === "paused" && <Button onClick={resumeSession}><Play /> Resume</Button>}
+            {phase === "dictation" && !officialMode && <Button variant="outline" onClick={beginTranscription}><SkipForward /> Begin transcription</Button>}
+            <Button variant="outline" onClick={() => resetSession(profile)}><RotateCcw /> Reset</Button>
+            <Button variant="outline" onClick={() => audioInputRef.current?.click()} disabled={phase !== "setup"}><FileAudio /> Import audio</Button>
             <input ref={audioInputRef} className="sr-only" type="file" accept="audio/*" onChange={(event) => chooseAudio(event.target.files?.[0])} />
+            <button type="button" className={voiceEnabled ? "steno-inline-voice active" : "steno-inline-voice"} onClick={() => { const next = !voiceEnabled; setVoiceEnabled(next); localStorage.setItem("bhashayantra:steno:voice-v1", String(next)); }} disabled={Boolean(audioUrl) || phase !== "setup"}>{voiceEnabled ? <Volume2 /> : <VolumeX />} Local voice</button>
           </div>
         </article>
 
-        <article className="transcript-console">
-          <div className="panel-kicker"><Square aria-hidden="true" /><span>TRANSCRIPTION PAD</span><strong>{tokenizeStenographyText(transcript).length} words</strong></div>
-          <textarea value={transcript} onChange={(event) => setTranscript(event.target.value)} placeholder="Type the complete transcript here while listening…" aria-label="Stenography transcript" spellCheck={false} />
-          <div className="transcript-footer"><span>Your draft stays on this device.</span><Button onClick={submitTranscript} disabled={!transcript.trim()}><CheckCircle2 /> Score transcript</Button></div>
+        <article className={`transcript-console ${phase !== "transcription" ? "locked" : ""}`}>
+          <div className="panel-kicker"><Square /><span>TRANSCRIPTION WORKSTATION</span><strong>{phase === "transcription" ? formatTime(transcriptionRemaining) : `${tokenizeStenographyText(transcript).length} words`}</strong></div>
+          {phase !== "transcription" && phase !== "result" && <div className="transcript-lock"><LockKeyhole /><strong>Locked during dictation</strong><span>The transcript pad opens only after the dictation phase ends.</span></div>}
+          <textarea ref={transcriptRef} value={transcript} disabled={phase !== "transcription"} onChange={(event) => setTranscript(event.target.value)} placeholder="Transcription phase will open here…" aria-label="Stenography transcript" spellCheck={false} />
+          <div className="transcript-footer"><span>{phase === "transcription" ? "Autosaved locally · submit before time expires" : "Exam phases are enforced locally."}</span><Button onClick={finishTranscript} disabled={phase !== "transcription" || !transcript.trim()}><CheckCircle2 /> Submit transcript</Button></div>
         </article>
       </div>
 
       <div className="steno-insights">
-        <article className="steno-score-card">
-          <div className="panel-kicker"><Target /><span>SESSION SCORE</span></div>
-          {score ? (
-            <div className="score-summary">
-              <div className="score-ring" style={{ "--score": `${score.accuracy * 3.6}deg` } as CSSProperties}><strong>{score.accuracy}%</strong><span>accuracy</span></div>
-              <div className="score-metrics"><span><small>Correct</small><strong>{score.correct}</strong></span><span><small>Missing</small><strong>{score.missing}</strong></span><span><small>Extra</small><strong>{score.extra}</strong></span><span><small>Changed</small><strong>{score.substitutions}</strong></span></div>
-            </div>
-          ) : <div className="empty-score"><Target /><strong>Complete a transcript</strong><span>Accuracy and word-level errors will appear here.</span></div>}
-        </article>
-
-        <article className="steno-history-card">
-          <div className="panel-kicker"><BarChart3 /><span>RECENT ATTEMPTS</span><button type="button" onClick={() => { setAttempts([]); localStorage.removeItem(ATTEMPT_KEY); }} disabled={!attempts.length}>Clear</button></div>
-          {attempts.length ? <div className="steno-attempt-list">{attempts.slice(0, 4).map((attempt) => <div key={attempt.id}><span><strong>{attempt.title}</strong><small>{new Date(attempt.createdAt).toLocaleDateString()} · {attempt.speed} WPM cue</small></span><b>{attempt.accuracy}%</b><em>{attempt.transcriptWpm} WPM</em></div>)}</div> : <div className="empty-score compact"><Clock3 /><span>No saved stenography attempts yet.</span></div>}
-        </article>
+        <article className="steno-score-card"><div className="panel-kicker"><Target /><span>SESSION RESULT</span></div>{score ? <div className="score-summary"><div className="score-ring" style={{ "--score": `${score.accuracy * 3.6}deg` } as CSSProperties}><strong>{score.accuracy}%</strong><span>accuracy</span></div><div className="score-metrics"><span><small>Correct</small><strong>{score.correct}</strong></span><span><small>Missing</small><strong>{score.missing}</strong></span><span><small>Extra</small><strong>{score.extra}</strong></span><span><small>Changed</small><strong>{score.substitutions}</strong></span></div></div> : <div className="empty-score"><Radio /><strong>No result yet</strong><span>Complete both phases to receive an error breakdown.</span></div>}</article>
+        <article className="steno-history-card"><div className="panel-kicker"><BarChart3 /><span>RECENT ATTEMPTS</span><button type="button" onClick={() => { setAttempts([]); localStorage.removeItem(ATTEMPT_KEY); }} disabled={!attempts.length}>Clear</button></div>{attempts.length ? <div className="steno-attempt-list">{attempts.slice(0, 5).map((attempt) => <div key={attempt.id}><span><strong>{attempt.title}</strong><small>{new Date(attempt.createdAt).toLocaleDateString()} · {attempt.environment}</small></span><b>{attempt.accuracy}%</b><em>{attempt.transcriptWpm} WPM</em></div>)}</div> : <div className="empty-score compact"><Clock3 /><span>No saved stenography attempts yet.</span></div>}</article>
       </div>
     </section>
   );

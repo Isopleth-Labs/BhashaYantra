@@ -47,6 +47,7 @@ import { typingSourceToUnicode, unicodeToTypingSource } from "@/domain/typing/ty
 import { getDisplayFont, TYPING_LAYOUT_PROFILES, type ReadyTypingLayoutId, type UnicodeDisplayFontId } from "@/domain/typing/typing-profiles";
 import { LocalTrainingAttemptsRepository, TRAINING_ATTEMPTS_UPDATED_EVENT } from "@/data/repositories/local-training-attempts-repository";
 import { useI18n } from "@/i18n/I18nProvider";
+import { ExamResultReport } from "@/features/training/ExamResultReport";
 
 interface TypingMockExamProps {
   readonly layout: ReadyTypingLayoutId;
@@ -96,11 +97,13 @@ export function TypingMockExam({ layout, displayFont }: TypingMockExamProps) {
   const elapsedBeforeRun = useRef(0);
   const [backspaceCount, setBackspaceCount] = useState(0);
   const [attemptSaved, setAttemptSaved] = useState(false);
+  const [attemptId, setAttemptId] = useState(createAttemptId);
+  const [attemptCompletedAt, setAttemptCompletedAt] = useState(() => new Date());
   const [attempts, setAttempts] = useState<readonly TrainingAttempt[]>([]);
   const [backspacePolicy, setBackspacePolicy] = useState<BackspacePolicy>(examProfiles[0]?.backspacePolicy ?? "full");
   const [highlightMode, setHighlightMode] = useState<PassageHighlightMode>("error-word");
   const [showScrollbar, setShowScrollbar] = useState(true);
-  const [autoScroll, setAutoScroll] = useState(true);
+  const [autoScroll, setAutoScroll] = useState(() => loadBoolean("bhashayantra:exam:auto-scroll-v1", true));
   const [applyLimit, setApplyLimit] = useState(true);
   const [wordLimit, setWordLimit] = useState(600);
   const [allowParagraphs, setAllowParagraphs] = useState(true);
@@ -193,6 +196,7 @@ export function TypingMockExam({ layout, displayFont }: TypingMockExamProps) {
     setRunStartedAt(undefined);
     setBackspaceCount(0);
     setAttemptSaved(false);
+    setAttemptId(createAttemptId());
     resetPassagePosition();
   }
 
@@ -231,6 +235,7 @@ export function TypingMockExam({ layout, displayFont }: TypingMockExamProps) {
       if (nextElapsed >= testDuration) {
         elapsedBeforeRun.current = testDuration;
         setRunStartedAt(undefined);
+        setAttemptCompletedAt(new Date());
         setStatus("expired");
       }
     }, 250);
@@ -258,12 +263,12 @@ export function TypingMockExam({ layout, displayFont }: TypingMockExamProps) {
   useEffect(() => {
     if (!finished || attemptSaved) return;
     const attempt: TrainingAttempt = {
-      id: createAttemptId(),
+      id: attemptId,
       kind: "test",
       layoutId: layout,
       exerciseId: builtInPassage.id,
       examProfileId: selectedProfile.id,
-      completedAt: new Date().toISOString(),
+      completedAt: attemptCompletedAt.toISOString(),
       elapsedSeconds: measuredSeconds,
       accuracy: score.accuracy,
       wpm,
@@ -279,7 +284,7 @@ export function TypingMockExam({ layout, displayFont }: TypingMockExamProps) {
     };
     setAttemptSaved(true);
     void attemptsRepository.save(attempt);
-  }, [attemptSaved, backspaceCount, builtInPassage.id, finished, kdph, layout, measuredSeconds, score, selectedProfile.id, weakKeys, wpm]);
+  }, [attemptCompletedAt, attemptId, attemptSaved, backspaceCount, builtInPassage.id, finished, kdph, layout, measuredSeconds, score, selectedProfile.id, weakKeys, wpm]);
 
   function chooseProfile(profileId: string) {
     const profile = examProfiles.find((item) => item.id === profileId) ?? examProfiles[0];
@@ -303,6 +308,8 @@ export function TypingMockExam({ layout, displayFont }: TypingMockExamProps) {
     elapsedBeforeRun.current = 0;
     setBackspaceCount(0);
     setAttemptSaved(false);
+    setAttemptId(createAttemptId());
+    setAttemptCompletedAt(new Date());
     setStatus("running");
     setRunStartedAt(Date.now());
     window.requestAnimationFrame(() => {
@@ -326,10 +333,12 @@ export function TypingMockExam({ layout, displayFont }: TypingMockExamProps) {
   }
 
   function submitExam() {
+    if (loadBoolean("bhashayantra:exam:confirm-submit-v1", true) && !window.confirm("Submit this test now? The result will be final for this local attempt.")) return;
     const nextElapsed = currentElapsedSeconds();
     elapsedBeforeRun.current = nextElapsed;
     setElapsedSeconds(nextElapsed);
     setRunStartedAt(undefined);
+    setAttemptCompletedAt(new Date());
     setStatus("submitted");
   }
 
@@ -478,24 +487,7 @@ export function TypingMockExam({ layout, displayFont }: TypingMockExamProps) {
             </div>
           </section>
 
-          {finished && (
-            <section className={`mock-result-card ${passed ? "passed" : "needs-work"}`} aria-live="polite">
-              <div><CheckCircle2 aria-hidden="true" /><span>{t("result")}</span><strong>{passed ? t("testPassed") : t("testNeedsPractice")}</strong></div>
-              <MockMetric label="WPM" value={String(wpm)} />
-              <MockMetric label="Gross WPM" value={String(grossWpm)} />
-              <MockMetric label="NWPM" value={String(wordSpeed.netWpm)} />
-              {selectedProfile.scoringModel === "rrb-wpm" && <MockMetric label="RRB WPM" value={String(rrbScore.wpm)} />}
-              <MockMetric label="KDPH" value={String(kdph)} />
-              <MockMetric label={t("accuracy")} value={`${score.accuracy}%`} />
-              <MockMetric label={t("correctCharacters")} value={String(score.correctCharacters)} />
-              <MockMetric label={t("missing")} value={String(score.missingCharacters)} />
-              <MockMetric label={t("extra")} value={String(score.extraCharacters)} />
-              <MockMetric label={t("substitutions")} value={String(score.substitutedCharacters)} />
-              <MockMetric label={t("corrections")} value={String(backspaceCount)} />
-            </section>
-          )}
-
-          {finished && weakKeys.length > 0 && <div className="weak-key-list"><strong>{t("weakKeys")}</strong>{weakKeys.slice(0, 8).map((item) => <span key={item.key}><kbd>{item.key}</kbd> {item.errors}/{item.attempts}</span>)}</div>}
+          {finished && <ExamResultReport passed={passed} attemptId={attemptId} completedAt={attemptCompletedAt} profile={selectedProfile} paperNumber={paperIndex + 1} layoutName={layoutName} durationSeconds={measuredSeconds} measuredSpeed={measuredProfileSpeed} requiredSpeed={requiredProfileSpeed} wpm={wpm} grossWpm={grossWpm} netWpm={wordSpeed.netWpm} rrbWpm={selectedProfile.scoringModel === "rrb-wpm" ? rrbScore.wpm : undefined} kdph={kdph} accuracy={score.accuracy} expectedCharacters={score.expectedCharacters} typedCharacters={score.typedCharacters} correctCharacters={score.correctCharacters} missingCharacters={score.missingCharacters} extraCharacters={score.extraCharacters} substitutedCharacters={score.substitutedCharacters} corrections={backspaceCount} weakKeys={weakKeys} endedByTimer={status === "expired"} onNewTest={resetToReady} />}
           {attemptSaved && <p className="training-saved"><CheckCircle2 aria-hidden="true" /> {t("trainingSaved")}</p>}
 
           <section className="attempt-history compact" aria-labelledby="mock-history-title">
@@ -549,10 +541,6 @@ export function TypingMockExam({ layout, displayFont }: TypingMockExamProps) {
       </div>
     </section>
   );
-}
-
-function MockMetric({ label, value }: { readonly label: string; readonly value: string }) {
-  return <div className="mock-result-metric"><span>{label}</span><strong>{value}</strong></div>;
 }
 
 function RadioOption({ checked, onChange, label }: { readonly checked: boolean; readonly onChange: () => void; readonly label: string }) {
