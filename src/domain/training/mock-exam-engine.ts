@@ -55,6 +55,12 @@ export function applyWordLimit(text: string, enabled: boolean, requestedLimit: n
   return output.trimEnd();
 }
 
+export function applyKeystrokeLimit(text: string, enabled: boolean, requestedLimit: number) {
+  if (!enabled) return text;
+  const limit = Math.max(1, Math.floor(requestedLimit));
+  return Array.from(text).slice(0, limit).join("").trimEnd();
+}
+
 function characterDistance(left: string, right: string) {
   const a = Array.from(left.toLocaleLowerCase());
   const b = Array.from(right.toLocaleLowerCase());

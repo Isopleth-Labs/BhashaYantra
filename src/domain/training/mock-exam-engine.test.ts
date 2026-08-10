@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  applyKeystrokeLimit,
   applyWordLimit,
   calculateRrbTypingScore,
   countWords,
@@ -17,6 +18,12 @@ describe("mock exam engine", () => {
     expect(formatted).toBe("First line. Second line here.");
     expect(applyWordLimit(formatted, true, 3)).toBe("First line. Second");
     expect(countWords(applyWordLimit(formatted, true, 3))).toBe(3);
+  });
+
+  it("applies an exact Unicode-safe keystroke limit", () => {
+    expect(applyKeystrokeLimit("abc देवनागरी", true, 7)).toBe("abc देव");
+    expect(applyKeystrokeLimit("abc ", true, 4)).toBe("abc");
+    expect(applyKeystrokeLimit("unchanged", false, 2)).toBe("unchanged");
   });
 
   it("marks the current letter and incorrect word", () => {

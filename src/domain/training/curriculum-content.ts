@@ -1,6 +1,6 @@
 import { HINDI_PROFESSIONAL_LEXICON } from "@/domain/typing/hindi-professional-lexicon";
 
-export type CanonicalCurriculumStageId = "learn-keys" | "practice-words" | "sentences" | "paragraphs";
+export type CanonicalCurriculumStageId = "learn-keys" | "practice-words" | "numeric-entry" | "sentences" | "paragraphs";
 export type LessonPracticeMode = "guided" | "accuracy" | "flow" | "exam";
 
 export interface CanonicalDrillBlock {
@@ -32,6 +32,12 @@ interface KeyModule {
 interface WordModule {
   readonly title: string;
   readonly words: readonly string[];
+}
+
+interface NumericModule {
+  readonly title: string;
+  readonly objective: string;
+  readonly records: readonly string[];
 }
 
 const KEY_DRILLS = [
@@ -84,6 +90,59 @@ const HINDI_KEY_MODULES: readonly KeyModule[] = [
   { title: "Ba Matra Series", objective: "Repeat a full matra family with BA.", keys: ["bi", "bu", "be", "bo"] },
   { title: "Sanyukt Akshar", objective: "Build the common KSH, TRA, GYA, and SHRA combinations.", keys: ["ksha", "tra", "gya", "shra"] },
   { title: "Professional Review", objective: "Combine vowels, matras, consonants, and conjuncts.", keys: ["kary", "kram", "lakshya", "shuddhata"] },
+];
+
+const NUMERIC_MODULES: readonly NumericModule[] = [
+  {
+    title: "Number Row Control",
+    objective: "Reach every number-row key without lifting the palms from the home position.",
+    records: ["12345", "67890", "13579", "24680", "10203", "40506", "70809", "11223", "44556", "77889"],
+  },
+  {
+    title: "Amounts and Decimals",
+    objective: "Enter amounts with consistent decimal placement and digit grouping.",
+    records: ["125.50", "980.75", "2400.00", "36.25", "718.40", "5050.90", "84.05", "1299.99", "640.30", "275.80"],
+  },
+  {
+    title: "Dates and Periods",
+    objective: "Copy common administrative date formats without transposition errors.",
+    records: ["01-04-2026", "15-05-2026", "30-06-2026", "07-07-2026", "18-08-2026", "29-09-2026", "10-10-2026", "21-11-2026", "31-12-2026", "2026-08-10"],
+  },
+  {
+    title: "Time and Duration",
+    objective: "Build accurate time-entry rhythm using hours, minutes, and duration fields.",
+    records: ["08:30", "09:45", "10:15", "11:50", "12:05", "13:20", "14:40", "15:55", "16:10", "17:35"],
+  },
+  {
+    title: "Percentages and Rates",
+    objective: "Enter percentages and rates while preserving their decimal precision.",
+    records: ["5%", "7.5%", "12%", "18.25%", "24%", "33.3%", "45%", "62.5%", "78%", "99.9%"],
+  },
+  {
+    title: "Reference Numbers",
+    objective: "Copy fixed-length application and file references exactly as displayed.",
+    records: ["104205", "218430", "326715", "440028", "552190", "663504", "774861", "885273", "906417", "990052"],
+  },
+  {
+    title: "Registers and Ledgers",
+    objective: "Move steadily across serial, quantity, rate, and total fields.",
+    records: ["001 12 45.00", "002 08 72.50", "003 25 18.40", "004 16 96.00", "005 30 11.75", "006 05 240.00", "007 48 9.50", "008 14 63.25", "009 21 31.80", "010 10 125.00"],
+  },
+  {
+    title: "Statistics and Totals",
+    objective: "Copy grouped totals, averages, and counts used in routine reports.",
+    records: ["1250 250 5.0", "1840 368 4.8", "2265 453 5.0", "3175 635 5.0", "4080 816 5.0", "5125 1025 5.0", "6240 1248 5.0", "7355 1471 5.0", "8460 1692 5.0", "9575 1915 5.0"],
+  },
+  {
+    title: "Codes and Measurements",
+    objective: "Practise mixed numeric codes, dimensions, and decimal measurements.",
+    records: ["101 12.5 8.0", "202 18.0 6.5", "303 24.5 9.0", "404 30.0 12.5", "505 42.5 15.0", "606 55.0 18.5", "707 68.5 21.0", "808 72.0 24.5", "909 85.5 27.0", "100 96.0 30.5"],
+  },
+  {
+    title: "Professional Data Entry",
+    objective: "Combine dates, references, amounts, percentages, and totals in one sustained run.",
+    records: ["001 01-04-2026 125.50 5%", "002 15-05-2026 980.75 7.5%", "003 30-06-2026 2400.00 12%", "004 07-07-2026 718.40 18.25%", "005 18-08-2026 5050.90 24%", "006 29-09-2026 1299.99 33.3%", "007 10-10-2026 640.30 45%", "008 21-11-2026 275.80 62.5%", "009 31-12-2026 84.05 78%", "010 2026-08-10 36.25 99.9%"],
+  },
 ];
 
 function words(value: string) {
@@ -370,6 +429,53 @@ function buildWordLesson(index: number, english: boolean): CanonicalLessonSeed {
   };
 }
 
+function buildNumericLesson(index: number): CanonicalLessonSeed {
+  const variationCount = 4;
+  const moduleIndex = Math.floor(index / variationCount);
+  const variation = index % variationCount;
+  const module = NUMERIC_MODULES[moduleIndex];
+  const nearbyRecords = [-1, 0, 1]
+    .map((offset) => NUMERIC_MODULES[(moduleIndex + NUMERIC_MODULES.length + offset) % NUMERIC_MODULES.length])
+    .flatMap((item) => item.records);
+  const selected = rotateUnique(nearbyRecords, moduleIndex * 3 + variation * 5, 18 + variation * 2);
+  const accuracyRows = [...selected, ...rotateUnique(selected, variation + 3, selected.length)];
+  const timedRows = [
+    ...rotateUnique(selected, variation * 2 + 5, selected.length),
+    ...rotateUnique(selected, variation * 3 + 9, selected.length),
+    ...rotateUnique(selected, variation * 5 + 13, selected.length),
+  ];
+  const drillBlocks: readonly CanonicalDrillBlock[] = [
+    {
+      label: "Reach pattern",
+      purpose: "Warm up the required number-row movement before entering full records.",
+      content: fillDrill(module.records, variation * 2, 90 + variation * 15),
+    },
+    {
+      label: "Accuracy fields",
+      purpose: "Copy two controlled rounds and verify every separator and decimal place.",
+      content: accuracyRows.join(" "),
+    },
+    {
+      label: "Timed data run",
+      purpose: "Maintain a steady professional data-entry pace without skipping fields.",
+      content: timedRows.join(" "),
+    },
+  ];
+  return {
+    title: `${module.title} — Data Set ${variation + 1}`,
+    moduleTitle: module.title,
+    drillLabel: `Data Set ${variation + 1}`,
+    objective: `${module.objective} Complete all three blocks with exact separators and no transposed digits.`,
+    content: drillBlocks.map((block) => block.content).join("\n"),
+    competency: module.title,
+    practiceMode: variation < 2 ? "accuracy" : "flow",
+    requiredPasses: variation < 3 ? 1 : 2,
+    drillBlocks,
+    minimumAccuracy: Math.min(99, 96 + Math.floor(index / 20)),
+    targetWpm: 18 + Math.floor(index / 8),
+  };
+}
+
 function englishSentence(seed: number) {
   const subject = ENGLISH_SENTENCE_SUBJECTS[seed % ENGLISH_SENTENCE_SUBJECTS.length];
   const action = ENGLISH_SENTENCE_ACTIONS[Math.floor(seed / ENGLISH_SENTENCE_SUBJECTS.length) % ENGLISH_SENTENCE_ACTIONS.length];
@@ -447,6 +553,7 @@ function buildParagraphLesson(index: number, english: boolean): CanonicalLessonS
 export function buildCanonicalLesson(stageId: CanonicalCurriculumStageId, index: number, english: boolean) {
   if (stageId === "learn-keys") return buildKeyLesson(index, english);
   if (stageId === "practice-words") return buildWordLesson(index, english);
+  if (stageId === "numeric-entry") return buildNumericLesson(index);
   if (stageId === "sentences") return buildSentenceLesson(index, english);
   return buildParagraphLesson(index, english);
 }

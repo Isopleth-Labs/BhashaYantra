@@ -71,6 +71,10 @@ function createAttemptId() {
   return globalThis.crypto?.randomUUID?.() ?? `attempt-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
+function practicePositionKey(courseId: string) {
+  return `bhashayantra:training:position-v1:${courseId}`;
+}
+
 export function TypingTraining({ kind, layout, displayFont }: TypingTrainingProps) {
   const { language, t } = useI18n();
   const course = useMemo(() => getCurriculumCourse(layout), [layout]);
@@ -166,8 +170,22 @@ export function TypingTraining({ kind, layout, displayFont }: TypingTrainingProp
 
   useEffect(() => {
     const profile = examProfiles[0];
-    setStageId("learn-keys");
-    setExerciseIndex(0);
+    let nextStageId: CurriculumStageId = "learn-keys";
+    let nextExerciseIndex = 0;
+    if (kind === "practice") {
+      try {
+        const saved = JSON.parse(localStorage.getItem(practicePositionKey(course.id)) ?? "null") as { stageId?: CurriculumStageId; exerciseIndex?: number } | null;
+        const savedStage = course.stages.find((stage) => stage.id === saved?.stageId);
+        if (savedStage) {
+          nextStageId = savedStage.id;
+          nextExerciseIndex = Math.min(savedStage.exercises.length - 1, Math.max(0, Math.floor(saved?.exerciseIndex ?? 0)));
+        }
+      } catch {
+        localStorage.removeItem(practicePositionKey(course.id));
+      }
+    }
+    setStageId(nextStageId);
+    setExerciseIndex(nextExerciseIndex);
     setExamProfileId(profile?.id ?? "");
     setTestDuration(profile?.durationSeconds ?? 300);
     setBackspacePolicy(kind === "practice" ? "full" : profile?.backspacePolicy ?? "full");
@@ -227,11 +245,13 @@ export function TypingTraining({ kind, layout, displayFont }: TypingTrainingProp
   function chooseStage(nextStageId: CurriculumStageId) {
     setStageId(nextStageId);
     setExerciseIndex(0);
+    if (kind === "practice") localStorage.setItem(practicePositionKey(course.id), JSON.stringify({ stageId: nextStageId, exerciseIndex: 0 }));
     resetSession();
   }
 
   function chooseExercise(nextIndex: number) {
     setExerciseIndex(nextIndex);
+    if (kind === "practice") localStorage.setItem(practicePositionKey(course.id), JSON.stringify({ stageId: selectedStage.id, exerciseIndex: nextIndex }));
     resetSession();
   }
 
@@ -322,6 +342,7 @@ export function TypingTraining({ kind, layout, displayFont }: TypingTrainingProp
     "practice-words": t("practiceWords"),
     sentences: t("typeSentences"),
     paragraphs: t("typeParagraphs"),
+    "numeric-entry": t("numberDataEntry"),
   };
 
   function examProfileName(profileId: string) {
@@ -359,7 +380,6 @@ export function TypingTraining({ kind, layout, displayFont }: TypingTrainingProp
             })}
           </div>
           <button type="button" className="academy-instruction-link" onClick={() => setShowInstructions((current) => !current)}><BookOpenCheck aria-hidden="true" /> {showInstructions ? "Hide course method" : "View course method"}</button>
-          {showInstructions && <ol className="academy-method"><li>Choose any stage or lesson at any time.</li><li>The recommended path still runs from keys to paragraphs.</li><li>Accuracy gates measure mastery without blocking access.</li><li>Mock Tests stay available throughout the course.</li></ol>}
           <div className="academy-module">
             <span>Current module</span><strong>{exercise.moduleTitle}</strong><small>{exercise.phaseTitle}</small>
             {moduleExercises.map((item) => {
@@ -369,7 +389,7 @@ export function TypingTraining({ kind, layout, displayFont }: TypingTrainingProp
           </div>
         </aside>
 
-        <main className="academy-workbench">
+        <main className={`academy-workbench ${showInstructions ? "method-open" : ""}`}>
           <div className="academy-lessonbar">
             <label><span>Lesson</span><select value={exerciseIndex} onChange={(event) => chooseExercise(Number(event.target.value))}>{selectedStage.exercises.map((item, index) => <option key={item.id} value={index}>{completedExerciseIds.has(item.id) ? "✓" : "○"} {String(item.sequence).padStart(2, "0")} · {item.title}</option>)}</select></label>
             <span className={`tier-badge ${exercise.tier}`}>{exercise.tier === "free" ? t("free") : t("pro")}</span>
@@ -377,6 +397,7 @@ export function TypingTraining({ kind, layout, displayFont }: TypingTrainingProp
             <span>{exercise.estimatedSeconds}s</span>
           </div>
 
+          {showInstructions ? <CourseOrientation stageLabels={stageLabels} stageIds={course.stages.map((stage) => stage.id)} /> : <>
           <section className="academy-brief" aria-labelledby="lesson-overview-title"><div><span>{exercise.phaseTitle} · Module {exercise.moduleLesson}/{exercise.moduleLessonCount}</span><h2 id="lesson-overview-title">{exercise.title}</h2><p>{exercise.objective}</p></div><dl><div><dt>Accuracy gate</dt><dd>{exercise.minimumAccuracy}%</dd></div><div><dt>Target pace</dt><dd>{exercise.targetWpm} WPM</dd></div><div><dt>Clean runs</dt><dd>{currentMasteryPasses}/{exercise.requiredPasses}</dd></div></dl></section>
 
           <div className="drill-track" aria-label="Lesson drill sequence">{exercise.drillBlocks.map((block, index) => <div key={block.label} className={index < activeBlockIndex || activeBlockIndex < 0 ? "done" : index === activeBlockIndex ? "active" : ""}><span>{index + 1}</span><strong>{block.label}</strong><small>{block.purpose}</small></div>)}</div>
@@ -398,6 +419,7 @@ export function TypingTraining({ kind, layout, displayFont }: TypingTrainingProp
           </div>
 
           {showKeyboard && <div className="training-keyboard academy-keyboard" aria-label={t("showCourseKeyboard")}>{keyboard.map((row, rowIndex) => <div className="training-keyboard-row" key={rowIndex}>{row.map((keyDefinition) => { const insertion = nextExpected?.key === keyDefinition.shiftKey ? keyDefinition.shiftKey : keyDefinition.key; const highlighted = nextExpected?.key === keyDefinition.key || nextExpected?.key === keyDefinition.shiftKey; return <button type="button" key={keyDefinition.key} className={`${keyDefinition.width ?? ""} ${highlighted ? "next" : ""}`} onClick={() => insertVirtualKey(insertion ?? keyDefinition.key)}><small>{keyDefinition.shiftLabel}</small><strong>{keyDefinition.label}</strong><span>{keyDefinition.key === " " ? t("space") : keyDefinition.key.toLocaleUpperCase()}</span></button>; })}</div>)}</div>}
+          </>}
         </main>
 
         <aside className="academy-coach" aria-label="Live coach">
@@ -418,6 +440,25 @@ export function TypingTraining({ kind, layout, displayFont }: TypingTrainingProp
       </div>
     </section>
   );
+}
+
+function CourseOrientation({ stageLabels, stageIds }: { readonly stageLabels: Record<CurriculumStageId, string>; readonly stageIds: readonly CurriculumStageId[] }) {
+  const fingerZones = [
+    ["Left little", "1 Q A Z"], ["Left ring", "2 W S X"], ["Left middle", "3 E D C"], ["Left index", "4 5 R T F G V B"],
+    ["Right index", "6 7 Y U H J N M"], ["Right middle", "8 I K ,"], ["Right ring", "9 O L ."], ["Right little", "0 P [ ] ; ' / - = \\"],
+  ] as const;
+  return <section className="academy-orientation" aria-labelledby="course-method-title">
+    <header><span>Course method</span><h2 id="course-method-title">Professional touch-typing orientation</h2><p>Learn one controlled movement at a time, return every finger to the home row, and progress only after an accurate clean run.</p></header>
+    <div className="orientation-foundation">
+      <article><strong>1. Posture and sight line</strong><p>Sit upright with relaxed shoulders, wrists neutral and feet supported. Keep your eyes on the source copy; do not chase the on-screen keyboard.</p></article>
+      <article><strong>2. Home-row anchors</strong><p>Find the raised marks on F and J without looking. Rest both thumbs lightly over Space and return each finger after every keystroke.</p></article>
+      <article><strong>3. Accuracy before speed</strong><p>Use the required finger even when another feels faster. Error sound, move-on-error and backspace policy can simulate your target exam.</p></article>
+      <article><strong>4. Measured progression</strong><p>Complete the warm-up, control, application and checkpoint blocks. Accuracy gates record mastery but never lock lessons.</p></article>
+    </div>
+    <div className="orientation-fingers"><div><span>Left hand</span><strong>F is the left anchor</strong></div>{fingerZones.slice(0, 4).map(([finger, keys]) => <article key={finger}><span>{finger}</span><kbd>{keys}</kbd></article>)}<div><span>Right hand</span><strong>J is the right anchor</strong></div>{fingerZones.slice(4).map(([finger, keys]) => <article key={finger}><span>{finger}</span><kbd>{keys}</kbd></article>)}</div>
+    <div className="orientation-route" style={{ gridTemplateColumns: `1.35fr repeat(${stageIds.length}, minmax(0, 1fr))` }}><strong>Recommended course route</strong>{stageIds.map((stageId, index) => <span key={stageId}><em>{index + 1}</em>{stageLabels[stageId]}</span>)}</div>
+    <footer><strong>Exam habit:</strong> read the rules before every attempt. Recruitment duration, correction, font, layout and scoring rules can change; use the verified profile and confirm the current notice.</footer>
+  </section>;
 }
 
 function TrainingMetric({ label, value }: { readonly label: string; readonly value: string }) {

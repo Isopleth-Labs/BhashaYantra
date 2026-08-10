@@ -31,8 +31,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { playTypingFeedback } from "@/application/typing-feedback";
 import { getCurriculumCourse } from "@/domain/training/curriculum-catalog";
-import { getExamPassage, getExamProfilesForLayout, type BackspacePolicy } from "@/domain/training/exam-profiles";
+import { getExamPassage, getExamProfilesForLayout, type BackspacePolicy, type ExamProfile } from "@/domain/training/exam-profiles";
 import {
+  applyKeystrokeLimit,
   applyWordLimit,
   calculateRrbTypingScore,
   countWords,
@@ -83,6 +84,11 @@ function formatTime(seconds: number) {
   return `${String(minutes).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
 }
 
+function profileKeystrokeLimit(profile?: ExamProfile) {
+  if (!profile?.targetKdph) return 1250;
+  return Math.max(200, Math.round((profile.targetKdph * profile.durationSeconds) / 3600));
+}
+
 export function TypingMockExam({ layout, displayFont }: TypingMockExamProps) {
   const { language, t } = useI18n();
   const course = useMemo(() => getCurriculumCourse(layout), [layout]);
@@ -106,6 +112,8 @@ export function TypingMockExam({ layout, displayFont }: TypingMockExamProps) {
   const [autoScroll, setAutoScroll] = useState(() => loadBoolean("bhashayantra:exam:auto-scroll-v1", true));
   const [applyLimit, setApplyLimit] = useState(true);
   const [wordLimit, setWordLimit] = useState(600);
+  const [applyKeyLimit, setApplyKeyLimit] = useState(() => Boolean(examProfiles[0]?.targetKdph));
+  const [keystrokeLimit, setKeystrokeLimit] = useState(() => profileKeystrokeLimit(examProfiles[0]));
   const [allowParagraphs, setAllowParagraphs] = useState(true);
   const [allowTabs, setAllowTabs] = useState(false);
   const [allowCorrection, setAllowCorrection] = useState(true);
@@ -128,14 +136,15 @@ export function TypingMockExam({ layout, displayFont }: TypingMockExamProps) {
     [customTarget, layout],
   );
   const textOptions = useMemo(() => ({ allowParagraphs, allowTabs }), [allowParagraphs, allowTabs]);
-  const expected = useMemo(
-    () => applyWordLimit(formatExamText(customTarget ?? builtInPassage.target, textOptions), applyLimit, wordLimit),
-    [applyLimit, builtInPassage.target, customTarget, textOptions, wordLimit],
-  );
   const expectedKeys = useMemo(
-    () => applyWordLimit(formatExamText(customKeys ?? builtInPassage.keys, textOptions), applyLimit, wordLimit),
-    [applyLimit, builtInPassage.keys, customKeys, textOptions, wordLimit],
+    () => applyKeystrokeLimit(
+      applyWordLimit(formatExamText(customKeys ?? builtInPassage.keys, textOptions), applyLimit, wordLimit),
+      applyKeyLimit,
+      keystrokeLimit,
+    ),
+    [applyKeyLimit, applyLimit, builtInPassage.keys, customKeys, keystrokeLimit, textOptions, wordLimit],
   );
+  const expected = useMemo(() => typingSourceToUnicode(expectedKeys, layout).output, [expectedKeys, layout]);
   const actual = useMemo(() => typingSourceToUnicode(source, layout).output, [layout, source]);
   const finished = status === "submitted" || status === "expired";
   const score = useMemo(() => calculateTrainingScore(expected, actual, finished ? "final" : "live"), [actual, expected, finished]);
@@ -218,6 +227,8 @@ export function TypingMockExam({ layout, displayFont }: TypingMockExamProps) {
     setBackspacePolicy(profile?.backspacePolicy ?? "full");
     setApplyLimit(true);
     setWordLimit(profile?.expectedWords ?? 600);
+    setApplyKeyLimit(Boolean(profile?.targetKdph));
+    setKeystrokeLimit(profileKeystrokeLimit(profile));
     setAllowCorrection(profile?.backspacePolicy !== "disabled");
     setPaperIndex(0);
     resetToReady();
@@ -293,6 +304,8 @@ export function TypingMockExam({ layout, displayFont }: TypingMockExamProps) {
     setBackspacePolicy(profile.backspacePolicy);
     setApplyLimit(true);
     setWordLimit(profile.expectedWords);
+    setApplyKeyLimit(Boolean(profile.targetKdph));
+    setKeystrokeLimit(profileKeystrokeLimit(profile));
     setAllowCorrection(profile.backspacePolicy !== "disabled");
     resetToReady();
   }
@@ -525,6 +538,8 @@ export function TypingMockExam({ layout, displayFont }: TypingMockExamProps) {
             <legend>{t("paragraphSettings")}</legend>
             <CheckOption checked={applyLimit} onChange={setApplyLimit} label={t("applyWordLimit")} />
             <label className="mock-number-field">{t("wordLimit")}<input type="number" min="150" max="1200" step="50" disabled={!applyLimit} value={wordLimit} onChange={(event) => setWordLimit(Math.min(1200, Math.max(150, Number(event.target.value))))} /><small>150–1200</small></label>
+            <CheckOption checked={applyKeyLimit} onChange={setApplyKeyLimit} label={t("applyKeystrokeLimit")} />
+            <label className="mock-number-field">{t("keystrokeLimit")}<input type="number" min="200" max="50000" step="50" disabled={!applyKeyLimit} value={keystrokeLimit} onChange={(event) => setKeystrokeLimit(Math.min(50000, Math.max(200, Number(event.target.value))))} /><small>200–50000</small></label>
           </fieldset>
           <fieldset disabled={!canConfigure}>
             <legend>{t("wordProcessorMode")}</legend>

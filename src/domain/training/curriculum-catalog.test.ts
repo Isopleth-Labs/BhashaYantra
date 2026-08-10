@@ -15,21 +15,22 @@ const READY_LAYOUTS: readonly ReadyTypingLayoutId[] = [
 ];
 
 describe("curriculum catalog", () => {
-  it("provides 2,820 structured original exercises", () => {
+  it("provides 2,860 structured original exercises", () => {
     expect(getCurriculumCatalogSummary()).toEqual({
       courseCount: 6,
-      exerciseCount: 2820,
-      freeExerciseCount: 240,
+      exerciseCount: 2860,
+      freeExerciseCount: 250,
     });
   }, 15_000);
 
-  it("builds 470 unique and executable exercises for every ready layout", () => {
+  it("builds a deep, unique, executable course for every ready layout", () => {
     for (const layout of READY_LAYOUTS) {
       const course = getCurriculumCourse(layout);
       const exercises = course.stages.flatMap((stage) => stage.exercises);
-      expect(exercises).toHaveLength(470);
-      expect(new Set(exercises.map((exercise) => exercise.id)).size).toBe(470);
-      expect(new Set(exercises.map((exercise) => exercise.keys)).size).toBe(470);
+      const expectedCount = layout === "english-qwerty" ? 510 : 470;
+      expect(exercises).toHaveLength(expectedCount);
+      expect(new Set(exercises.map((exercise) => exercise.id)).size).toBe(expectedCount);
+      expect(new Set(exercises.map((exercise) => exercise.keys)).size).toBe(expectedCount);
       expect(exercises.every((exercise) => exercise.keys.length > 0 && exercise.target.length > 0)).toBe(true);
       const mismatched = exercises.filter((exercise) => typingSourceToUnicode(exercise.keys, layout).output !== exercise.target);
       expect(mismatched.slice(0, 5).map((exercise) => ({
@@ -54,8 +55,10 @@ describe("curriculum catalog", () => {
       const wordLessons = course.stages.find((stage) => stage.id === "practice-words")?.exercises ?? [];
       const sentenceLessons = course.stages.find((stage) => stage.id === "sentences")?.exercises ?? [];
       const paragraphLessons = course.stages.find((stage) => stage.id === "paragraphs")?.exercises ?? [];
+      const numericLessons = course.stages.find((stage) => stage.id === "numeric-entry")?.exercises ?? [];
 
-      expect(new Set(exercises.map((exercise) => exercise.title)).size).toBe(470);
+      const expectedCount = layout === "english-qwerty" ? 510 : 470;
+      expect(new Set(exercises.map((exercise) => exercise.title)).size).toBe(expectedCount);
       expect(exercises.every((exercise) => exercise.objective.length >= 40)).toBe(true);
       expect(exercises.every((exercise) => exercise.phaseTitle.length > 0 && exercise.competency.length > 0)).toBe(true);
       expect(exercises.every((exercise) => exercise.requiredPasses >= 1 && exercise.requiredPasses <= 3)).toBe(true);
@@ -68,6 +71,12 @@ describe("curriculum catalog", () => {
       expect(wordLessons.every((exercise) => exercise.moduleLessonCount === 4)).toBe(true);
       expect(sentenceLessons.filter((exercise) => exercise.wordCount < 70).map((exercise) => ({ id: exercise.id, words: exercise.wordCount }))).toEqual([]);
       expect(paragraphLessons.filter((exercise) => exercise.wordCount < 180 || !exercise.keys.includes("\n\n")).map((exercise) => ({ id: exercise.id, words: exercise.wordCount }))).toEqual([]);
+      expect(numericLessons).toHaveLength(layout === "english-qwerty" ? 40 : 0);
+      if (layout === "english-qwerty") {
+        expect(new Set(numericLessons.map((exercise) => exercise.moduleTitle)).size).toBe(10);
+        expect(numericLessons.every((exercise) => exercise.moduleLessonCount === 4 && exercise.drillBlocks.length === 3)).toBe(true);
+        expect(numericLessons.every((exercise) => /\d/u.test(exercise.target))).toBe(true);
+      }
 
       for (const exercise of wordLessons) {
         const words = exercise.target.trim().split(/\s+/u);

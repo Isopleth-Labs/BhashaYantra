@@ -2,7 +2,7 @@ import { typingSourceToUnicode, unicodeToTypingSource } from "@/domain/typing/ty
 import { TYPING_LAYOUT_PROFILES, type ReadyTypingLayoutId, type TypingLanguageCode } from "@/domain/typing/typing-profiles";
 import { buildCanonicalLesson, type LessonPracticeMode } from "@/domain/training/curriculum-content";
 
-export type CurriculumStageId = "learn-keys" | "practice-words" | "sentences" | "paragraphs";
+export type CurriculumStageId = "learn-keys" | "practice-words" | "numeric-entry" | "sentences" | "paragraphs";
 export type ExerciseTier = "free" | "pro";
 
 export interface CurriculumDrillBlock {
@@ -77,6 +77,7 @@ const STAGE_DEFINITIONS: readonly {
 }[] = [
   { id: "learn-keys", title: "Learn Keys", description: "Build key and finger memory with focused repetitions.", count: 60, difficulty: 1 },
   { id: "practice-words", title: "Practice Words", description: "Build alphabetic control, then master professional and government vocabulary.", count: 200, difficulty: 2 },
+  { id: "numeric-entry", title: "Number & Data Entry", description: "Master number-row reach, dates, amounts, records, and professional data fields.", count: 40, difficulty: 2 },
   { id: "sentences", title: "Type Sentences", description: "Develop rhythm, spacing, punctuation, and accuracy.", count: 120, difficulty: 3 },
   { id: "paragraphs", title: "Type Paragraphs", description: "Prepare for sustained office and exam passages.", count: 90, difficulty: 4 },
 ] as const;
@@ -84,6 +85,7 @@ const STAGE_DEFINITIONS: readonly {
 const STAGE_PHASES: Readonly<Record<CurriculumStageId, readonly string[]>> = {
   "learn-keys": ["Orientation", "Finger Control", "Keyboard Coverage", "Mastery Checkpoints"],
   "practice-words": ["Core Vocabulary", "Office Operations", "Government & Legal"],
+  "numeric-entry": ["Number Row", "Structured Fields", "Professional Data"],
   sentences: ["Sentence Accuracy", "Administrative Flow", "Timed Composition"],
   paragraphs: ["Document Copy", "Government Passages", "Exam Readiness"],
 };
@@ -117,6 +119,8 @@ function buildExercise(
   const difficulty = Math.min(5, stage.difficulty + Math.floor(index / Math.max(1, stage.count / 3))) as 1 | 2 | 3 | 4 | 5;
   const moduleLessonCount = stage.id === "learn-keys"
     ? 3
+    : stage.id === "numeric-entry"
+      ? 4
     : stage.id === "practice-words"
       ? 4
       : stage.id === "paragraphs"
@@ -169,7 +173,9 @@ export function getCurriculumCourse(layoutId: ReadyTypingLayoutId): CurriculumCo
 
   const profile = TYPING_LAYOUT_PROFILES.find((item) => item.id === layoutId);
   const language: TypingLanguageCode = layoutId === "english-qwerty" ? "en" : "hi";
-  const stages = STAGE_DEFINITIONS.map((stage) => ({
+  const stages = STAGE_DEFINITIONS
+    .filter((stage) => stage.id !== "numeric-entry" || layoutId === "english-qwerty")
+    .map((stage) => ({
     id: stage.id,
     title: stage.title,
     description: stage.description,
@@ -185,7 +191,9 @@ export function getCurriculumCourse(layoutId: ReadyTypingLayoutId): CurriculumCo
     instructions: [
       "Use the selected keyboard layout for the entire lesson.",
       "Prioritize accuracy before speed and review weak keys after every attempt.",
-      "Complete key drills, then words, sentences, and paragraphs in order.",
+      layoutId === "english-qwerty"
+        ? "Complete key drills, words, numeric data, sentences, and paragraphs in order."
+        : "Complete key drills, words, sentences, and paragraphs in order.",
       "Exam notices can change; verify current official rules before a real test.",
     ],
     stages,

@@ -1,6 +1,6 @@
 # Training and Exam Validation
 
-Updated: 9 August 2026
+Updated: 10 August 2026
 
 ## Purpose
 
@@ -8,22 +8,30 @@ This document prevents the learning and test modules from becoming a shallow exe
 
 ## Competitive behavior audit
 
-A read-only structural audit of the locally installed Soni Typing Tutor data found 525 chapter containers, 2,077 categorized test-data files, 40 skill pages in one set, and 70 in another. The product also exposes a staged learning flow, long copy drills, keyboard/finger guidance, error movement and sound controls, multiple backspace policies, passage highlighting, scrolling, and exam-specific entry points.
+A read-only structural audit of the locally installed Soni Typing Tutor data found 525 chapter containers, 2,077 categorized test-data files, 40 skill pages in one set, and 70 in another. A live manual interaction audit of the running 5.1.178 desktop build verified the following behavior:
+
+- The English tutor moves through Read Instructions, Learn Keys, Practice Words, and Type Paragraphs. The observed catalogs contained 32 key exercises, 26 word exercises, and 50 paragraph exercises, with previous/next navigation and a remembered exercise position.
+- Key and word lessons use source and answer panes, F/J home-row guidance, left/right hand diagrams, a finger-colored keyboard, active-key emphasis, backspace policy, show-keyboard, sound, move-on-error, bold, and text-size controls.
+- English Number Typing is a distinct dashboard entry rather than a disguised word lesson.
+- The general English test exposed 500 selectable papers, custom/add-exercise entry, print mode, duration, 50–1,500 word limits, 200–50,000 keystroke limits, three backspace modes, word/word-error/no-highlight modes, scrollbar and auto-scroll, paragraph/tab/correction controls, and font size.
+- The timer began on the first key. Configuration locked during the active attempt; correct copy used green feedback, the current/error location used yellow feedback, and Submit/Pause became active.
+- The observed result dialog separated Keystroke Based, Word Based, RSSB LDC, and Raj HC Steno views. It displayed net/gross speed, KDPH, accuracy/error percentage, duration, correct/incorrect/omitted words, backspace count, comparison text, and omission/substitution/addition/spelling/capitalization error explanations.
 
 The audit is used only to understand category breadth and interaction depth. BhashaYantra does not decrypt, extract, ship, or reproduce competitor exercises, logos, mappings, or screen designs. All shipped curriculum text is original project material; exam rules come from public official sources.
 
 ## BhashaYantra Academy contract
 
-Each of the six ready layouts has 470 exercises (2,820 total):
+Each of the six ready layouts has 470 exercises. English QWERTY adds a dedicated 40-lesson numeric/data-entry stage, for 2,860 original exercises total:
 
 | Stage | Count | Required structure |
 |---|---:|---|
 | Learn Keys | 60 | Warm-up, Control, Application, Checkpoint |
 | Practice Words | 200 | Alphabetic-control sets followed by professional vocabulary; Repeated Recognition, two-round Accuracy Circuit, sustained Timed Run; at least 28 distinct terms |
+| Number & Data Entry (English QWERTY) | 40 | Number-row reach, amounts, dates, time, percentages, identifiers, ledgers, statistics, codes, and professional structured records; Reach Pattern, Accuracy Fields, Timed Data Run |
 | Type Sentences | 120 | Accuracy Build, Rhythm Build, Timed Copy |
 | Type Paragraphs | 90 | Document Copy, Exam Run |
 
-Every exercise stores a stable ID, phase, module position, competency, practice mode, focus keys, original source/target copy, accuracy gate, target speed, required clean passes, tier, and conversion-validation result. Every lesson is available immediately. Checkpoints can require multiple clean attempts for mastery; merely opening a lesson never marks it complete.
+Every exercise stores a stable ID, phase, module position, competency, practice mode, focus keys, original source/target copy, accuracy gate, target speed, required clean passes, tier, and conversion-validation result. Every lesson is available immediately and the last selected stage/exercise is remembered per layout. Checkpoints can require multiple clean attempts for mastery; merely opening a lesson never marks it complete. The course method screen documents posture, F/J anchors, left/right finger zones, accuracy-first progression, and exam-safe settings.
 
 Hindi Learn Keys content keeps every intended letter or syllable as a separate drill unit. It never concatenates Roman source tokens in a way that silently creates a different Devanagari syllable. Practice Words uses 20 ordered alphabetic-control modules plus 30 professional vocabulary modules per layout, with four distinct lessons per module. The academy uses a fixed-height workstation with independently scrollable source, keyboard, course, and coach panels so typing focus does not move the browser page.
 
@@ -62,6 +70,7 @@ Official-reference means the profile records a checked public source and simulat
 - CPCT-style NWPM uses correctly matched words and elapsed minutes.
 - RRB practice scoring applies the published 5% mistake allowance and penalty formula. Full-versus-half-mistake classification is an explicit practice estimate because the authority's examination software remains the final evaluator.
 - Missing, extra, substituted, and correction counts remain separately visible.
+- Optional keystroke limits are Unicode-safe and apply to physical source keys before the expected Unicode comparison text is produced.
 - No unverified recruitment-specific deduction rule is silently invented.
 
 ## Release checks

@@ -40,16 +40,16 @@ The approved design source is preserved at [docs/assets/bhashayantra-final-refer
 - Direct Unicode typing prevents the earlier raw-key-plus-converted-text duplication. Legacy output remains real KrutiDev encoding, so the target editor must use the Kruti Dev 010 font.
 - Text-file open, paste, clear, copy, and download actions.
 - Selectable Unicode preview fonts: Noto Sans Devanagari, Mangal, Nirmala UI, and Segoe UI for English.
-- Original 2,820-exercise professional curriculum: 470 exercises for each ready layout, split into Learn Keys (60), alphabetic and professional Practice Words (200), Sentences (120), and Paragraphs (90).
+- Original 2,860-exercise professional curriculum: 470 exercises for each ready layout, plus a dedicated 40-lesson Number & Data Entry stage for English QWERTY. Core stages are Learn Keys (60), alphabetic and professional Practice Words (200), Sentences (120), and Paragraphs (90).
 - Academy-style course map with every lesson available immediately, plus module progress, accuracy gates, and one-to-three required clean passes for optional mastery tracking.
 - Key lessons use Warm-up, Control, Application, and Checkpoint blocks; Hindi key units remain intentionally separated instead of accidentally merging into different syllables. Word lessons use repeated Recognition, a two-round Accuracy Circuit, and a sustained Timed Run; sentence and paragraph lessons provide original long-form copy.
-- 240 Free exercises and 2,580 Pro-marked exercises. These tier labels are catalog metadata until signed entitlement and billing enforcement are implemented.
+- 250 Free exercises and 2,610 Pro-marked exercises. These tier labels are catalog metadata until signed entitlement and billing enforcement are implemented.
 - Fixed-height academy workstation keeps the source, typing editor, Unicode preview, and compact keyboard inside the application viewport; the browser page no longer jumps downward when typing.
 - Guided layout-specific practice with named lessons, objectives, mastery accuracy, recommended speed, word/character counts, exercise selection, progressive difficulty, target keys, next-key/finger guidance, clickable keyboard, error sound, text-size, and backspace controls.
 - Eighteen exam profiles: two flexible BhashaYantra baselines and sixteen official-reference profiles for SSC CHSL/D.E.S.T., RRB NTPC CBTST, DDA, DSSSB, MP CPCT, Rajasthan High Court, and Allahabad High Court.
 - Focused mock-exam workstation with 60 original government-office-style papers per layout, rule-specific duration/speed/backspace controls, official source links, explicit Start/Pause/Resume/Submit states, and automatic timeout submission.
 - Running exams use a compact distraction-free viewport: navigation and configuration panels collapse, the page position remains fixed, and only the passage/editor panels scroll at their edges.
-- Configurable 1/5/10/15-minute tests with backspace rules, word/letter/error highlighting, passage auto-scroll, 150–1,200 word limits, paragraphs/tabs/correction controls, custom Unicode passage input, and print view.
+- Configurable 1/5/10/15-minute tests with backspace rules, word/letter/error highlighting, passage auto-scroll, 150–1,200 word limits, 200–50,000 keystroke limits, paragraphs/tabs/correction controls, custom Unicode passage input, and print view.
 - Completed mock results include accuracy, correct WPM, gross WPM, NWPM, KDPH, correct/missing/extra/substituted characters, correction count, weak-key analysis, and the scoring-rule notice.
 - Official-profile environment guard blocks a test when a verified layout/font requirement is not selected, such as Devanagari INSCRIPT with Mangal for the referenced Allahabad High Court Hindi profile.
 - Versioned offline attempt repository with per-layout history, completed-exercise count, best scores, average accuracy, recent-speed trend, and history deletion.
@@ -64,7 +64,7 @@ The approved design source is preserved at [docs/assets/bhashayantra-final-refer
 - Local and Supabase user-preference repository implementations.
 - Tauri 2 configuration with allowlisted dialog and text-file permissions.
 - Tested Free/Pro/Institution feature-entitlement vocabulary and development plan-catalog safety checks for future secure billing integration.
-- Seventy-three frontend converter/typing/training/document/stenography/repository/licensing tests, seven native Direct Typing tests, Windows narration compile checks, strict TypeScript checking, Rust Clippy, and production builds.
+- Seventy-four frontend converter/typing/training/document/stenography/repository/licensing tests, seven native Direct Typing tests, Windows narration compile checks, strict TypeScript checking, Rust Clippy, and production builds.
 
 ## Final product direction
 
