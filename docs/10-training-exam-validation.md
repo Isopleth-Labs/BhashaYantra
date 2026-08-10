@@ -23,7 +23,7 @@ Each of the six ready layouts has 470 exercises (2,820 total):
 | Type Sentences | 120 | Accuracy Build, Rhythm Build, Timed Copy |
 | Type Paragraphs | 90 | Document Copy, Exam Run |
 
-Every exercise stores a stable ID, phase, module position, competency, practice mode, focus keys, original source/target copy, accuracy gate, target speed, required clean passes, tier, and conversion-validation result. Lessons unlock sequentially. Checkpoints can require multiple clean attempts; merely opening a lesson never marks it complete.
+Every exercise stores a stable ID, phase, module position, competency, practice mode, focus keys, original source/target copy, accuracy gate, target speed, required clean passes, tier, and conversion-validation result. Every lesson is available immediately. Checkpoints can require multiple clean attempts for mastery; merely opening a lesson never marks it complete.
 
 Hindi Learn Keys content keeps every intended letter or syllable as a separate drill unit. It never concatenates Roman source tokens in a way that silently creates a different Devanagari syllable. Practice Words uses 20 ordered alphabetic-control modules plus 30 professional vocabulary modules per layout, with four distinct lessons per module. The academy uses a fixed-height workstation with independently scrollable source, keyboard, course, and coach panels so typing focus does not move the browser page.
 

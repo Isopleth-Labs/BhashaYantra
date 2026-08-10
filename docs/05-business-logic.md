@@ -155,7 +155,7 @@ Comparison uses Unicode normalization and grapheme-aware segmentation so a visua
 - Every exercise has a stable ID, sequence, focus keys, difficulty, estimated duration, tier, and conversion-warning count.
 - Professional metadata also records phase, module position, competency, practice mode, drill blocks, mastery accuracy, required clean passes, recommended WPM, word count, and character count.
 - Key training advances through Precision, Alternation, and Fluency Review. Each lesson contains four purposeful drill blocks. Word lessons reject duplicate terms and contain Recognition, Recall, and Timed Set blocks; sentence and paragraph lessons enforce minimum depth.
-- A lesson is mastered only after its saved clean-run count reaches the lesson requirement. Later lessons inside the stage remain locked until the previous lesson is mastered.
+- A lesson is mastered only after its saved clean-run count reaches the lesson requirement. Access is independent of mastery, so every stage and lesson remains selectable.
 - KrutiDev short-i reordering keeps the matra after the full consonant cluster, including forms such as `स्थिरता`, `पंक्ति`, `प्रविष्टि`, and `प्रक्रिया`.
 - The content is original project material. Competitor exercises, logos, and proprietary exam screens are not copied.
 

@@ -41,7 +41,7 @@ The approved design source is preserved at [docs/assets/bhashayantra-final-refer
 - Text-file open, paste, clear, copy, and download actions.
 - Selectable Unicode preview fonts: Noto Sans Devanagari, Mangal, Nirmala UI, and Segoe UI for English.
 - Original 2,820-exercise professional curriculum: 470 exercises for each ready layout, split into Learn Keys (60), alphabetic and professional Practice Words (200), Sentences (120), and Paragraphs (90).
-- Academy-style course map with sequential lesson locks, module progress, accuracy gates, and one-to-three required clean passes before mastery.
+- Academy-style course map with every lesson available immediately, plus module progress, accuracy gates, and one-to-three required clean passes for optional mastery tracking.
 - Key lessons use Warm-up, Control, Application, and Checkpoint blocks; Hindi key units remain intentionally separated instead of accidentally merging into different syllables. Word lessons use repeated Recognition, a two-round Accuracy Circuit, and a sustained Timed Run; sentence and paragraph lessons provide original long-form copy.
 - 240 Free exercises and 2,580 Pro-marked exercises. These tier labels are catalog metadata until signed entitlement and billing enforcement are implemented.
 - Fixed-height academy workstation keeps the source, typing editor, Unicode preview, and compact keyboard inside the application viewport; the browser page no longer jumps downward when typing.

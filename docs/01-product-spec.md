@@ -102,7 +102,7 @@ The start screen contains both typing modes, the Exchange Converter, character b
 - Every lesson exposes a name, module, objective, difficulty, mastery-accuracy requirement, recommended WPM, estimated duration, and content size.
 - Sentence lessons contain at least 70 words and paragraph lessons contain at least 180 words in two-paragraph form.
 - 1,200 exercises in catalog version 1, with 160 marked Free and 1,040 marked Pro.
-- Lessons unlock sequentially inside each stage. A lesson requires its configured mastery accuracy and one-to-three clean saved passes before Next Lesson unlocks.
+- Every lesson is selectable immediately. Configured mastery accuracy and one-to-three clean saved passes measure progress without blocking another lesson.
 - Hindi Unicode-aware comparison.
 - WPM, KDPH, accuracy, and error breakdown.
 - Weak-key and repeated-error reporting.

@@ -7,7 +7,6 @@ import {
   Gauge,
   History,
   Layers3,
-  LockKeyhole,
   RotateCcw,
   Settings2,
   Target,
@@ -232,8 +231,6 @@ export function TypingTraining({ kind, layout, displayFont }: TypingTrainingProp
   }
 
   function chooseExercise(nextIndex: number) {
-    const previous = selectedStage.exercises[nextIndex - 1];
-    if (nextIndex > 0 && previous && !completedExerciseIds.has(previous.id)) return;
     setExerciseIndex(nextIndex);
     resetSession();
   }
@@ -362,20 +359,19 @@ export function TypingTraining({ kind, layout, displayFont }: TypingTrainingProp
             })}
           </div>
           <button type="button" className="academy-instruction-link" onClick={() => setShowInstructions((current) => !current)}><BookOpenCheck aria-hidden="true" /> {showInstructions ? "Hide course method" : "View course method"}</button>
-          {showInstructions && <ol className="academy-method"><li>Finish every drill block in order.</li><li>Meet the accuracy gate for each clean run.</li><li>Checkpoint lessons require repeated passes.</li><li>Use Mock Test only after paragraph mastery.</li></ol>}
+          {showInstructions && <ol className="academy-method"><li>Choose any stage or lesson at any time.</li><li>The recommended path still runs from keys to paragraphs.</li><li>Accuracy gates measure mastery without blocking access.</li><li>Mock Tests stay available throughout the course.</li></ol>}
           <div className="academy-module">
             <span>Current module</span><strong>{exercise.moduleTitle}</strong><small>{exercise.phaseTitle}</small>
             {moduleExercises.map((item) => {
               const itemIndex = selectedStage.exercises.findIndex((lesson) => lesson.id === item.id);
-              const locked = itemIndex > 0 && !completedExerciseIds.has(selectedStage.exercises[itemIndex - 1].id);
-              return <button type="button" key={item.id} disabled={locked} className={item.id === exercise.id ? "active" : ""} onClick={() => chooseExercise(itemIndex)}>{completedExerciseIds.has(item.id) ? <CheckCircle2 aria-hidden="true" /> : locked ? <LockKeyhole aria-hidden="true" /> : <Target aria-hidden="true" />}<span>{item.drillLabel}<small>{item.minimumAccuracy}% · {item.requiredPasses} clean {item.requiredPasses === 1 ? "run" : "runs"}</small></span></button>;
+              return <button type="button" key={item.id} className={item.id === exercise.id ? "active" : ""} onClick={() => chooseExercise(itemIndex)}>{completedExerciseIds.has(item.id) ? <CheckCircle2 aria-hidden="true" /> : <Target aria-hidden="true" />}<span>{item.drillLabel}<small>{item.minimumAccuracy}% · {item.requiredPasses} clean {item.requiredPasses === 1 ? "run" : "runs"}</small></span></button>;
             })}
           </div>
         </aside>
 
         <main className="academy-workbench">
           <div className="academy-lessonbar">
-            <label><span>Lesson</span><select value={exerciseIndex} onChange={(event) => chooseExercise(Number(event.target.value))}>{selectedStage.exercises.map((item, index) => { const locked = index > 0 && !completedExerciseIds.has(selectedStage.exercises[index - 1].id); return <option key={item.id} value={index} disabled={locked}>{completedExerciseIds.has(item.id) ? "✓" : locked ? "🔒" : "○"} {String(item.sequence).padStart(2, "0")} · {item.title}</option>; })}</select></label>
+            <label><span>Lesson</span><select value={exerciseIndex} onChange={(event) => chooseExercise(Number(event.target.value))}>{selectedStage.exercises.map((item, index) => <option key={item.id} value={index}>{completedExerciseIds.has(item.id) ? "✓" : "○"} {String(item.sequence).padStart(2, "0")} · {item.title}</option>)}</select></label>
             <span className={`tier-badge ${exercise.tier}`}>{exercise.tier === "free" ? t("free") : t("pro")}</span>
             <span>{exercise.practiceMode.toUpperCase()}</span>
             <span>{exercise.estimatedSeconds}s</span>
@@ -411,8 +407,8 @@ export function TypingTraining({ kind, layout, displayFont }: TypingTrainingProp
           <div className="coach-mastery"><span>Mastery contract</span><strong>{projectedMasteryPasses}/{exercise.requiredPasses} clean runs</strong><small>Each run needs {exercise.minimumAccuracy}% accuracy at {exercise.targetWpm} WPM recommended pace.</small></div>
           <details className="coach-settings"><summary><Settings2 aria-hidden="true" /> Session controls</summary><label>{t("backspacePolicy")}<select value={backspacePolicy} onChange={(event) => setBackspacePolicy(event.target.value as BackspacePolicy)}><option value="full">{t("fullBackspace")}</option><option value="current-word">{t("currentWordOnly")}</option><option value="disabled">{t("disableBackspace")}</option></select></label><label><input type="checkbox" checked={showKeyboard} onChange={(event) => setShowKeyboard(event.target.checked)} /> {t("showKeyboard")}</label><label><input type="checkbox" checked={soundOnError} onChange={(event) => setSoundOnError(event.target.checked)} /> {t("soundOnError")}</label><label><input type="checkbox" checked={moveOnError} onChange={(event) => setMoveOnError(event.target.checked)} /> {t("moveOnError")}</label><Button size="sm" variant="outline" onClick={() => playTypingFeedback("preview")}><Volume2 aria-hidden="true" /> {t("testSound")}</Button><label>{t("fontSize")}<input type="range" min="18" max="36" step="2" value={fontSize} onChange={(event) => setFontSize(Number(event.target.value))} /></label></details>
           {source.length > 0 && weakKeys.length > 0 && <div className="coach-weak"><strong>{t("weakKeys")}</strong>{weakKeys.slice(0, 6).map((item) => <span key={item.key}><kbd>{item.key}</kbd><small>{item.errors}/{item.attempts} errors</small></span>)}</div>}
-          <div className={finished ? lessonMastered ? "coach-status mastered" : "coach-status repeat" : "coach-status"}>{finished ? lessonMastered ? <><CheckCircle2 aria-hidden="true" /><strong>Lesson mastered</strong><span>Next lesson is unlocked.</span></> : lessonPassed ? <><RotateCcw aria-hidden="true" /><strong>Clean run recorded</strong><span>Repeat once more for mastery.</span></> : <><AlertTriangle aria-hidden="true" /><strong>Accuracy gate missed</strong><span>Review errors and repeat.</span></> : <><Target aria-hidden="true" /><strong>Ready to train</strong><span>Start with accuracy; speed follows.</span></>}</div>
-          <div className="academy-actions"><Button variant="outline" onClick={previousExercise} disabled={exerciseIndex === 0}><ChevronLeft aria-hidden="true" /> Previous</Button><Button variant="outline" onClick={resetSession}><RotateCcw aria-hidden="true" /> Reset</Button><Button onClick={nextExercise} disabled={!lessonMastered}>Next <ChevronRight aria-hidden="true" /></Button></div>
+          <div className={finished ? lessonMastered ? "coach-status mastered" : "coach-status repeat" : "coach-status"}>{finished ? lessonMastered ? <><CheckCircle2 aria-hidden="true" /><strong>Lesson mastered</strong><span>All lessons remain available.</span></> : lessonPassed ? <><RotateCcw aria-hidden="true" /><strong>Clean run recorded</strong><span>Repeat once more for mastery.</span></> : <><AlertTriangle aria-hidden="true" /><strong>Accuracy gate missed</strong><span>Review errors and repeat.</span></> : <><Target aria-hidden="true" /><strong>Ready to train</strong><span>Start anywhere; mastery tracking stays active.</span></>}</div>
+          <div className="academy-actions"><Button variant="outline" onClick={previousExercise} disabled={exerciseIndex === 0}><ChevronLeft aria-hidden="true" /> Previous</Button><Button variant="outline" onClick={resetSession}><RotateCcw aria-hidden="true" /> Reset</Button><Button onClick={nextExercise}>Next <ChevronRight aria-hidden="true" /></Button></div>
           {attemptSaved && <p className="training-saved"><CheckCircle2 aria-hidden="true" /> {t("trainingSaved")}</p>}
           <details className="academy-history-drawer">
             <summary><History aria-hidden="true" /> {t("attemptHistory")} <span>{layoutAttempts.length}</span></summary>
