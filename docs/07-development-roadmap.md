@@ -89,12 +89,16 @@ Exit gate: metrics match manually verified fixtures.
 
 ## Phase 5 — Stenography
 
+Current milestone: the offline Stenography Studio implements original Hindi/English dictation sets, 60–140 WPM visual pacing, optional synthesized voice, local audio import/playback, pause/resume/reset, Unicode transcript entry, word-aligned error scoring, transcript WPM, and local history.
+
 Deliverables:
 
 - Audio selection and playback.
 - Dictation, reading, transcription, and evaluation phases.
 - Profile-controlled pause/seek behavior.
 - Unicode-aware error report.
+
+Implemented in this milestone: audio selection/playback, paced dictation lifecycle, transcript editor, deterministic evaluation, and offline history. Remaining: signed recruitment-specific dictation profiles, profile-controlled seek/reading periods, supplied official/licensed audio corpora, and exportable reports.
 
 Exit gate: state transitions and timing remain correct during pause, resume, timeout, and app focus changes.
 

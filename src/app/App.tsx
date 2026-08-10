@@ -14,11 +14,11 @@ import {
   Moon,
   Search,
   Settings,
+  ShieldCheck,
   Sparkles,
   Sun,
   TerminalSquare,
   Trash2,
-  Upload,
   X,
 } from "lucide-react";
 
@@ -43,6 +43,9 @@ import {
   type UnicodeDisplayFontId,
 } from "@/domain/typing/typing-profiles";
 import { ExchangeConverter } from "@/features/converter/ExchangeConverter";
+import { PricingWorkspace } from "@/features/billing/PricingWorkspace";
+import { SettingsWorkspace } from "@/features/settings/SettingsWorkspace";
+import { StenographyWorkspace } from "@/features/stenography/StenographyWorkspace";
 import { TypingMockExam } from "@/features/training/TypingMockExam";
 import { TypingTraining } from "@/features/training/TypingTraining";
 import { TypingWorkspace } from "@/features/typing/TypingWorkspace";
@@ -86,7 +89,7 @@ const characterGroups = {
 
 type Theme = "light" | "dark";
 type CharacterTab = keyof typeof characterGroups;
-type NavId = (typeof navItems)[number]["id"] | "settings";
+type NavId = (typeof navItems)[number]["id"] | "settings" | "pricing";
 
 function isStoredShortcut(value: unknown): value is ShortcutDefinition {
   if (!value || typeof value !== "object") return false;
@@ -168,6 +171,9 @@ export default function App() {
   useEffect(() => localStorage.setItem("bhashayantra-english-draft", typingDrafts["english-qwerty"]), [typingDrafts]);
   useEffect(() => localStorage.setItem("bhashayantra-custom-shortcuts", JSON.stringify(customShortcuts)), [customShortcuts]);
   useEffect(() => localStorage.setItem("bhashayantra-custom-mappings", JSON.stringify(customMappings)), [customMappings]);
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [activeNav]);
 
   const activeCustomShortcuts = useMemo(
     () => customShortcuts.filter((shortcut) => (shortcut.layoutId ?? "classic-hindi") === typingLayout),
@@ -259,9 +265,16 @@ export default function App() {
     scrollToAdvancedManager();
   }
 
-  const activeNavLabel = activeNav === "settings"
-    ? t("settings")
-    : t(navItems.find((item) => item.id === activeNav)?.labelKey ?? "startTyping");
+  function resetPreferences() {
+    setTheme("light");
+    setTypingLanguage("hi");
+    setTypingLayout("bhashayantra-smart");
+    setTypingMode("simple");
+    setDisplayFont("noto-devanagari");
+    setOutputMode("unicode");
+    setAdvancedOpen(false);
+  }
+
   const showProductivityRail = activeNav === "start" || activeNav === "documents";
 
   function chooseNavigation(id: NavId) {
@@ -291,6 +304,11 @@ export default function App() {
               <Settings aria-hidden="true" /><span>{t("settings")}</span>
             </button>
           </nav>
+          <section className="pro-card" aria-label="BhashaYantra Pro">
+            <div className="pro-title"><ShieldCheck aria-hidden="true" /><span>BhashaYantra Pro</span></div>
+            <p>Complete exam preparation, stenography, analytics, and professional tools.</p>
+            <button type="button" onClick={() => setActiveNav("pricing")}>Buy Now <ChevronRight aria-hidden="true" /></button>
+          </section>
         </aside>
 
         <section className="workspace">
@@ -325,7 +343,21 @@ export default function App() {
             <TypingTraining kind="practice" layout={typingLayout} displayFont={displayFont} />
           ) : activeNav === "test" ? (
             <TypingMockExam layout={typingLayout} displayFont={displayFont} />
-          ) : <FeaturePlaceholder title={activeNavLabel} onReturn={() => setActiveNav("start")} />}
+          ) : activeNav === "stenography" ? (
+            <StenographyWorkspace defaultLanguage={typingLanguage} />
+          ) : activeNav === "settings" ? (
+            <SettingsWorkspace
+              theme={theme} onThemeChange={setTheme}
+              typingLanguage={typingLanguage} onTypingLanguageChange={chooseTypingLanguage}
+              typingLayout={typingLayout} onTypingLayoutChange={chooseTypingLayout}
+              displayFont={displayFont} onDisplayFontChange={setDisplayFont}
+              outputMode={outputMode} onOutputModeChange={setOutputMode}
+              onOpenPricing={() => setActiveNav("pricing")}
+              onResetPreferences={resetPreferences}
+            />
+          ) : (
+            <PricingWorkspace onBack={() => setActiveNav("settings")} />
+          )}
         </section>
 
         {showProductivityRail && (
@@ -451,9 +483,4 @@ function ShortcutLibraryModal({ shortcuts, customShortcuts, onCustomShortcutsCha
       </section>
     </div>
   );
-}
-
-function FeaturePlaceholder({ title, onReturn }: { readonly title: string; readonly onReturn: () => void }) {
-  const { t } = useI18n();
-  return <section className="feature-placeholder"><Upload aria-hidden="true" /><h1>{title}</h1><p>{t("modulePending")}</p><Button onClick={onReturn}>{t("returnToTyping")}</Button></section>;
 }

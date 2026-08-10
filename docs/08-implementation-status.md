@@ -1,6 +1,6 @@
 # Implementation Status
 
-Updated: 9 August 2026
+Updated: 10 August 2026
 
 ## Completed
 
@@ -33,6 +33,9 @@ Updated: 9 August 2026
 - Live correct/gross/net WPM, KDPH, accuracy, missing/extra/substituted counts, weak-key analysis, completion state, RRB published-formula practice estimate, and once-only attempt saving.
 - Verified official duration/correction locking and a layout/font environment guard for profiles with an explicit requirement.
 - Versioned local attempt repository, layout-specific history deletion, real dashboard summaries, and recent-speed trend.
+- Responsive Stenography Studio with original Hindi/English professional dictation sets, configurable 60–140 WPM pacing, optional synthesized voice, local audio import/playback, explicit session states, Unicode transcript entry, word-aligned scoring, transcript WPM, and offline recent-attempt history.
+- Functional Settings control center with interface/theme controls, typing defaults, persisted training feedback preferences, offline/privacy status, and a safe preference reset that preserves drafts and attempt history.
+- Responsive BhashaYantra Pro pricing and order-preview surface with selectable 30-day, 90-day, annual, and institution hypotheses; checkout is intentionally disabled and the development client cannot collect payment.
 - Live bidirectional KrutiDev 010 ↔ Unicode text converter.
 - Converter profile selector exposes verified KrutiDev conversion only; separate coverage cards explain that DevLys requires its own validated corpus and Shree-Lipi requires an exact family variant instead of pretending disabled entries are working support.
 - Longest-token mapping, short-i handling, Unicode normalization, and warnings.
@@ -42,7 +45,7 @@ Updated: 9 August 2026
 - Supabase schema migrations, Auth ownership foreign keys, RLS policies, triggers, constraints, seed data, and pgTAP policy tests.
 - Local and Supabase preference repository implementations.
 - Free/Pro/Institution product-entitlement vocabulary and profitability-focused packaging documentation.
-- Strict TypeScript, sixty-one frontend tests, seven native Direct Typing composition/lifecycle tests, production web build, and browser visual/interaction QA at 1724×986 and 1280×720.
+- Strict TypeScript, sixty-seven frontend tests, seven native Direct Typing composition/lifecycle tests, production web build, and browser visual/interaction QA including 1600×900, 900×780, and 700×780 layouts.
 - Local Supabase reset, eight pgTAP/RLS tests, and schema linting.
 - Rust formatting and Clippy checks.
 - One local portable development executable; old debug/installer application builds are intentionally not retained.
@@ -71,7 +74,7 @@ cargo clippy --manifest-path .\src-tauri\Cargo.toml --all-targets -- -D warnings
 | Legacy encoding profiles | KrutiDev 010 working; DevLys and Shree-Lipi registered as validation-pending | Add licensed fixtures and round-trip acceptance corpora before enabling each profile |
 | Shortcut manager | Built-in shortcuts, custom creation/deletion, conflict validation, persistence, import/export, and reset | Editing existing custom entries in place and cloud sync |
 | Typing practice/test | 2,820 professional exercises with alphabetic and domain progression, multi-round patterns, mastery gates, depth checks, a distraction-free fixed-height workstation, 60 original papers/layout, 18 profiles including 16 official-reference profiles, WPM/NWPM/KDPH/RRB practice scoring, weak-key analysis, and local history | Independently validate remaining recruitment-specific deduction rules, then add adaptive lessons and exportable reports |
-| Stenography | Navigation and schema | Audio state machine, transcript editor, evaluation |
+| Stenography | Offline dictation workspace, local audio, paced lifecycle, transcript editor, deterministic word-level evaluation, and history | Recruitment-profile rules, licensed/official audio sets, and exportable reports |
 | Supabase | Schema, repositories, local configuration | Auth UI and opt-in sync wiring |
 
 ## Not yet release-ready

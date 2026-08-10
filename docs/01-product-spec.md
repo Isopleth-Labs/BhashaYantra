@@ -125,12 +125,12 @@ The start screen contains both typing modes, the Exchange Converter, character b
 
 ### 5.8 Stenography
 
-- Local or supplied dictation audio.
-- Playback-speed control.
-- Reading time and transcription time.
-- Pause/seek permissions controlled by test profile.
-- Unicode-aware transcription comparison.
-- Speed, accuracy, and mistake report.
+- Original Hindi and English professional dictation sets plus user-supplied local audio.
+- 60–140 WPM cue pacing, synthesized voice option, native audio playback, and explicit ready/running/paused/finished session states.
+- Unicode transcript editor with offline draft behavior.
+- Word-aligned transcript comparison that distinguishes correct, missing, extra, and substituted words.
+- Accuracy, transcript WPM, dictation speed, and offline recent-attempt history.
+- Recruitment-profile-controlled reading, pause, seek, and timeout rules remain a later validation layer.
 
 ### 5.9 User customization
 

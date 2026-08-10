@@ -1,6 +1,6 @@
 # Business Model and Product Packaging
 
-Updated: 3 August 2026
+Updated: 10 August 2026
 
 ## Objective
 
@@ -51,6 +51,8 @@ These are experiments, not final published prices:
 | Institution annual | Quote based on active seats and support level |
 
 Before pricing is finalized, validate willingness to pay with trial users and track activation-to-purchase conversion. Never hard-code prices in the desktop client; serve signed catalog data from the trusted billing backend.
+
+The current desktop screen is a non-purchasable design prototype backed by a versioned development fixture. It labels every amount as a preview, disables checkout, and collects no payment. Before monetization, replace this fixture with a signed server catalog without changing the plan-selection UI.
 
 ## Entitlement principles
 

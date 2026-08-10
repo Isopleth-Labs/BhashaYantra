@@ -8,7 +8,7 @@
 
 BhashaYantra is a Windows-first Hindi typing, legacy-font conversion, typing-practice, testing, and stenography desktop application.
 
-> Project status: the React/Tauri foundation, six-layout typing engine, complete original practice catalog, configurable exam simulator, offline result history, multi-tool converter, opt-in Windows Direct Typing bridge, Drizzle schema, Supabase migrations, and repository boundaries are implemented. Stenography, a signed Windows TSF IME, and structure-preserving document import remain roadmap modules.
+> Project status: the React/Tauri foundation, six-layout typing engine, complete original practice catalog, configurable exam simulator, offline result history, Stenography Studio, multi-tool converter, opt-in Windows Direct Typing bridge, functional settings, checkout-preview design, Drizzle schema, Supabase migrations, and repository boundaries are implemented. A signed Windows TSF IME, secure billing, and structure-preserving document import remain roadmap modules.
 
 ![BhashaYantra implemented UI](docs/assets/bhashayantra-implemented-ui.png)
 
@@ -53,14 +53,17 @@ The approved design source is preserved at [docs/assets/bhashayantra-final-refer
 - Completed mock results include accuracy, correct WPM, gross WPM, NWPM, KDPH, correct/missing/extra/substituted characters, correction count, weak-key analysis, and the scoring-rule notice.
 - Official-profile environment guard blocks a test when a verified layout/font requirement is not selected, such as Devanagari INSCRIPT with Mangal for the referenced Allahabad High Court Hindi profile.
 - Versioned offline attempt repository with per-layout history, completed-exercise count, best scores, average accuracy, recent-speed trend, and history deletion.
+- Functional Stenography Studio with Hindi/English dictation sets, 60–140 WPM pacing, pause/resume/reset lifecycle, optional synthesized voice cues, local audio import and playback, Unicode transcript editing, word-aligned accuracy/missing/extra/substitution scoring, transcript WPM, and offline recent-attempt history.
+- Professional Settings control center for interface, theme, typing defaults, training feedback, privacy status, safe preference reset, and a responsive Pro plan entry point.
+- Non-purchasable Buy Now/plan-selection preview for 30-day, 90-day, annual, and institution packaging. It clearly identifies hypothesis pricing and keeps secure checkout disabled so the development build never collects payment.
 - Light/dark design tokens and Hindi font fallbacks.
 - Character browser, shortcut search, honest document-engine readiness card, and test summary.
 - Drizzle PostgreSQL schema for ten application tables.
 - Supabase migrations, Auth ownership constraints, update triggers, and RLS policies.
 - Local and Supabase user-preference repository implementations.
 - Tauri 2 configuration with allowlisted dialog and text-file permissions.
-- Tested Free/Pro/Institution feature-entitlement vocabulary for future secure billing integration.
-- Sixty frontend converter/typing/training/document/repository/licensing tests plus seven native Direct Typing composition/lifecycle tests, strict TypeScript checking, Rust Clippy, and production builds.
+- Tested Free/Pro/Institution feature-entitlement vocabulary and development plan-catalog safety checks for future secure billing integration.
+- Sixty-seven frontend converter/typing/training/document/stenography/repository/licensing tests plus seven native Direct Typing composition/lifecycle tests, strict TypeScript checking, Rust Clippy, and production builds.
 
 ## Final product direction
 
@@ -69,7 +72,7 @@ The approved design source is preserved at [docs/assets/bhashayantra-final-refer
 - `Advanced Classic Mode`: shortcuts, Alt combinations, custom mappings, and expert controls.
 - Central workspace: bidirectional `KrutiDev / Legacy ↔ Unicode` Exchange Converter.
 - The development Direct Typing bridge provides explicit opt-in per-keystroke input while BhashaYantra is running. It uses a low-level Windows hook and `SendInput`, so it is limited to standard apps at the same or lower integrity level. The final distributable system keyboard remains a separately signed Text Services Framework IME.
-- Additional modules: structure-preserving document conversion, stenography, exportable reports, signed Pro entitlements, and optional cloud sync.
+- Additional modules: structure-preserving document conversion, recruitment-profile-controlled stenography rules, exportable reports, signed Pro entitlements, secure billing, and optional cloud sync.
 
 ## Approved technology stack
 
