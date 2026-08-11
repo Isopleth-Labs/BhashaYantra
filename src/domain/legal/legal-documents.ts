@@ -1,4 +1,4 @@
-export const LEGAL_EFFECTIVE_DATE = "11 August 2026";
+export const LEGAL_EFFECTIVE_DATE = "12 August 2026";
 export const SUPPORT_ISSUES_URL = "https://github.com/Isopleth-Labs/BhashaYantra/issues";
 export const SECURITY_REPORT_URL = "https://github.com/Isopleth-Labs/BhashaYantra/security/advisories";
 export const SOURCE_REPOSITORY_URL = "https://github.com/Isopleth-Labs/BhashaYantra";
@@ -31,7 +31,7 @@ export const LEGAL_DOCUMENTS: readonly LegalDocument[] = [
       },
       {
         heading: "Accounts and retention",
-        body: "Supabase Auth stores account identity and server-synced workspace data when login is enabled. Local backups exclude authentication sessions. Before public beta, account deletion and retention periods must be validated against the production Supabase project.",
+        body: "Supabase Auth stores account identity and server-synced workspace data when login is enabled. Per-device licensing sends a SHA-256 digest of a random installation id, a generic label, and timestamps—not a hardware serial or browser fingerprint. Local backups exclude authentication sessions.",
       },
       {
         heading: "Your controls",
@@ -54,7 +54,7 @@ export const LEGAL_DOCUMENTS: readonly LegalDocument[] = [
       },
       {
         heading: "User content and conduct",
-        body: "You retain responsibility for text, documents, audio, and account information you provide. Do not upload unlawful content, misuse institute access, bypass access controls, or interfere with the service or another user.",
+        body: "You retain responsibility for text, documents, audio, and account information you provide. Personal ₹149, ₹349, and Individual Pro access is one named user on one registered device. Institutes use purchased capacity and separate member accounts; do not share one personal login across a lab or bypass access controls.",
       },
       {
         heading: "Compatibility and availability",

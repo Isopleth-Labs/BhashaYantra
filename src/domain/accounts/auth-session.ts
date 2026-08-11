@@ -12,6 +12,7 @@ export interface AuthTokenClaims {
   readonly status: AccountStatus;
   readonly plan: PlanTier;
   readonly trialEndsAt: string | null;
+  readonly deviceLimit: number;
   readonly expiresAt: number;
 }
 
@@ -42,9 +43,10 @@ export function parseAuthTokenClaims(value: unknown): AuthTokenClaims | null {
   const plan = readString(claims, "plan_tier");
   const trialEndsAt = claims.trial_ends_at === null ? null : readString(claims, "trial_ends_at");
   const expiresAt = typeof claims.exp === "number" ? claims.exp : 0;
+  const deviceLimit = typeof claims.device_limit === "number" ? claims.device_limit : 0;
 
   if (!sub || !email || !username || (role !== "student" && role !== "institute")) return null;
-  if (!ACCOUNT_STATUSES.has(status as AccountStatus) || !PLAN_TIERS.has(plan as PlanTier) || expiresAt <= 0) return null;
+  if (!ACCOUNT_STATUSES.has(status as AccountStatus) || !PLAN_TIERS.has(plan as PlanTier) || expiresAt <= 0 || !Number.isInteger(deviceLimit) || deviceLimit < 1) return null;
   if (trialEndsAt && Number.isNaN(Date.parse(trialEndsAt))) return null;
 
   return {
@@ -56,6 +58,7 @@ export function parseAuthTokenClaims(value: unknown): AuthTokenClaims | null {
     status: status as AccountStatus,
     plan: plan as PlanTier,
     trialEndsAt,
+    deviceLimit,
     expiresAt,
   };
 }

@@ -49,9 +49,23 @@ export const profiles = pgTable("profiles", {
   planTier: planTier("plan_tier").default("free").notNull(),
   trialStartedAt: timestamp("trial_started_at", { withTimezone: true }).defaultNow().notNull(),
   trialEndsAt: timestamp("trial_ends_at", { withTimezone: true }),
+  deviceLimit: integer("device_limit").default(1).notNull(),
   preferredLanguage: text("preferred_language").default("hi").notNull(),
   ...timestamps,
 }, (table) => [uniqueIndex("profiles_username_lower_uidx").on(sql`lower(${table.username})`)]);
+
+export const registeredDevices = pgTable("registered_devices", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").notNull(),
+  deviceHash: text("device_hash").notNull(),
+  deviceLabel: text("device_label").default("Windows device").notNull(),
+  firstSeenAt: timestamp("first_seen_at", { withTimezone: true }).defaultNow().notNull(),
+  lastSeenAt: timestamp("last_seen_at", { withTimezone: true }).defaultNow().notNull(),
+  revokedAt: timestamp("revoked_at", { withTimezone: true }),
+}, (table) => [
+  uniqueIndex("registered_devices_user_hash_unique").on(table.userId, table.deviceHash),
+  index("registered_devices_user_active_idx").on(table.userId, table.lastSeenAt),
+]);
 
 export const institutions = pgTable(
   "institutions",

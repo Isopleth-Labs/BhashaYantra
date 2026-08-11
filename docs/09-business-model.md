@@ -1,6 +1,6 @@
 # Business Model and Product Packaging
 
-Updated: 10 August 2026
+Updated: 12 August 2026
 
 ## Objective
 
@@ -45,10 +45,10 @@ These are experiments, not final published prices:
 
 | Offer | Hypothesis |
 |---|---:|
-| 30-day Exam Pass | ₹149 |
-| 90-day Exam Pass | ₹349 |
-| Individual Pro annual | ₹799 introductory |
-| Institution annual | Quote based on active seats and support level |
+| 30-day Exam Pass | ₹149 | One personal account · one registered device · 30 days |
+| 90-day Exam Pass | ₹349 | One personal account · one registered device · 90 days |
+| Individual Pro annual | ₹799 introductory | One named individual · one registered device · 12 months |
+| Institution annual | Quote based on active seats and devices | Separate member accounts; no shared centre-wide password |
 
 Before pricing is finalized, validate willingness to pay with trial users and track activation-to-purchase conversion. Never hard-code prices in the desktop client; serve signed catalog data from the trusted billing backend.
 
@@ -62,6 +62,8 @@ The current desktop screen is a non-purchasable design prototype backed by a ver
 - Expiration failures receive a clear grace period and preserve all user-created data.
 - A user can export personal layouts and results even after a paid plan expires.
 - Institution admins can view their cohort data only; Supabase RLS enforces tenant boundaries.
+- Individual access is limited to one privacy-safe registered installation. The server stores a SHA-256 digest of a random installation id, not a hardware serial or fingerprint.
+- A second installation fails closed when the account's server-managed `device_limit` is reached. Institution capacity is increased only by trusted billing/admin operations and must be allocated through separate member accounts.
 
 ## Differentiation
 

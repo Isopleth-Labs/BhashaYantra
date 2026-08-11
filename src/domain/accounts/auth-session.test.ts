@@ -11,6 +11,7 @@ const claims = {
   account_status: "trialing",
   plan_tier: "free",
   trial_ends_at: "2026-08-25T00:00:00.000Z",
+  device_limit: 1,
   exp: 1_787_616_000,
 };
 
@@ -21,6 +22,7 @@ describe("auth token claims", () => {
       role: "student",
       status: "trialing",
       plan: "free",
+      deviceLimit: 1,
     });
   });
 

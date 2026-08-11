@@ -9,8 +9,9 @@ Supabase is the only backend dependency for user login, account activation, tria
 3. A new user selects Student or Institute, creates a username, verifies email and receives a 14-day trial.
 4. Email login uses Supabase Password Auth directly. Username login calls the `login-with-username` Edge Function, which resolves the username privately and delegates password verification to Supabase Auth.
 5. Supabase returns an access-token JWT and refresh token.
-6. `custom_access_token_hook` adds server-controlled `username`, `account_role`, `account_status`, `plan_tier` and `trial_ends_at` claims.
-7. The app verifies claims with `supabase.auth.getClaims()` and opens only the matching workspace.
+6. `custom_access_token_hook` adds server-controlled `username`, `account_role`, `account_status`, `plan_tier`, `trial_ends_at` and `device_limit` claims.
+7. The app verifies claims with `supabase.auth.getClaims()` and calls the protected device-registration function.
+8. The workspace opens only when both entitlement and registered-device checks pass.
 
 Passwords are never stored by BhashaYantra tables or returned to the app after login.
 
@@ -37,7 +38,7 @@ The backend can read identity and account metadata from verified claims without 
 
 ## Required production setup
 
-- Deploy migrations and both Edge Functions.
+- Deploy migrations and all three Edge Functions: `login-with-username`, `account-me`, and `register-device`.
 - Activate the Custom Access Token hook in Supabase Dashboard.
 - Enable email confirmations and configure Site URL/redirect URLs.
 - Configure custom SMTP, CAPTCHA, password policy and rate limits.

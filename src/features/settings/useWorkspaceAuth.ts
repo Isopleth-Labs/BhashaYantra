@@ -24,6 +24,7 @@ export interface WorkspaceIdentity {
   readonly plan: PlanTier;
   readonly trialEndsAt: string | null;
   readonly trialDaysRemaining: number;
+  readonly deviceLimit: number;
   readonly hasAccess: boolean;
 }
 
@@ -47,6 +48,7 @@ function identityFromClaims(claims: AuthTokenClaims): WorkspaceIdentity {
     plan: claims.plan,
     trialEndsAt: claims.trialEndsAt,
     trialDaysRemaining: trialDaysRemaining(claims),
+    deviceLimit: claims.deviceLimit,
     hasAccess: hasProductAccess(claims),
   };
 }

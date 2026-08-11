@@ -31,6 +31,7 @@ Deno.serve((request) => {
       accountStatus: claims.account_status,
       planTier: claims.plan_tier,
       trialEndsAt: claims.trial_ends_at,
+      deviceLimit: claims.device_limit,
     }), { status: 200, headers: HEADERS });
   } catch {
     return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: HEADERS });

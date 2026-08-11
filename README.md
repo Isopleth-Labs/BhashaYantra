@@ -33,14 +33,15 @@ Hindi and English learners currently move between disconnected typing tutors, le
 | Exam preparation | 18 configurable profiles and detailed result analysis |
 | Professional workflows | Unicode/KrutiDev conversion, Direct Typing, Word and Excel practice |
 | Stenography | Hindi/English dictation, transcription phases and scoring |
-| Accounts | Supabase Student/Institute Auth, JWT claims, RLS and 14-day trial model |
+| Accounts | Supabase Auth/JWT/RLS, 14-day trial and server-enforced device licensing |
 | Trust | Offline deterministic engines, pinned CI, CodeQL, audits, checksums and provenance |
 
 ## Business direction
 
 - **Free trial:** complete product evaluation for new verified accounts.
-- **Pro:** serious candidates, stenographers and office professionals.
-- **Institution:** managed seats, assignments, lab settings and cohort reporting.
+- **₹149 / ₹349 Exam Pass:** one personal account on one registered device for 30/90 days.
+- **Individual Pro:** one named individual on one registered device.
+- **Institution:** purchased seats/devices, separate member accounts, assignments and cohort reporting.
 
 The acquisition wedge is a useful typing utility; the recurring value is exam readiness, professional workflow continuity and institution management.
 

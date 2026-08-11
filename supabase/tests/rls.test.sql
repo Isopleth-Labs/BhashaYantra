@@ -1,5 +1,5 @@
 begin;
-select plan(20);
+select plan(24);
 
 select has_table('public', 'profiles', 'profiles table exists');
 select has_table('public', 'keyboard_layouts', 'keyboard layouts table exists');
@@ -12,8 +12,18 @@ select has_column('public', 'profiles', 'username', 'profiles include a unique l
 select has_column('public', 'profiles', 'login_email', 'profiles include a server-managed username lookup address');
 select has_column('public', 'profiles', 'account_status', 'profiles include server-managed account status');
 select has_column('public', 'profiles', 'trial_ends_at', 'profiles include trial expiry');
+select has_column('public', 'profiles', 'device_limit', 'profiles include a server-managed device allowance');
+select has_table('public', 'registered_devices', 'registered devices table exists');
 select has_function('public', 'custom_access_token_hook', array['jsonb'], 'JWT custom-claims hook exists');
 select has_function('public', 'has_product_access', array[]::text[], 'JWT entitlement helper exists');
+select has_function('public', 'register_current_device', array['text', 'text'], 'atomic device registration function exists');
+
+select policies_are(
+  'public',
+  'registered_devices',
+  array['registered_devices_read_own'],
+  'users can only read their own registered devices'
+);
 
 select policies_are(
   'public',

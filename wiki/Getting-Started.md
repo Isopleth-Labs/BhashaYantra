@@ -34,6 +34,7 @@ npx supabase link --project-ref YOUR_PROJECT_REF
 npx supabase db push
 npx supabase functions deploy login-with-username --no-verify-jwt
 npx supabase functions deploy account-me
+npx supabase functions deploy register-device
 ```
 
 In Supabase Dashboard, open **Authentication → Hooks** and select `public.custom_access_token_hook` for the Custom Access Token hook. Configure Email Auth, redirects, SMTP, CAPTCHA and production rate limits before inviting users.

@@ -1,6 +1,6 @@
 # BhashaYantra Privacy Policy
 
-**Beta draft — effective 11 August 2026. Legal review is required before public release.**
+**Beta draft — effective 12 August 2026. Legal review is required before public release.**
 
 ## Local-first operation
 
@@ -13,6 +13,8 @@ An online transfer occurs only when the user deliberately uses a configured onli
 ## Accounts
 
 When production login is enabled, Supabase processes account identity and server-synchronized workspace data. The desktop app uses a public project URL and publishable key; authorization is enforced by Row Level Security. Service-role keys, database passwords, and provider secrets must never ship in the desktop application.
+
+For per-device licensing, the app creates a random installation id on the device and sends only its SHA-256 digest, a generic device label, and registration timestamps to Supabase. BhashaYantra does not collect a hardware serial number or use browser fingerprinting for this check.
 
 ## Local backups
 

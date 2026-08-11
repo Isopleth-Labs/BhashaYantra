@@ -1,6 +1,6 @@
 # BhashaYantra Terms & Conditions
 
-**Beta draft — effective 11 August 2026. Legal review is required before public release.**
+**Beta draft — effective 12 August 2026. Legal review is required before public release.**
 
 ## Beta software
 
@@ -17,6 +17,8 @@ Users remain responsible for text, files, recordings, and account information th
 ## Accounts and acceptable use
 
 Users must provide accurate account information, protect credentials, and use the correct Student or Institute role. Users must not bypass access controls, impersonate an institute, interfere with the service, distribute malicious content, or access another user's data.
+
+₹149, ₹349, and Individual Pro offers are designed for one named user on one registered device unless the signed order says otherwise. Training centres must use an Institution plan with purchased capacity and separate member accounts; sharing one personal login across a lab is not permitted.
 
 ## Compatibility
 
