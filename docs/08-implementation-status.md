@@ -12,7 +12,7 @@ Updated: 10 August 2026
 - Simple Smart / Advanced Classic mode interaction.
 - Original BhashaYantra Smart Roman-phonetic engine with live Unicode and KrutiDev output.
 - Distinct interface-language, typing-language, keyboard-layout, output-encoding, and Unicode display-font selectors.
-- Ready BhashaYantra Smart, Classic Hindi/KrutiDev, Devanagari INSCRIPT, Remington GAIL, Remington CBI, and English QWERTY profiles with independently persisted drafts.
+- Ready BhashaYantra Smart, KrutiDev 010 Keyboard (Classic), Devanagari INSCRIPT, Remington GAIL, Remington CBI, and English QWERTY profiles with independently persisted drafts.
 - Remington GAIL/CBI include dedicated on-screen keyboards, before/after short-i behavior, Unicode conversion routes, acceptance fixtures, and complete course catalogs. DevLys/Shree-Lipi remain validation-pending legacy encodings.
 - Hindi-first UI localization with a persistent Hindi/English interface selector.
 - Complete in-app Start Typing workspace with familiar-key input and live Unicode/Legacy output switching.

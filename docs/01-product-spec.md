@@ -54,7 +54,7 @@ The start screen contains both typing modes, the Exchange Converter, character b
 ### 5.2 Advanced Classic Mode
 
 - Normal and Shift mappings.
-- Default profile: `Classic Hindi Default` with familiar KrutiDev-style key positions.
+- Compatibility profile: `KrutiDev 010 Keyboard (Classic)` with familiar physical key positions and Unicode preview/output.
 - Ctrl/Alt shortcut combinations.
 - Searchable rare-character shortcuts.
 - User-created shortcuts and mappings.
@@ -65,7 +65,7 @@ The start screen contains both typing modes, the Exchange Converter, character b
 ### 5.3 Multi-profile boundaries
 
 - Typing languages: Hindi and English.
-- Ready keyboard layouts: BhashaYantra Smart, Classic Hindi/KrutiDev, Devanagari INSCRIPT, and English QWERTY.
+- Ready keyboard layouts: BhashaYantra Smart, KrutiDev 010 Keyboard (Classic), Devanagari INSCRIPT, and English QWERTY.
 - Validation-pending keyboard layouts: Remington Gail and Remington CBI.
 - Ready legacy encoding profile: Kruti Dev 010.
 - Validation-pending legacy encoding profiles: DevLys 010 and Shree-Lipi.
@@ -95,7 +95,7 @@ The start screen contains both typing modes, the Exchange Converter, character b
 
 ### 5.6 Typing Practice
 
-- Four ready layout courses: BhashaYantra Smart, Classic Hindi/KrutiDev, Devanagari INSCRIPT, and English QWERTY.
+- Four ready layout courses: BhashaYantra Smart, KrutiDev 010 Keyboard (Classic), Devanagari INSCRIPT, and English QWERTY.
 - 300 original exercises per course: 60 key drills, 90 word drills, 90 sentence drills, and 60 paragraph drills.
 - Twenty key modules progress through Precision, Alternation, and Fluency Review lessons. Each key lesson is divided into Warm-up, Control, Application, and Checkpoint blocks.
 - Professional vocabulary is grouped by real work topics; every word lesson contains at least 28 distinct terms and Recognition, Recall, and Timed Set blocks.

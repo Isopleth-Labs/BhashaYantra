@@ -175,6 +175,25 @@ export default function App() {
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }, [activeNav]);
+  useEffect(() => {
+    if (activeNav !== "test" || !("__TAURI_INTERNALS__" in window)) return;
+    let dispose: undefined | (() => void);
+    let cancelled = false;
+    void import("@tauri-apps/api/window")
+      .then(({ getCurrentWindow }) => getCurrentWindow().onCloseRequested((event) => {
+        event.preventDefault();
+        setActiveNav("start");
+      }))
+      .then((unlisten) => {
+        if (cancelled) unlisten();
+        else dispose = unlisten;
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+      dispose?.();
+    };
+  }, [activeNav]);
 
   const activeCustomShortcuts = useMemo(
     () => customShortcuts.filter((shortcut) => (shortcut.layoutId ?? "classic-hindi") === typingLayout),
@@ -346,11 +365,11 @@ export default function App() {
           ) : activeNav === "practice" ? (
             <TypingTraining kind="practice" layout={typingLayout} displayFont={displayFont} />
           ) : activeNav === "test" ? (
-            <TypingMockExam layout={typingLayout} displayFont={displayFont} />
+            <TypingMockExam layout={typingLayout} displayFont={displayFont} onExit={() => setActiveNav("start")} />
           ) : activeNav === "stenography" ? (
             <StenographyWorkspace defaultLanguage={typingLanguage} />
           ) : activeNav === "office" ? (
-            <OfficeEfficiencyWorkspace displayFont={displayFont} />
+            <OfficeEfficiencyWorkspace displayFont={displayFont} layout={typingLayout} />
           ) : activeNav === "settings" ? (
             <SettingsWorkspace
               theme={theme} onThemeChange={setTheme}

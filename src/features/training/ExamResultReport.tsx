@@ -35,6 +35,7 @@ interface ExamResultReportProps {
   readonly weakKeys: readonly KeyMistake[];
   readonly endedByTimer: boolean;
   readonly onNewTest: () => void;
+  readonly onClose: () => void;
 }
 
 type ResultDetailTab = "keystrokes" | "words" | "errors";
@@ -85,7 +86,7 @@ export function ExamResultReport(props: ExamResultReportProps) {
       <header className="exam-report-header">
         <div className="exam-report-outcome-icon">{props.passed ? <Award /> : <Target />}</div>
         <div><span>PRACTICE RESULT REPORT</span><h2 id="exam-result-heading">{props.passed ? "Qualifying target achieved" : "Target needs more practice"}</h2><p>{props.profile.name} · Paper {props.paperNumber}</p></div>
-        <div className="exam-report-actions"><Button variant="outline" onClick={() => window.print()}><Printer /> Print result</Button><Button onClick={props.onNewTest}><RotateCcw /> New test</Button></div>
+        <div className="exam-report-actions"><Button variant="outline" onClick={() => window.print()}><Printer /> Print result</Button><Button variant="outline" onClick={props.onClose}>Close result</Button><Button onClick={props.onNewTest}><RotateCcw /> New test</Button></div>
       </header>
 
       <div className="exam-report-disclaimer"><ShieldAlert /><span><strong>This is a BhashaYantra practice report, not an official certificate.</strong><small>Recruiting authority software and the current notice determine the official result.</small></span></div>

@@ -10,6 +10,7 @@ import {
   Gavel,
   Headphones,
   LockKeyhole,
+  Mic2,
   Pause,
   Play,
   Radio,
@@ -106,9 +107,14 @@ export function StenographyWorkspace({ defaultLanguage }: { readonly defaultLang
   const [attempts, setAttempts] = useState<readonly StenographyAttempt[]>(loadAttempts);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [audioName, setAudioName] = useState("");
+  const [audioDuration, setAudioDuration] = useState<number>();
+  const [isRecording, setIsRecording] = useState(false);
   const audioInputRef = useRef<HTMLInputElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const transcriptRef = useRef<HTMLTextAreaElement>(null);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const recordingStreamRef = useRef<MediaStream | null>(null);
+  const recordingChunksRef = useRef<Blob[]>([]);
 
   const strictExamMode = sessionMode === "exam-simulation";
   const officialProfile = profile.verification === "official-reference";
@@ -157,6 +163,7 @@ export function StenographyWorkspace({ defaultLanguage }: { readonly defaultLang
   useEffect(() => () => {
     void stopStenographyNarration();
     if (audioUrl) URL.revokeObjectURL(audioUrl);
+    recordingStreamRef.current?.getTracks().forEach((track) => track.stop());
   }, [audioUrl]);
 
   async function startPlayback() {
@@ -253,8 +260,52 @@ export function StenographyWorkspace({ defaultLanguage }: { readonly defaultLang
     if (audioUrl) URL.revokeObjectURL(audioUrl);
     setAudioUrl(URL.createObjectURL(file));
     setAudioName(file.name);
+    setAudioDuration(undefined);
     setVoiceEnabled(false);
     resetSession(profile);
+  }
+
+  async function startHumanRecording() {
+    if (!navigator.mediaDevices?.getUserMedia || !("MediaRecorder" in window)) {
+      setAudioMessage("Microphone recording is not available on this device. Import an original or licensed audio file instead.");
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      recordingStreamRef.current = stream;
+      recordingChunksRef.current = [];
+      const recorder = new MediaRecorder(stream);
+      recorderRef.current = recorder;
+      recorder.ondataavailable = (event) => { if (event.data.size) recordingChunksRef.current.push(event.data); };
+      recorder.onstop = () => {
+        const blob = new Blob(recordingChunksRef.current, { type: recorder.mimeType || "audio/webm" });
+        if (audioUrl) URL.revokeObjectURL(audioUrl);
+        setAudioUrl(URL.createObjectURL(blob));
+        setAudioName(`${profile.shortName.replace(/\s+/gu, "-").toLocaleLowerCase()}-human-recording.webm`);
+        setAudioDuration(undefined);
+        setVoiceEnabled(false);
+        setIsRecording(false);
+        setAudioMessage("Human recording captured locally. Check its duration, play it back, then start the session.");
+        stream.getTracks().forEach((track) => track.stop());
+        recordingStreamRef.current = null;
+      };
+      recorder.start();
+      setIsRecording(true);
+      setAudioMessage(`Recording a real ${profile.language === "hi" ? "Hindi" : "English"} human voice. Read the original script at ${profile.dictationWpm} WPM.`);
+    } catch {
+      setAudioMessage("Microphone access was denied. Enable microphone permission or import a human recording.");
+    }
+  }
+
+  function stopHumanRecording() {
+    if (recorderRef.current?.state === "recording") recorderRef.current.stop();
+  }
+
+  function chooseLanguage(language: TypingLanguageCode) {
+    const next = STENOGRAPHY_PROFILES.find((item) => item.language === language && item.environment === profile.environment && item.verification === "practice")
+      ?? STENOGRAPHY_PROFILES.find((item) => item.language === language)
+      ?? profile;
+    chooseProfile(next.id);
   }
 
   function chooseSessionMode(nextMode: SessionMode) {
@@ -288,7 +339,8 @@ export function StenographyWorkspace({ defaultLanguage }: { readonly defaultLang
       </div>
 
       <div className="steno-profile-console">
-        <label><span>Audio / exam profile ({STENOGRAPHY_PROFILES.length} tracks)</span><select value={profile.id} disabled={phase !== "setup" && phase !== "result"} onChange={(event) => chooseProfile(event.target.value)}><optgroup label="Courtroom practice audio">{STENOGRAPHY_PROFILES.filter((item) => item.environment === "courtroom" && item.verification === "practice").map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</optgroup><optgroup label="Government office practice audio">{STENOGRAPHY_PROFILES.filter((item) => item.environment === "office" && item.verification === "practice").map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</optgroup><optgroup label="Official-rule exam simulations">{STENOGRAPHY_PROFILES.filter((item) => item.verification === "official-reference").map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</optgroup></select></label>
+        <label className="steno-language-select"><span>Dictation language</span><select value={profile.language} disabled={phase !== "setup" && phase !== "result"} onChange={(event) => chooseLanguage(event.target.value as TypingLanguageCode)}><option value="hi">Hindi</option><option value="en">English</option></select></label>
+        <label><span>Exam / practice profile ({STENOGRAPHY_PROFILES.filter((item) => item.language === profile.language).length})</span><select value={profile.id} disabled={phase !== "setup" && phase !== "result"} onChange={(event) => chooseProfile(event.target.value)}><optgroup label="Courtroom practice">{STENOGRAPHY_PROFILES.filter((item) => item.language === profile.language && item.environment === "courtroom" && item.verification === "practice").map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</optgroup><optgroup label="Government office practice">{STENOGRAPHY_PROFILES.filter((item) => item.language === profile.language && item.environment === "office" && item.verification === "practice").map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</optgroup><optgroup label="Official-rule simulations">{STENOGRAPHY_PROFILES.filter((item) => item.language === profile.language && item.verification === "official-reference").map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</optgroup></select></label>
         <div><span>Dictation</span><strong>{profile.dictationWpm} WPM · {profile.dictationSeconds / 60} min</strong></div>
         <div><span>Transcription</span><strong>{profile.transcriptionSeconds / 60} min</strong></div>
         <div className={`steno-verification ${officialProfile ? "official" : "practice"}`}><ShieldCheck /><span>{officialProfile ? strictExamMode ? "Official-reference rules" : "Official timing · training entry" : "Guided practice"}</span></div>
@@ -304,6 +356,13 @@ export function StenographyWorkspace({ defaultLanguage }: { readonly defaultLang
         {(["setup", "dictation", "transcription", "result"] as const).map((item, index) => <div className={(phase === item || (phase === "countdown" && item === "dictation") || (phase === "paused" && item === "dictation")) ? "active" : ""} key={item}><span>{index + 1}</span><b>{item === "setup" ? "Briefing" : item[0].toUpperCase() + item.slice(1)}</b></div>)}
       </div>
 
+      <section className="steno-audio-library" aria-label="Dictation audio source">
+        <div><span>AUDIO SOURCE</span><strong>{audioUrl ? "Human recording ready" : voiceEnabled ? "System narration selected" : "No audio selected"}</strong><small>{audioUrl ? `${audioName}${audioDuration ? ` · ${Math.round(audioDuration)} sec` : ""}` : "System narration is synthetic and depends on an installed Windows voice."}</small></div>
+        <div className="steno-audio-truth"><b>Built-in licensed human packs</b><strong>0</strong><small>No competitor or unofficial exam recording is bundled. Add an original/licensed recording for real voice.</small></div>
+        <details><summary>Recording script</summary><p>{script}</p><small>Target: {profile.dictationWpm} WPM for {profile.dictationSeconds / 60} minutes ({tokenizeStenographyText(script).length} words).</small></details>
+        <div className="steno-audio-library-actions"><Button variant="outline" onClick={() => audioInputRef.current?.click()} disabled={phase !== "setup"}><FileAudio /> Import human audio</Button>{isRecording ? <Button variant="danger" onClick={stopHumanRecording}><Square /> Stop recording</Button> : <Button variant="outline" onClick={() => void startHumanRecording()} disabled={phase !== "setup"}><Mic2 /> Record human voice</Button>}</div>
+      </section>
+
       <div className="steno-workbench exam-phases">
         <article className="dictation-console">
           <div className="panel-kicker"><Headphones /><span>DICTATION CONSOLE</span><strong>{formatTime(dictationRemaining)}</strong></div>
@@ -313,7 +372,7 @@ export function StenographyWorkspace({ defaultLanguage }: { readonly defaultLang
           </div>
           <div className={`steno-audio-status ${narrationStatus.engine}`} role="status"><Volume2 /><span><strong>{audioMessage}</strong><small>System narration is synthetic. For a real courtroom or office voice, import an original/licensed human recording; it uses the same exact exam timer and result engine.</small></span><Button variant="outline" size="sm" onClick={() => void testVoice()} disabled={phase !== "setup" && phase !== "result"}>Voice test</Button></div>
           <div className="dictation-progress"><span style={{ width: `${dictationProgress}%` }} /></div>
-          {audioUrl && <audio ref={audioRef} className="steno-audio" controls={!officialMode} src={audioUrl} />}
+          {audioUrl && <audio ref={audioRef} className="steno-audio" controls={!officialMode} src={audioUrl} onLoadedMetadata={(event) => setAudioDuration(Number.isFinite(event.currentTarget.duration) ? event.currentTarget.duration : undefined)} />}
           <div className="dictation-actions">
             {(phase === "setup" || phase === "result") && <Button onClick={startSession}><Play /> Start session</Button>}
             {phase === "dictation" && !officialMode && <Button variant="outline" onClick={pauseSession}><Pause /> Pause</Button>}

@@ -53,6 +53,7 @@ import { ExamResultReport } from "@/features/training/ExamResultReport";
 interface TypingMockExamProps {
   readonly layout: ReadyTypingLayoutId;
   readonly displayFont: UnicodeDisplayFontId;
+  readonly onExit: () => void;
 }
 
 const attemptsRepository = new LocalTrainingAttemptsRepository();
@@ -89,7 +90,7 @@ function profileKeystrokeLimit(profile?: ExamProfile) {
   return Math.max(200, Math.round((profile.targetKdph * profile.durationSeconds) / 3600));
 }
 
-export function TypingMockExam({ layout, displayFont }: TypingMockExamProps) {
+export function TypingMockExam({ layout, displayFont, onExit }: TypingMockExamProps) {
   const { language, t } = useI18n();
   const course = useMemo(() => getCurriculumCourse(layout), [layout]);
   const examProfiles = useMemo(() => getExamProfilesForLayout(layout), [layout]);
@@ -422,14 +423,14 @@ export function TypingMockExam({ layout, displayFont }: TypingMockExamProps) {
           : t("examSubmitted");
 
   return (
-    <section className={`mock-exam-page ${sessionActive ? "session-active" : "configuration-active"}`} aria-labelledby="mock-exam-title">
+    <section className={`mock-exam-page ${finished ? "result-active" : sessionActive ? "session-active" : "configuration-active"}`} aria-labelledby="mock-exam-title">
       <header className="mock-exam-heading">
         <div>
           <span>{layoutName} · {t("mockExam")}</span>
           <h1 id="mock-exam-title">{t("typingTest")}</h1>
           <p>{t("mockExamIntro")}</p>
         </div>
-        <div className={`mock-status ${status}`}><span>{statusLabel}</span><strong><Clock3 aria-hidden="true" /> {formatTime(remainingSeconds)}</strong></div>
+        <div className="mock-heading-actions"><div className={`mock-status ${status}`}><span>{statusLabel}</span><strong><Clock3 aria-hidden="true" /> {formatTime(remainingSeconds)}</strong></div><Button variant="outline" onClick={onExit}>{finished ? "Close result" : "Exit test"}</Button></div>
       </header>
 
       <div className="mock-exam-grid">
@@ -500,7 +501,7 @@ export function TypingMockExam({ layout, displayFont }: TypingMockExamProps) {
             </div>
           </section>
 
-          {finished && <ExamResultReport passed={passed} attemptId={attemptId} completedAt={attemptCompletedAt} profile={selectedProfile} paperNumber={paperIndex + 1} layoutName={layoutName} durationSeconds={measuredSeconds} measuredSpeed={measuredProfileSpeed} requiredSpeed={requiredProfileSpeed} wpm={wpm} grossWpm={grossWpm} netWpm={wordSpeed.netWpm} rrbWpm={selectedProfile.scoringModel === "rrb-wpm" ? rrbScore.wpm : undefined} kdph={kdph} accuracy={score.accuracy} expectedCharacters={score.expectedCharacters} typedCharacters={score.typedCharacters} correctCharacters={score.correctCharacters} missingCharacters={score.missingCharacters} extraCharacters={score.extraCharacters} substitutedCharacters={score.substitutedCharacters} corrections={backspaceCount} expectedText={expected} actualText={actual} weakKeys={weakKeys} endedByTimer={status === "expired"} onNewTest={resetToReady} />}
+          {finished && <ExamResultReport passed={passed} attemptId={attemptId} completedAt={attemptCompletedAt} profile={selectedProfile} paperNumber={paperIndex + 1} layoutName={layoutName} durationSeconds={measuredSeconds} measuredSpeed={measuredProfileSpeed} requiredSpeed={requiredProfileSpeed} wpm={wpm} grossWpm={grossWpm} netWpm={wordSpeed.netWpm} rrbWpm={selectedProfile.scoringModel === "rrb-wpm" ? rrbScore.wpm : undefined} kdph={kdph} accuracy={score.accuracy} expectedCharacters={score.expectedCharacters} typedCharacters={score.typedCharacters} correctCharacters={score.correctCharacters} missingCharacters={score.missingCharacters} extraCharacters={score.extraCharacters} substitutedCharacters={score.substitutedCharacters} corrections={backspaceCount} expectedText={expected} actualText={actual} weakKeys={weakKeys} endedByTimer={status === "expired"} onNewTest={resetToReady} onClose={onExit} />}
           {attemptSaved && <p className="training-saved"><CheckCircle2 aria-hidden="true" /> {t("trainingSaved")}</p>}
 
           <section className="attempt-history compact" aria-labelledby="mock-history-title">

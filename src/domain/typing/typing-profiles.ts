@@ -41,7 +41,7 @@ export interface UnicodeDisplayFontProfile {
 
 export const TYPING_LAYOUT_PROFILES: readonly TypingLayoutProfile[] = [
   { id: "bhashayantra-smart", language: "hi", name: "BhashaYantra Smart", readiness: "ready", version: 1, source: "bhashayantra" },
-  { id: "classic-hindi", language: "hi", name: "Classic Hindi / KrutiDev", readiness: "ready", version: 1, source: "bhashayantra" },
+  { id: "classic-hindi", language: "hi", name: "KrutiDev 010 Keyboard (Classic)", readiness: "ready", version: 1, source: "bhashayantra" },
   { id: "inscript", language: "hi", name: "Devanagari INSCRIPT", readiness: "ready", version: 1, source: "microsoft" },
   { id: "remington-gail", language: "hi", name: "Remington GAIL", readiness: "ready", version: 1, source: "sil" },
   { id: "remington-cbi", language: "hi", name: "Remington CBI", readiness: "ready", version: 1, source: "microsoft" },

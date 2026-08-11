@@ -37,6 +37,12 @@ Hindi Learn Keys content keeps every intended letter or syllable as a separate d
 
 Practice error handling is deliberately non-blocking: a wrong physical key remains in the answer, is marked red in the live key stream, and the next character remains available. Sound is optional and defaults off. Mock results expose separate keystroke, word, and error-analysis views with local alignment, correction counts, speed measures, and print support. Word and Excel Efficiency are separate functional simulations rather than labels inside the typing test.
 
+The legacy-compatible training label is `KrutiDev 010 Keyboard (Classic)`. It describes one physical keyboard/encoding compatibility profile, not two fonts or two simultaneous layouts. Lessons expose token-level examples such as `v → अ`, `vk → आ`, `b → इ`, and `bZ → ई`; users press the shown physical keys and receive Unicode preview/output. A round-trip test validates every generated lesson against its Devanagari target.
+
+Word Efficiency provides original document-preparation, correspondence, minutes, Hindi noting/order, and full-simulation tasks. Excel Efficiency provides original register, attendance, budget/formula, inventory, candidate-result, and mixed simulation tasks. Text or cell accuracy and workflow completion are scored separately.
+
+Stenography separates rule profiles from audio provenance. Local system narration is always labeled synthetic. Real-voice sessions accept original/licensed human audio or a microphone recording made against the displayed original script and target WPM. No competitor, leaked exam, or unlicensed courtroom recording is bundled or represented as official audio. Hindi and English profiles remain independently selectable.
+
 Mock papers are assembled from original English and Hindi administrative passages covering public records, recruitment, railways, courts, accounts and audit, public health, rural development, disaster response, education, environment, digital services, and election duty. They reproduce the size and interaction contract of the selected profile without copying a competitor or an authority's test passage.
 
 ## Remington validation

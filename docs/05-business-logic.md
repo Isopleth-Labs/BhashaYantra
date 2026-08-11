@@ -149,7 +149,7 @@ Comparison uses Unicode normalization and grapheme-aware segmentation so a visua
 
 ### Curriculum catalog version 1
 
-- Ready layouts: BhashaYantra Smart, Classic Hindi/KrutiDev, Devanagari INSCRIPT, and English QWERTY.
+- Ready layouts: BhashaYantra Smart, KrutiDev 010 Keyboard (Classic), Devanagari INSCRIPT, and English QWERTY.
 - Each layout has 60 key drills, 90 word drills, 90 sentence drills, and 60 paragraph drills.
 - Canonical Hindi targets are generated through the BhashaYantra Smart engine; Classic and INSCRIPT source keys are obtained through deterministic inverse mappings and then round-trip validated.
 - Every exercise has a stable ID, sequence, focus keys, difficulty, estimated duration, tier, and conversion-warning count.

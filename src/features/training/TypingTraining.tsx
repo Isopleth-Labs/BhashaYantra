@@ -392,7 +392,9 @@ export function TypingTraining({ kind, layout, displayFont }: TypingTrainingProp
 
           <div className="drill-track" aria-label="Lesson drill sequence">{exercise.drillBlocks.map((block, index) => <div key={block.label} className={index < activeBlockIndex || activeBlockIndex < 0 ? "done" : index === activeBlockIndex ? "active" : ""}><span>{index + 1}</span><strong>{block.label}</strong><small>{block.purpose}</small></div>)}</div>
 
-          <div className="academy-keyline"><div><span>Layout keystrokes</span><code>{exercise.keys}</code></div><div><span>Next</span><kbd>{nextExpected?.key === " " ? t("space") : nextExpected?.key ?? "—"}</kbd><small>{nextExpected?.finger ? t(nextExpected.finger) : "Ready"}</small></div></div>
+          {exercise.stageId === "learn-keys" && layout !== "english-qwerty" && layout !== "bhashayantra-smart" && <LessonTokenGuide exercise={exercise} />}
+
+          <div className="academy-keyline"><div><span>Physical keys to press</span><code>{exercise.keys}</code></div><div><span>Next</span><kbd>{nextExpected?.key === " " ? t("space") : nextExpected?.key ?? "—"}</kbd><small>{nextExpected?.finger ? t(nextExpected.finger) : "Ready"}</small></div></div>
 
           <div className="academy-training-panes">
             <section className="academy-copyboard" style={{ fontFamily: fontStack, fontSize }}>
@@ -400,7 +402,7 @@ export function TypingTraining({ kind, layout, displayFont }: TypingTrainingProp
               {exercise.drillBlocks.map((block, index) => <div key={block.label} className={index === activeBlockIndex ? "copy-block active" : "copy-block"}><span>{block.label}</span><strong>{block.target}</strong></div>)}
             </section>
             <section className="academy-answer-pane">
-              <label className="academy-input-label" htmlFor="training-input"><span>{t("yourTyping")}</span><small>Timer starts with your first key</small></label>
+              <label className="academy-input-label" htmlFor="training-input"><span>{t("yourTyping")}</span><small>{layout === "classic-hindi" ? "Press the shown English keys; Hindi appears in Unicode Preview" : "Timer starts with your first key"}</small></label>
               <div className={layout === "english-qwerty" ? "academy-editor-grid direct" : "academy-editor-grid"}>
                 <textarea ref={textareaRef} id="training-input" className={errorPulse ? "error-pulse" : undefined} value={source} onChange={(event) => updateSource(event.target.value)} onKeyDown={handleKeyDown} placeholder={t("trainingPlaceholder")} spellCheck={false} disabled={finished} autoFocus />
                 {layout !== "english-qwerty" && <div className="academy-unicode-preview" style={{ fontFamily: fontStack, fontSize }}><span>Unicode preview</span><strong>{actual || "—"}</strong></div>}
@@ -454,6 +456,16 @@ function CourseOrientation({ stageLabels, stageIds }: { readonly stageLabels: Re
 
 function TrainingMetric({ label, value }: { readonly label: string; readonly value: string }) {
   return <div className="training-metric"><span>{label}</span><strong>{value}</strong></div>;
+}
+
+function LessonTokenGuide({ exercise }: { readonly exercise: ReturnType<typeof getCurriculumCourse>["stages"][number]["exercises"][number] }) {
+  const pairs = exercise.drillBlocks.flatMap((block) => {
+    const keys = block.keys.trim().split(/\s+/u);
+    const targets = block.target.trim().split(/\s+/u);
+    return keys.map((key, index) => ({ key, target: targets[index] ?? "—" }));
+  });
+  const unique = pairs.filter((pair, index) => pairs.findIndex((candidate) => candidate.key === pair.key && candidate.target === pair.target) === index).slice(0, 12);
+  return <section className="academy-token-guide" aria-label="Physical key to Hindi guide"><div><strong>How this layout works</strong><span>KrutiDev 010 keyboard keys are physical key sequences—not a second font. Press each sequence exactly; output stays Unicode.</span></div><div>{unique.map((pair) => <span key={`${pair.key}-${pair.target}`}><kbd>{pair.key}</kbd><b>→</b><strong>{pair.target}</strong></span>)}</div></section>;
 }
 
 function PracticeKeyStream({ expected, actual }: { readonly expected: string; readonly actual: string }) {
