@@ -54,11 +54,45 @@ interface TypingMockExamProps {
   readonly layout: ReadyTypingLayoutId;
   readonly displayFont: UnicodeDisplayFontId;
   readonly onExit: () => void;
+  readonly onLayoutChange: (layout: ReadyTypingLayoutId) => void;
 }
 
 const attemptsRepository = new LocalTrainingAttemptsRepository();
 const TEST_DURATIONS = [60, 300, 600, 900] as const;
 const PAPER_COUNT = 60;
+
+const HINDI_EXAM_LAYOUTS: readonly {
+  readonly id: ReadyTypingLayoutId;
+  readonly label: string;
+  readonly description: string;
+  readonly badge?: string;
+}[] = [
+  {
+    id: "classic-hindi",
+    label: "KrutiDev 010 Keyboard (Classic)",
+    description: "Physical KrutiDev key sequences with clean Unicode preview and scoring.",
+  },
+  {
+    id: "remington-gail",
+    label: "Remington GAIL",
+    description: "Common Remington-style Unicode Hindi workflow. Confirm the current exam notice.",
+    badge: "Recommended",
+  },
+  {
+    id: "inscript",
+    label: "Devanagari INSCRIPT",
+    description: "Government-standard Unicode keyboard layout required by some recruitment tests.",
+  },
+  {
+    id: "remington-cbi",
+    label: "Remington CBI",
+    description: "Select when the recruitment notice or training profile specifically requires CBI.",
+  },
+];
+
+function getDefaultHindiExamLayout(layout: ReadyTypingLayoutId) {
+  return HINDI_EXAM_LAYOUTS.some((item) => item.id === layout) ? layout : "remington-gail";
+}
 
 const EXAM_CATEGORY_LABELS = {
   general: "Practice diagnostics",
@@ -90,7 +124,7 @@ function profileKeystrokeLimit(profile?: ExamProfile) {
   return Math.max(200, Math.round((profile.targetKdph * profile.durationSeconds) / 3600));
 }
 
-export function TypingMockExam({ layout, displayFont, onExit }: TypingMockExamProps) {
+export function TypingMockExam({ layout, displayFont, onExit, onLayoutChange }: TypingMockExamProps) {
   const { language, t } = useI18n();
   const course = useMemo(() => getCurriculumCourse(layout), [layout]);
   const examProfiles = useMemo(() => getExamProfilesForLayout(layout), [layout]);
@@ -123,6 +157,8 @@ export function TypingMockExam({ layout, displayFont, onExit }: TypingMockExamPr
   const [customPassage, setCustomPassage] = useState("");
   const [soundOnError, setSoundOnError] = useState(() => loadBoolean("bhashayantra:exam:sound-v2", true));
   const [errorPulse, setErrorPulse] = useState(false);
+  const [layoutPromptOpen, setLayoutPromptOpen] = useState(layout !== "english-qwerty");
+  const [pendingExamLayout, setPendingExamLayout] = useState<ReadyTypingLayoutId>(() => getDefaultHindiExamLayout(layout));
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const passageRef = useRef<HTMLDivElement>(null);
 
@@ -423,6 +459,7 @@ export function TypingMockExam({ layout, displayFont, onExit }: TypingMockExamPr
           : t("examSubmitted");
 
   return (
+    <>
     <section className={`mock-exam-page ${finished ? "result-active" : sessionActive ? "session-active" : "configuration-active"}`} aria-labelledby="mock-exam-title">
       <header className="mock-exam-heading">
         <div>
@@ -430,7 +467,11 @@ export function TypingMockExam({ layout, displayFont, onExit }: TypingMockExamPr
           <h1 id="mock-exam-title">{t("typingTest")}</h1>
           <p>{t("mockExamIntro")}</p>
         </div>
-        <div className="mock-heading-actions"><div className={`mock-status ${status}`}><span>{statusLabel}</span><strong><Clock3 aria-hidden="true" /> {formatTime(remainingSeconds)}</strong></div><Button variant="outline" onClick={onExit}>{finished ? "Close result" : "Exit test"}</Button></div>
+        <div className="mock-heading-actions">
+          <div className={`mock-status ${status}`}><span>{statusLabel}</span><strong><Clock3 aria-hidden="true" /> {formatTime(remainingSeconds)}</strong></div>
+          {layout !== "english-qwerty" && <Button variant="outline" disabled={!canConfigure} onClick={() => { setPendingExamLayout(getDefaultHindiExamLayout(layout)); setLayoutPromptOpen(true); }}>Keyboard layout</Button>}
+          <Button variant="outline" onClick={onExit}>{finished ? "Close result" : "Exit test"}</Button>
+        </div>
       </header>
 
       <div className="mock-exam-grid">
@@ -556,6 +597,31 @@ export function TypingMockExam({ layout, displayFont, onExit }: TypingMockExamPr
         </aside>
       </div>
     </section>
+    {layoutPromptOpen && layout !== "english-qwerty" && (
+      <div className="exam-layout-backdrop">
+        <section className="exam-layout-dialog" role="dialog" aria-modal="true" aria-labelledby="exam-layout-dialog-title">
+          <header>
+            <span>Hindi typing test</span>
+            <h2 id="exam-layout-dialog-title">Select the keyboard layout for this test</h2>
+            <p>The selected layout controls physical keys, Unicode conversion, passages, scoring and the on-screen keyboard.</p>
+          </header>
+          <div className="exam-layout-options" role="radiogroup" aria-label="Hindi keyboard layouts">
+            {HINDI_EXAM_LAYOUTS.map((item) => (
+              <label key={item.id} className={pendingExamLayout === item.id ? "selected" : ""}>
+                <input type="radio" name="exam-layout" value={item.id} checked={pendingExamLayout === item.id} onChange={() => setPendingExamLayout(item.id)} />
+                <span><strong>{item.label}</strong><small>{item.description}</small></span>
+                {item.badge && <em>{item.badge}</em>}
+              </label>
+            ))}
+          </div>
+          <footer>
+            <p>Always verify the keyboard requirement in the latest official recruitment notice.</p>
+            <div><Button variant="outline" onClick={onExit}>Cancel</Button><Button onClick={() => { onLayoutChange(pendingExamLayout); setLayoutPromptOpen(false); }}>Continue to test</Button></div>
+          </footer>
+        </section>
+      </div>
+    )}
+    </>
   );
 }
 

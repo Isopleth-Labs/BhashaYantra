@@ -365,7 +365,7 @@ export default function App() {
           ) : activeNav === "practice" ? (
             <TypingTraining kind="practice" layout={typingLayout} displayFont={displayFont} />
           ) : activeNav === "test" ? (
-            <TypingMockExam layout={typingLayout} displayFont={displayFont} onExit={() => setActiveNav("start")} />
+            <TypingMockExam layout={typingLayout} displayFont={displayFont} onLayoutChange={chooseTypingLayout} onExit={() => setActiveNav("start")} />
           ) : activeNav === "stenography" ? (
             <StenographyWorkspace defaultLanguage={typingLanguage} />
           ) : activeNav === "office" ? (

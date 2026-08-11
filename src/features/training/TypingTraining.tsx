@@ -392,9 +392,10 @@ export function TypingTraining({ kind, layout, displayFont }: TypingTrainingProp
 
           <div className="drill-track" aria-label="Lesson drill sequence">{exercise.drillBlocks.map((block, index) => <div key={block.label} className={index < activeBlockIndex || activeBlockIndex < 0 ? "done" : index === activeBlockIndex ? "active" : ""}><span>{index + 1}</span><strong>{block.label}</strong><small>{block.purpose}</small></div>)}</div>
 
-          {exercise.stageId === "learn-keys" && layout !== "english-qwerty" && layout !== "bhashayantra-smart" && <LessonTokenGuide exercise={exercise} />}
-
-          <div className="academy-keyline"><div><span>Physical keys to press</span><code>{exercise.keys}</code></div><div><span>Next</span><kbd>{nextExpected?.key === " " ? t("space") : nextExpected?.key ?? "—"}</kbd><small>{nextExpected?.finger ? t(nextExpected.finger) : "Ready"}</small></div></div>
+          <div className="academy-key-guidance">
+            {exercise.stageId === "learn-keys" && layout !== "english-qwerty" && layout !== "bhashayantra-smart" && <LessonTokenGuide exercise={exercise} />}
+            <div className="academy-keyline"><div><span>Physical keys to press</span><code>{exercise.keys}</code></div><div><span>Next</span><kbd>{nextExpected?.key === " " ? t("space") : nextExpected?.key ?? "—"}</kbd><small>{nextExpected?.finger ? t(nextExpected.finger) : "Ready"}</small></div></div>
+          </div>
 
           <div className="academy-training-panes">
             <section className="academy-copyboard" style={{ fontFamily: fontStack, fontSize }}>
