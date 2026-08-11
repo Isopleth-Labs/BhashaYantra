@@ -697,6 +697,50 @@
 .workspace-password-field svg { width: 15px; }
 .workspace-auth-form .inline-flex { align-self: end; min-height: 40px; }
 
+.workspace-auth-verify-link,
+.workspace-auth-back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin: -3px auto 14px;
+  border: 0;
+  color: var(--primary);
+  background: transparent;
+  font-size: 9px;
+  font-weight: 750;
+}
+.workspace-auth-verify-link:hover,
+.workspace-auth-back:hover { text-decoration: underline; }
+.workspace-auth-verify-link svg,
+.workspace-auth-back svg { width: 14px; }
+
+.workspace-otp-card { position: relative; }
+.workspace-otp-intro {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 13px;
+  margin: 18px 18px 0;
+  padding: 14px;
+  border: 1px solid color-mix(in srgb, var(--primary) 26%, var(--border));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--primary-soft) 48%, var(--surface));
+}
+.workspace-otp-intro > span { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 10px; color: var(--primary); background: var(--surface); }
+.workspace-otp-intro > span svg { width: 19px; }
+.workspace-otp-intro strong { font-size: 12px; }
+.workspace-otp-intro p { margin: 4px 0 0; color: var(--muted-foreground); font-size: 9px; line-height: 1.5; }
+.workspace-otp-intro p b { color: var(--foreground); }
+.workspace-otp-form { grid-template-columns: minmax(190px, 1fr) minmax(170px, .8fr) auto; align-items: end; }
+.workspace-otp-input { font-size: 17px !important; font-weight: 800 !important; letter-spacing: .3em; text-align: center; }
+.workspace-otp-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: -2px 18px 13px; }
+.workspace-otp-actions button { display: flex; align-items: center; gap: 6px; border: 0; color: var(--primary); background: transparent; font-size: 9px; font-weight: 750; }
+.workspace-otp-actions button:disabled { color: var(--muted-foreground); cursor: not-allowed; }
+.workspace-otp-actions button svg { width: 13px; }
+.workspace-otp-actions small { color: var(--muted-foreground); font-size: 8px; }
+.workspace-otp-card .workspace-auth-back { margin-bottom: 13px; }
+
 .workspace-device-note { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 10px; margin: 0 18px 14px; padding: 11px 12px; border: 1px solid color-mix(in srgb, var(--primary) 20%, var(--border)); border-radius: 9px; background: color-mix(in srgb, var(--primary-soft) 45%, var(--surface)); }
 .workspace-device-note > svg { width: 17px; color: var(--primary); }
 .workspace-device-note span { display: flex; flex-direction: column; gap: 3px; }
@@ -733,6 +777,7 @@
 @media (max-width: 900px) {
   .steno-session-mode,
   .workspace-auth-form,
+  .workspace-otp-form,
   .workspace-session-summary { grid-template-columns: 1fr; }
 }
 
