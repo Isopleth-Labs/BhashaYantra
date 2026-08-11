@@ -1,276 +1,160 @@
 <p align="center">
-  <img src="docs/assets/bhashayantra-app-icon.svg" alt="BhashaYantra logo" width="112" />
+  <img src="docs/assets/bhashayantra-app-icon.svg" alt="BhashaYantra logo" width="96" />
 </p>
 
 <h1 align="center">BhashaYantra</h1>
 
-<p align="center"><strong>Smart Hindi typing, legacy-font conversion, practice, and exam preparation for Windows.</strong></p>
+<p align="center"><strong>The professional Indian-language typing workspace for exam candidates, office users, and training institutions.</strong></p>
 
-BhashaYantra is a Windows-first Hindi typing, legacy-font conversion, typing-practice, testing, and stenography desktop application.
+<p align="center">
+  <a href="https://github.com/Isopleth-Labs/BhashaYantra/actions/workflows/build.yml"><img alt="Build status" src="https://github.com/Isopleth-Labs/BhashaYantra/actions/workflows/build.yml/badge.svg" /></a>
+  <img alt="Beta candidate" src="https://img.shields.io/badge/channel-beta%20candidate-0b63f6" />
+  <img alt="Windows" src="https://img.shields.io/badge/platform-Windows-0078D4?logo=windows11&logoColor=white" />
+  <img alt="Offline first" src="https://img.shields.io/badge/core-offline--first-138a4b" />
+</p>
 
-> Project status: the React/Tauri foundation, six-layout typing engine, complete original practice catalog, configurable exam simulator, offline result history, Stenography Studio, multi-tool converter, opt-in Windows Direct Typing bridge, functional settings, checkout-preview design, Drizzle schema, Supabase migrations, and repository boundaries are implemented. A signed Windows TSF IME, secure billing, and structure-preserving document import remain roadmap modules.
+<p align="center">
+  <a href="#the-opportunity">Opportunity</a> ·
+  <a href="#product-advantage">Advantage</a> ·
+  <a href="#business-model">Business model</a> ·
+  <a href="#product-readiness">Readiness</a> ·
+  <a href="#roadmap">Roadmap</a>
+</p>
 
-![BhashaYantra implemented UI](docs/assets/bhashayantra-implemented-ui.png)
+> **Current status:** `0.2.0-beta.1` is a controlled beta candidate, not a public production release. The release workflow remains blocked until Windows code signing and signed auto-updates are configured.
 
-The approved design source is preserved at [docs/assets/bhashayantra-final-reference.png](docs/assets/bhashayantra-final-reference.png).
+![BhashaYantra desktop workspace](docs/assets/bhashayantra-implemented-ui.png)
 
-## Implemented now
+<table>
+  <tr>
+    <td align="center"><strong>2,860</strong><br /><sub>original exercises</sub></td>
+    <td align="center"><strong>18</strong><br /><sub>mock-test profiles</sub></td>
+    <td align="center"><strong>6</strong><br /><sub>selectable layouts</sub></td>
+    <td align="center"><strong>94</strong><br /><sub>automated tests</sub></td>
+  </tr>
+</table>
 
-- Responsive desktop dashboard matching the approved reference.
-- Simple Smart and Advanced Classic mode switch.
-- Hindi-first interface with an instant Hindi/English language switch.
-- Fully interactive Start Typing pad with the original BhashaYantra Smart Roman-phonetic engine and familiar Classic/KrutiDev keys.
-- Typed Hindi/English profile registry with BhashaYantra Smart, Classic Hindi/KrutiDev, Devanagari INSCRIPT, Remington GAIL, Remington CBI, and English QWERTY ready profiles.
-- Remington GAIL uses the familiar before-consonant short-i flow; Remington CBI uses the documented after-consonant short-i flow. Both include dedicated keyboards, conversion routes, per-layout drafts, round-trip fixtures, and full courses.
-- Separate offline drafts for every ready layout and live Unicode or KrutiDev output where applicable.
-- Automatic short-i matra, reph, conjunct, and Unicode normalization through the shared typing engine.
-- Clickable Smart, Classic Hindi, INSCRIPT, and English QWERTY on-screen keyboards, Shift layers, Smart suggestions, and five Hindi character-palette groups.
-- Searchable full character library and full shortcut manager with direct character insertion.
-- Built-in expert shortcuts plus conflict-checked custom shortcuts and physical-key mappings in the working Advanced Classic Manager.
-- Offline draft, language, layout, display-font, output, shortcut, and custom-layout persistence.
-- Layout-scoped custom shortcuts and physical-key mappings with JSON import/export.
-- Custom layout import/export, reset, text open, output copy, and `.txt` save/download actions.
-- Native offline productivity exports for Microsoft Word (`.docx`), Microsoft Excel (`.xlsx`), and browser-ready (`.html`) documents from both typing and conversion workspaces.
-- Live words, characters, lines, elapsed-session WPM, and mapping-warning feedback.
-- Live local KrutiDev 010 ↔ Unicode text conversion in both directions with warnings.
-- Three separate converter workflows so encoding and language are not confused: verified legacy-font conversion, offline Roman Hindi transliteration, and meaning-preserving cloud translation.
-- Selectable translation providers: local/self-hosted LibreTranslate for free open-source English/Hindi/Bengali translation, or a Supabase Edge Function for Google Cloud English/Hindi/Marathi/Punjabi/Bengali/Gujarati translation.
-- Translation responses are accepted only from the selected provider, rejected when unchanged, and checked against the selected target-language script before export.
-- Windows **Direct Typing** switch in Start Typing: turn it on once, BhashaYantra minimizes, and selected-layout keys are converted per keystroke in standard Word, Excel, browser, and Windows text fields. Office-safe delta rendering preserves the stable Unicode prefix and changes only the composed suffix instead of repeatedly selecting/replacing the whole word. It ignores injected events and BhashaYantra's own process, preserves Ctrl/Alt/Win shortcuts, resets composition on focus/navigation changes, and provides `Ctrl + Alt + F12` emergency-off.
-- Direct Unicode typing prevents the earlier raw-key-plus-converted-text duplication. Legacy output remains real KrutiDev encoding, so the target editor must use the Kruti Dev 010 font.
-- Text-file open, paste, clear, copy, and download actions.
-- Selectable Unicode preview fonts: Noto Sans Devanagari, Mangal, Nirmala UI, and Segoe UI for English.
-- Original 2,860-exercise professional curriculum: 470 exercises for each ready layout, plus a dedicated 40-lesson Number & Data Entry stage for English QWERTY. Core stages are Learn Keys (60), alphabetic and professional Practice Words (200), Sentences (120), and Paragraphs (90).
-- Academy-style course map with every lesson available immediately, plus module progress, accuracy gates, and one-to-three required clean passes for optional mastery tracking.
-- Key lessons use Warm-up, Control, Application, and Checkpoint blocks; Hindi key units remain intentionally separated instead of accidentally merging into different syllables. Word lessons use repeated Recognition, a two-round Accuracy Circuit, and a sustained Timed Run; sentence and paragraph lessons provide original long-form copy.
-- Practice accepts every wrong key instead of trapping the learner. A compact live key stream keeps correct keys green, wrong keys red, and the next key highlighted; error sound is optional and off by default.
-- 250 Free exercises and 2,610 Pro-marked exercises. These tier labels are catalog metadata until signed entitlement and billing enforcement are implemented.
-- Fixed-height academy workstation keeps the source, typing editor, Unicode preview, and compact keyboard inside the application viewport; the browser page no longer jumps downward when typing.
-- Guided layout-specific practice with named lessons, objectives, mastery accuracy, recommended speed, word/character counts, exercise selection, progressive difficulty, target keys, next-key/finger guidance, clickable keyboard, error sound, text-size, and backspace controls.
-- Eighteen exam profiles: two flexible BhashaYantra baselines and sixteen official-reference profiles for SSC CHSL/D.E.S.T., RRB NTPC CBTST, DDA, DSSSB, MP CPCT, Rajasthan High Court, and Allahabad High Court.
-- Focused mock-exam workstation with 60 original government-office-style papers per layout, rule-specific duration/speed/backspace controls, official source links, explicit Start/Pause/Resume/Submit states, and automatic timeout submission.
-- Running exams use a compact distraction-free viewport: navigation and configuration panels collapse, the page position remains fixed, and only the passage/editor panels scroll at their edges.
-- Configurable 1/5/10/15-minute tests with backspace rules, word/letter/error highlighting, passage auto-scroll, 150–1,200 word limits, 200–50,000 keystroke limits, paragraphs/tabs/correction controls, custom Unicode passage input, and print view.
-- Completed mock results include accuracy, correct WPM, gross WPM, NWPM, KDPH, correct/missing/extra/substituted characters, correction count, weak-key analysis, and the scoring-rule notice.
-- Official-profile environment guard blocks a test when a verified layout/font requirement is not selected, such as Devanagari INSCRIPT with Mangal for the referenced Allahabad High Court Hindi profile.
-- Versioned offline attempt repository with per-layout history, completed-exercise count, best scores, average accuracy, recent-speed trend, and history deletion.
-- Functional Stenography Studio with fourteen original Hindi/English courtroom, government-office, SSC, and High Court profiles; matching-language Windows narration with chunked browser fallback; honest missing-voice diagnostics; a pre-session voice test; human-recording import; strict separate-phase exam simulation; an editable Listen & Type mode; word-aligned scoring; transcript WPM; and a detailed offline result card. Official-reference profiles reproduce public timing rules with original practice copy, never confidential exam audio.
-- Dedicated Word & Excel Efficiency workspace: timed Word copy/format/save tasks and Excel register-entry/validation tasks with accuracy, workflow completion, WPM or cells-per-minute scoring.
-- Expanded mock-test report with independent keystroke, word, and error-analysis views, colour-coded aligned copy, word-by-word status, omission/substitution/addition counts, corrections, speed measures, and print support.
-- Separate Student and Institute account entry backed by Supabase email/password Auth. The authenticated profile role decides which workspace opens, role mismatch signs the session out, and no insecure local-login bypass is provided when cloud configuration is absent.
-- Professional Settings control center for interface, theme, typing defaults, training feedback, privacy status, safe preference reset, and a responsive Pro plan entry point.
-- Non-purchasable Buy Now/plan-selection preview for 30-day, 90-day, annual, and institution packaging. It clearly identifies hypothesis pricing and keeps secure checkout disabled so the development build never collects payment.
-- Light/dark design tokens and Hindi font fallbacks.
-- Character browser, shortcut search, honest document-engine readiness card, and test summary.
-- Drizzle PostgreSQL schema for ten application tables.
-- Supabase migrations, Auth ownership constraints, update triggers, and RLS policies.
-- Local and Supabase user-preference repository implementations.
-- Tauri 2 configuration with allowlisted dialog and text-file permissions.
-- Tested Free/Pro/Institution feature-entitlement vocabulary and development plan-catalog safety checks for future secure billing integration.
-- Seventy-four frontend converter/typing/training/document/stenography/repository/licensing tests, seven native Direct Typing tests, Windows narration compile checks, strict TypeScript checking, Rust Clippy, and production builds.
+## The opportunity
 
-## Final product direction
+Indian typing users currently move between separate tools for legacy Hindi input, Unicode conversion, exam practice, stenography, and Word/Excel work. Many products are dated, encoding-specific, difficult to learn, or disconnected from real professional workflows.
 
-- Default keyboard experience: original BhashaYantra Smart Roman-phonetic input with Unicode output.
-- `Simple Smart Mode`: natural Roman Hindi typing with automatic matra and joint-character composition.
-- `Advanced Classic Mode`: shortcuts, Alt combinations, custom mappings, and expert controls.
-- Central workspace: bidirectional `KrutiDev / Legacy ↔ Unicode` Exchange Converter.
-- The development Direct Typing bridge provides explicit opt-in per-keystroke input while BhashaYantra is running. It uses a low-level Windows hook and `SendInput`, so it is limited to standard apps at the same or lower integrity level. The final distributable system keyboard remains a separately signed Text Services Framework IME.
-- Additional modules: structure-preserving document conversion, recruitment-profile-controlled stenography rules, exportable reports, signed Pro entitlements, secure billing, and optional cloud sync.
+BhashaYantra brings those workflows into one modern desktop product:
 
-## Approved technology stack
+- Learn Hindi and English typing from key drills to professional passages.
+- Practise configurable exam-style tests using source-linked rule profiles.
+- Type Unicode Hindi in Windows applications through an opt-in Direct Typing bridge.
+- Convert Roman Hindi and supported legacy text without confusing fonts, encodings, and keyboard layouts.
+- Train stenography and Word/Excel efficiency inside the same learning system.
 
-| Area | Technology | Responsibility |
+> **Product thesis:** start with a trusted offline Windows utility, convert high-intent exam candidates into Pro users, then expand into recurring institution seats and managed training labs.
+
+## Product advantage
+
+| Advantage | Why it matters |
+|---|---|
+| Own language engine | BhashaYantra Smart is a product-owned Hindi input system; compatibility profiles are separately identified and tested. |
+| One engine across workflows | The selected layout powers typing, practice, tests, conversion, and on-screen guidance. |
+| Exam-oriented depth | 2,860 original exercises, 18 mock-test profiles, 60 original pattern papers per layout, detailed scoring, and weak-key analysis. |
+| Modern + legacy bridge | Unicode output for modern apps with verified KrutiDev compatibility and explicit validation labels for incomplete profiles. |
+| Offline-first trust | Core typing, training, local results, backup, and restore work without an account. |
+| Institution-ready architecture | Separate Student and Institute roles, Supabase RLS, assignments/reporting schema, and planned managed seats. |
+
+Official notices are used for layout, duration, correction, and scoring references. Built-in passages are original practice content—not copied proprietary exercise banks or falsely labelled past papers.
+
+## Who it serves
+
+- **Exam candidates:** SSC, RRB, DDA, DSSSB, CPCT, High Court, stenography, and data-entry preparation.
+- **Office professionals:** Hindi/English typing, Unicode and KrutiDev workflows, document export, Word and Excel practice.
+- **Institutions:** managed students, structured assignments, lab defaults, cohort analytics, and centralized reporting.
+
+## Business model
+
+| Plan | Customer | Value |
 |---|---|---|
-| Desktop shell | Tauri 2 | Windows window, native file access, packaging, secure native commands |
-| Frontend | React | Screens and interactive UI |
-| Language | TypeScript | Typed application, domain, and data-access code |
-| Styling | Tailwind CSS | Design tokens and utility styling |
-| UI components | shadcn/ui | Accessible, project-owned component source |
-| Database schema | Drizzle ORM + Drizzle Kit | TypeScript schema and generated migrations |
-| Cloud platform | Supabase | PostgreSQL, Auth, Storage, Row Level Security, and optional sync |
+| Free | Learners and casual users | Core typing, starter curriculum, basic conversion, and local progress. |
+| Pro | Serious candidates and professionals | Full curriculum, exam library, analytics, stenography, advanced conversion, and cloud continuity. |
+| Institution | Coaching centres, schools, labs, and employers | Managed seats, assignments, administrative controls, and cohort reports. |
 
-No additional application framework is part of the approved base stack. Small supporting packages required by these tools may be installed during implementation.
+Revenue is designed around durable workflow value—not advertisements, artificial typing delays, or locking users out of their own text. Pricing remains a market-validation hypothesis until secure billing and entitlement recovery are implemented.
 
-## Documentation
+The model combines individual subscriptions with higher-value institution contracts while keeping a useful free tier as the acquisition and trust channel.
 
-Start with [Documentation Index](docs/00-documentation-index.md).
+## Product readiness
 
-- [Product Specification](docs/01-product-spec.md)
-- [System Architecture](docs/02-system-architecture.md)
-- [Database ERD](docs/03-database-erd.md)
-- [Repository Pattern](docs/04-repositories.md)
-- [Business Logic](docs/05-business-logic.md)
-- [Frontend Design System](docs/06-frontend-design-system.md)
-- [Development Roadmap](docs/07-development-roadmap.md)
-- [Implementation Status](docs/08-implementation-status.md)
-- [Business Model](docs/09-business-model.md)
-- [Training and Exam Validation](docs/10-training-exam-validation.md)
-- [Third-party notices](THIRD_PARTY_NOTICES.md)
+**Working today**
 
-## Download
+- Six selectable typing layouts with visible standard/reference/compatibility status.
+- Hindi and English typing, guided practice, mock tests, result history, stenography, and Office Skills.
+- KrutiDev 010 ↔ Unicode text conversion, Roman Hindi transliteration, and optional translation providers.
+- Native Word (`.docx`), Excel (`.xlsx`), browser (`.html`), and text export.
+- Versioned local-data manifest, downgrade protection, backup/restore, and separate account roles.
+- 87 frontend tests, 7 native tests, strict TypeScript/Rust checks, production build, and visual QA.
 
-Local Windows packages produced from this source tree:
+**Before public beta**
 
-| Download type | Location |
+- Windows executable and installer code signing.
+- Signed Tauri updater and beta-channel update manifest.
+- Clean-machine `beta.1 → beta.2` install/update/restore test.
+- Final privacy policy, licence, support route, and beta feedback consent.
+
+See the [Public Beta Release Policy](docs/11-public-beta-release-policy.md) for the durable-user contract and release gates.
+
+## Roadmap
+
+| Phase | Outcome |
 |---|---|
-| Portable build output | [bhashayantra.exe](src-tauri/target/release/bhashayantra.exe) |
+| Signed beta | Auto-updatable Windows build for a controlled candidate cohort. |
+| Learning validation | Measure activation, practice completion, retention, and exam-profile usefulness. |
+| Individual Pro | Secure entitlements, recovery, analytics, and paid continuity. |
+| Institution pilot | Managed seats, assignments, lab controls, and cohort reporting. |
+| Scale | Licensed conversion coverage, deeper analytics, and professional document workflows. |
 
-The portable executable is an unsigned private development build. Before public distribution, complete the signed TSF/input-service work, add Windows code signing, and publish intentionally from the repository release page.
+## Technology
 
-### Download from GitHub Actions
+React 19 · TypeScript · Tauri 2 · Rust · Tailwind CSS · Drizzle ORM · Supabase/PostgreSQL
 
-The repository includes [`.github/workflows/build.yml`](.github/workflows/build.yml). After the project is pushed to GitHub, every push to `main`, pull request, or manual workflow run will:
+The architecture is offline-first: deterministic typing and scoring stay local, while authentication, optional sync, translation, billing, and institution services use explicit cloud boundaries.
 
-1. Install the locked Node.js and Rust dependencies on a Windows runner.
-2. Run the TypeScript check and converter tests.
-3. Run native Direct Typing tests and build one portable Tauri executable.
-4. Store them for 14 days in the workflow run under **Artifacts → BhashaYantra-Windows**.
+<details>
+<summary><strong>Run locally</strong></summary>
 
-The source repository is public and the product is still in active development. Do not create a GitHub Release or version tag yet. When all release gates are complete, the maintainer can intentionally create a version tag:
+<br />
 
-```powershell
-git tag v0.1.0
-git push origin v0.1.0
-```
-
-Only that future version-tag workflow will create a release and attach the portable Windows download:
-
-| Published item | URL |
-|---|---|
-| Source repository | [github.com/Isopleth-Labs/BhashaYantra](https://github.com/Isopleth-Labs/BhashaYantra) |
-| Future release downloads | [Releases](https://github.com/Isopleth-Labs/BhashaYantra/releases) |
-
-Developer source download after publication:
+Requirements: Node.js 24+, Rust stable, and the [Tauri Windows prerequisites](https://v2.tauri.app/start/prerequisites/).
 
 ```powershell
 git clone https://github.com/Isopleth-Labs/BhashaYantra.git
 cd BhashaYantra
-```
-
-After production release, end users will not need Node.js, Rust, or Docker. Until then, installers remain private development artifacts.
-
-## Development prerequisites
-
-Windows development requires:
-
-1. Git.
-2. Current Node.js LTS and npm.
-3. Rust stable with the MSVC toolchain.
-4. Microsoft C++ Build Tools and WebView2 required by Tauri.
-5. Docker Desktop or another Docker-compatible runtime for local Supabase.
-
-Official setup references:
-
-- [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/)
-- [Tauri project creation](https://v2.tauri.app/start/create-project/)
-- [Supabase local development](https://supabase.com/docs/guides/local-development)
-- [Drizzle Kit overview](https://orm.drizzle.team/docs/kit-overview)
-- [Tailwind CSS with Vite](https://tailwindcss.com/docs/installation/using-vite)
-- [shadcn/ui with Vite](https://ui.shadcn.com/docs/installation/vite)
-
-## First-time setup
-
-After cloning the repository:
-
-```powershell
-npm install
-Copy-Item .env.example .env.local
-npm run dev
-```
-
-For the full desktop window, install the Tauri Windows prerequisites and run `npm run tauri dev`.
-
-For local Supabase, start Docker Desktop and run `npx supabase start`. Supabase remains optional for offline typing, legacy conversion, Roman Hindi, training, and tests; it is required for Student/Institute login, cloud translation, and account sync.
-
-## Environment variables
-
-The desktop frontend may receive only public Supabase configuration:
-
-```dotenv
-VITE_SUPABASE_URL=
-VITE_SUPABASE_PUBLISHABLE_KEY=
-```
-
-Database credentials are for migration tooling or trusted backend environments only:
-
-```dotenv
-DATABASE_URL=
-```
-
-Meaning-preserving language translation uses the `translate-text` Supabase Edge Function. Configure the Google provider secret only in Supabase, never in `.env.local` or a `VITE_` variable:
-
-```powershell
-npx supabase secrets set GOOGLE_CLOUD_TRANSLATE_KEY=your-server-side-key
-npx supabase functions deploy translate-text
-```
-
-Never expose `DATABASE_URL`, a service-role key, `GOOGLE_CLOUD_TRANSLATE_KEY`, or any other server secret through a `VITE_` variable or bundle it into the Tauri application.
-
-For a free open-source local provider, start the included LibreTranslate stack:
-
-```powershell
-docker compose -f infra/libretranslate/compose.yml up -d
-```
-
-Then select **Convert Document → Translation → LibreTranslate** and use **Check provider**. The default endpoint is `http://127.0.0.1:5000`; no API key is required. See [infra/libretranslate/README.md](infra/libretranslate/README.md) for model coverage and operating instructions.
-
-## Development commands
-
-```powershell
-# Install dependencies
-npm install
-
-# Start local Supabase services
-npx supabase start
-
-# Run the browser UI during frontend-only work
-npm run dev
-
-# Run the complete Tauri desktop app
+npm ci
 npm run tauri dev
-
-# Generate SQL from the Drizzle schema
-npm run db:generate
-
-# Rebuild the local Supabase database from migrations and seed data
-npm run db:reset
-
-# Run converter unit tests and database security tests
-npm run test
-npm run db:test
-
-# Create a production frontend build
-npm run build
-
-# Create one portable Windows executable without installer bundles
-npx tauri build --no-bundle
 ```
 
-The first Tauri build can take longer because Rust dependencies must be downloaded and compiled.
+Validation:
 
-## Verified build status
+```powershell
+npm run beta:check
+npm run typecheck
+npm run test
+cargo test --manifest-path .\src-tauri\Cargo.toml
+```
 
-The current workspace has passed strict TypeScript checking, seventy-three frontend unit tests, seven native Direct Typing tests, database/RLS checks, Drizzle configuration validation, Rust formatting and Clippy checks, frontend production build, browser interaction QA, and the desktop executable build.
+Supabase is optional for offline typing and training. Copy `.env.example` to `.env.local` only when testing account or cloud features; never place service-role or translation-provider secrets in frontend variables.
 
-## Database workflow
+</details>
 
-1. Drizzle TypeScript schema is the application schema source of truth.
-2. Drizzle Kit generates timestamped SQL into `supabase/migrations/`.
-3. Supabase CLI applies migrations locally with `supabase db reset` and remotely with `supabase db push`.
-4. Production changes always use reviewed migration files; direct dashboard schema edits are not the normal workflow.
+<details>
+<summary><strong>Technical documentation</strong></summary>
 
-## Security baseline
+<br />
 
-- Supabase Row Level Security is enabled on every user-owned table.
-- Desktop code uses only the Supabase publishable key.
-- Secret keys and direct database credentials remain outside the desktop bundle.
-- File conversion is local by default; user documents are not uploaded unless the user explicitly enables a cloud feature.
-- Roman Hindi transliteration and legacy conversion remain offline. Only the explicit Translation tool sends its entered text to the configured provider.
-- Direct Typing installs a low-level keyboard and focus hook only after the user explicitly turns it on. It transforms keystrokes in memory, stores no captured keys, sends nothing to the network, excludes BhashaYantra's own process, and unhooks on off/emergency-off/application exit.
-- The bridge cannot inject into a higher-integrity target because Windows UIPI blocks that path. Do not run Word, Excel, or the browser as administrator when using Direct Typing.
-- Tauri capabilities grant only the native permissions required by each feature.
+- [Product specification](docs/01-product-spec.md)
+- [System architecture](docs/02-system-architecture.md)
+- [Business model](docs/09-business-model.md)
+- [Training and exam validation](docs/10-training-exam-validation.md)
+- [Public beta release policy](docs/11-public-beta-release-policy.md)
 
-## License
+</details>
 
-No license has been selected yet. Add a `LICENSE` file before public distribution.
+---
+
+**BhashaYantra is building a trusted bridge from learning a keyboard to passing an exam and working professionally in Indian languages.**
