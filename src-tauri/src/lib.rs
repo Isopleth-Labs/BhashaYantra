@@ -59,6 +59,22 @@ async fn stop_stenography_voice(manager: State<'_, StenographyAudioManager>) -> 
     Ok(())
 }
 
+#[tauri::command]
+fn open_windows_speech_settings() -> Result<(), String> {
+    #[cfg(windows)]
+    {
+        std::process::Command::new("explorer.exe")
+            .arg("ms-settings:speech")
+            .spawn()
+            .map_err(|error| format!("Windows Speech settings could not open: {error}"))?;
+        Ok(())
+    }
+    #[cfg(not(windows))]
+    {
+        Err("Speech settings shortcut is available on Windows only.".into())
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -73,6 +89,7 @@ pub fn run() {
             direct_typing_status,
             start_stenography_voice,
             stop_stenography_voice,
+            open_windows_speech_settings,
         ])
         .run(tauri::generate_context!())
         .expect("error while running BhashaYantra");

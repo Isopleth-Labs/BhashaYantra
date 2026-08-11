@@ -13,10 +13,12 @@ describe("direct typing profile", () => {
 
   it("uses the selected direct keyboard map", () => {
     const inscript = createDirectTypingProfile("inscript", "unicode");
-    const remington = createDirectTypingProfile("remington-cbi", "unicode");
+    const remingtonGail = createDirectTypingProfile("remington-gail", "unicode");
+    const remingtonCbi = createDirectTypingProfile("remington-cbi", "unicode");
 
     expect(inscript.keyMap.k).toBe("क");
-    expect(remington.keyMap.d).toBe("क");
+    expect(remingtonGail.keyMap.d).toBe("क");
+    expect(remingtonCbi.keyMap.d).toBe("क");
   });
 
   it("serializes custom mappings and expert shortcuts", () => {

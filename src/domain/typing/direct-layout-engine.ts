@@ -9,11 +9,9 @@ export const INSCRIPT_KEY_MAP: Readonly<Record<string, string>> = {
   X: "ँ", C: "ण", N: "ळ", M: "श", "<": "ष", ">": "।", "?": "य़",
 };
 
-// Remington GAIL/CBI share the same visible base and Shift layers. The CBI
-// workflow differs chiefly by entering the short-i matra after its consonant,
-// so it can emit Unicode in logical order through this direct map.
 // Base/Shift layer adapted from SIL Global's MIT-licensed Remington GAIL map.
-export const REMINGTON_CBI_KEY_MAP: Readonly<Record<string, string>> = {
+// Unicode GAIL enters the short-i matra after its consonant (d + f = कि).
+export const REMINGTON_GAIL_KEY_MAP: Readonly<Record<string, string>> = {
   "1": "1", "2": "2", "3": "3", "4": "4", "5": "5", "6": "6", "7": "7", "8": "8", "9": "9", "0": "0",
   "!": "।", "@": "/", "#": "ः", "$": "*", "%": "-", "^": "‘", "&": "’", "*": "द्ध", "(": "त्र", ")": "ऋ",
   "-": ";", "_": ".", "=": "ृ", "+": "्",
@@ -153,7 +151,7 @@ function expandRemingtonUnicode(value: string) {
 }
 
 export function remingtonCbiToUnicode(input: string): ConversionResult {
-  const converted = directLayoutToUnicode(input, REMINGTON_CBI_KEY_MAP);
+  const converted = directLayoutToUnicode(input, REMINGTON_GAIL_KEY_MAP);
   const output = composeRemingtonUnicode(converted.output);
   return {
     ...converted,
@@ -163,7 +161,25 @@ export function remingtonCbiToUnicode(input: string): ConversionResult {
 }
 
 export function unicodeToRemingtonCbi(input: string): ConversionResult {
-  const converted = unicodeToDirectLayout(expandRemingtonUnicode(input), REMINGTON_CBI_KEY_MAP);
+  const converted = unicodeToDirectLayout(expandRemingtonUnicode(input), REMINGTON_GAIL_KEY_MAP);
+  return {
+    ...converted,
+    inputCharacters: Array.from(input.replace(/\r\n?/g, "\n").normalize("NFC")).length,
+  };
+}
+
+export function remingtonGailToUnicode(input: string): ConversionResult {
+  const converted = directLayoutToUnicode(input, REMINGTON_GAIL_KEY_MAP);
+  const output = composeRemingtonUnicode(converted.output);
+  return {
+    ...converted,
+    output,
+    outputCharacters: Array.from(output).length,
+  };
+}
+
+export function unicodeToRemingtonGail(input: string): ConversionResult {
+  const converted = unicodeToDirectLayout(expandRemingtonUnicode(input), REMINGTON_GAIL_KEY_MAP);
   return {
     ...converted,
     inputCharacters: Array.from(input.replace(/\r\n?/g, "\n").normalize("NFC")).length,

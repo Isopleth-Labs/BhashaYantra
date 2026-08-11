@@ -25,6 +25,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import {
+  openWindowsSpeechSettings,
   startStenographyNarration,
   stopStenographyNarration,
   testStenographyNarration,
@@ -120,6 +121,8 @@ export function StenographyWorkspace({ defaultLanguage }: { readonly defaultLang
   const officialProfile = profile.verification === "official-reference";
   const officialMode = officialProfile && strictExamMode;
   const transcriptEnabled = phase === "transcription" || (sessionMode === "listen-type" && (phase === "dictation" || phase === "paused"));
+  const audioReady = Boolean(audioUrl) || (voiceEnabled && narrationStatus.engine !== "unavailable");
+  const audioSourceStatus = audioUrl ? "native" : narrationStatus.engine;
   const dictationProgress = Math.round((1 - dictationRemaining / profile.dictationSeconds) * 100);
   const transcriptionElapsed = Math.max(1, profile.transcriptionSeconds - transcriptionRemaining);
 
@@ -127,7 +130,9 @@ export function StenographyWorkspace({ defaultLanguage }: { readonly defaultLang
     if (phase !== "countdown") return;
     if (countdown <= 0) {
       setPhase("dictation");
-      void startPlayback();
+      void startPlayback().then((started) => {
+        if (!started) resetSession(profile, true);
+      });
       return;
     }
     const timer = window.setTimeout(() => setCountdown((value) => value - 1), 1000);
@@ -169,24 +174,27 @@ export function StenographyWorkspace({ defaultLanguage }: { readonly defaultLang
   async function startPlayback() {
     if (audioUrl) {
       try {
-        await audioRef.current?.play();
+        if (!audioRef.current) throw new Error("Audio player is not ready");
+        await audioRef.current.play();
         setAudioMessage(`Playing imported audio: ${audioName}`);
+        return true;
       } catch {
         setAudioMessage("Imported audio could not start. Use the player controls and try again.");
+        return false;
       }
-      return;
     }
     if (!voiceEnabled) {
       setAudioMessage("Narration is off. Turn on Local voice or import an audio file.");
-      return;
+      return false;
     }
     setAudioMessage("Starting narration…");
     const status = await startStenographyNarration(script, profile.language, profile.dictationWpm);
     setNarrationStatus(status);
     setAudioMessage(status.engine === "unavailable" ? status.label : `Playing through ${status.label}`);
+    return status.engine !== "unavailable";
   }
 
-  function resetSession(nextProfile = profile) {
+  function resetSession(nextProfile = profile, preserveAudioMessage = false) {
     setPhase("setup");
     setCountdown(3);
     setDictationRemaining(nextProfile.dictationSeconds);
@@ -196,12 +204,22 @@ export function StenographyWorkspace({ defaultLanguage }: { readonly defaultLang
     void stopStenographyNarration();
     audioRef.current?.pause();
     if (audioRef.current) audioRef.current.currentTime = 0;
+    if (!preserveAudioMessage) {
+      setAudioMessage(audioUrl ? `Human recording ready: ${audioName}` : narrationStatus.engine === "unavailable" ? "Run Voice test or import a human recording before starting" : `Audio ready through ${narrationStatus.label}`);
+    }
   }
 
   function chooseProfile(nextId: string) {
     const nextProfile = STENOGRAPHY_PROFILES.find((item) => item.id === nextId) ?? profile;
+    const languageChanged = nextProfile.language !== profile.language && !audioUrl;
+    if (nextProfile.language !== profile.language && !audioUrl) {
+      setNarrationStatus({ engine: "unavailable", label: "Run voice test before the session" });
+    }
     setProfileId(nextProfile.id);
     resetSession(nextProfile);
+    if (languageChanged) {
+      setAudioMessage(`Test an installed ${nextProfile.language === "hi" ? "Hindi" : "English"} voice or import a human recording before starting`);
+    }
   }
 
   function chooseEnvironment(environment: StenographyEnvironment) {
@@ -212,11 +230,17 @@ export function StenographyWorkspace({ defaultLanguage }: { readonly defaultLang
   }
 
   function startSession() {
+    if (!audioReady) {
+      setAudioMessage("Audio is not ready. Run Voice test successfully or import a human recording first.");
+      return;
+    }
     resetSession(profile);
     const useCountdown = loadBoolean("bhashayantra:steno:countdown-v1", true);
     setPhase(useCountdown ? "countdown" : "dictation");
     if (!useCountdown) {
-      void startPlayback();
+      void startPlayback().then((started) => {
+        if (!started) resetSession(profile, true);
+      });
     }
   }
 
@@ -263,6 +287,7 @@ export function StenographyWorkspace({ defaultLanguage }: { readonly defaultLang
     setAudioDuration(undefined);
     setVoiceEnabled(false);
     resetSession(profile);
+    setAudioMessage(`Human recording ready: ${file.name}`);
   }
 
   async function startHumanRecording() {
@@ -321,6 +346,13 @@ export function StenographyWorkspace({ defaultLanguage }: { readonly defaultLang
     setAudioMessage(status.engine === "unavailable" ? status.label : `Voice test started through ${status.label}`);
   }
 
+  async function openSpeechSettings() {
+    const opened = await openWindowsSpeechSettings();
+    setAudioMessage(opened
+      ? "Windows Speech settings opened. Install the matching language voice, then run Voice test again."
+      : "Open Windows Settings > Time & language > Speech, install the matching voice, then run Voice test again.");
+  }
+
   return (
     <section className="steno-studio steno-exam-studio">
       <header className="steno-hero">
@@ -370,11 +402,11 @@ export function StenographyWorkspace({ defaultLanguage }: { readonly defaultLang
             <div className="waveform" aria-hidden="true">{Array.from({ length: 34 }, (_, index) => <i key={index} style={{ height: `${18 + ((index * 17) % 58)}%` }} />)}</div>
             {phase === "countdown" ? <><span className="dictation-label">GET READY</span><strong className="countdown-number">{Math.max(1, countdown)}</strong><p>{sessionMode === "listen-type" ? "The typing pad will focus when audio begins." : "Keep your shorthand notebook ready. Transcript entry stays locked."}</p></> : <><span className="dictation-label">{phase === "dictation" ? "AUDIO IN PROGRESS" : phase === "transcription" ? "DICTATION COMPLETE" : "SELECTED SESSION"}</span><strong>{profile.shortName}</strong><p>{audioUrl ? `Human recording · ${audioName}` : `Original ${profile.language === "hi" ? "Hindi" : "English"} ${profile.environment} script · ${narrationStatus.label}`}</p></>}
           </div>
-          <div className={`steno-audio-status ${narrationStatus.engine}`} role="status"><Volume2 /><span><strong>{audioMessage}</strong><small>System narration is synthetic. For a real courtroom or office voice, import an original/licensed human recording; it uses the same exact exam timer and result engine.</small></span><Button variant="outline" size="sm" onClick={() => void testVoice()} disabled={phase !== "setup" && phase !== "result"}>Voice test</Button></div>
+          <div className={`steno-audio-status ${audioSourceStatus}`} role="status"><Volume2 /><span><strong>{audioMessage}</strong><small>System narration is synthetic. For a real courtroom or office voice, import an original/licensed human recording; it uses the same exact exam timer and result engine.</small></span>{narrationStatus.engine === "unavailable" && !audioUrl && <Button variant="outline" size="sm" onClick={() => void openSpeechSettings()} disabled={phase !== "setup" && phase !== "result"}>Voice settings</Button>}<Button variant="outline" size="sm" onClick={() => void testVoice()} disabled={phase !== "setup" && phase !== "result"}>Voice test</Button></div>
           <div className="dictation-progress"><span style={{ width: `${dictationProgress}%` }} /></div>
           {audioUrl && <audio ref={audioRef} className="steno-audio" controls={!officialMode} src={audioUrl} onLoadedMetadata={(event) => setAudioDuration(Number.isFinite(event.currentTarget.duration) ? event.currentTarget.duration : undefined)} />}
           <div className="dictation-actions">
-            {(phase === "setup" || phase === "result") && <Button onClick={startSession}><Play /> Start session</Button>}
+            {(phase === "setup" || phase === "result") && <Button onClick={startSession} disabled={!audioReady} title={audioReady ? "Start the selected timed session" : "Run Voice test successfully or import audio first"}><Play /> Start session</Button>}
             {phase === "dictation" && !officialMode && <Button variant="outline" onClick={pauseSession}><Pause /> Pause</Button>}
             {phase === "paused" && <Button onClick={resumeSession}><Play /> Resume</Button>}
             {phase === "dictation" && !officialMode && <Button variant="outline" onClick={beginTranscription}><SkipForward /> Begin transcription</Button>}
@@ -387,8 +419,8 @@ export function StenographyWorkspace({ defaultLanguage }: { readonly defaultLang
 
         <article className={`transcript-console ${!transcriptEnabled && phase !== "result" ? "locked" : ""}`}>
           <div className="panel-kicker"><Square /><span>{sessionMode === "listen-type" ? "LIVE TYPING WORKSTATION" : "TRANSCRIPTION WORKSTATION"}</span><strong>{phase === "transcription" ? formatTime(transcriptionRemaining) : `${tokenizeStenographyText(transcript).length} words`}</strong></div>
-          {!transcriptEnabled && phase !== "result" && <div className="transcript-lock"><LockKeyhole /><strong>Locked in exam simulation</strong><span>Select Listen & Type practice before starting if you want to type while hearing the audio.</span></div>}
-          <textarea ref={transcriptRef} value={transcript} disabled={!transcriptEnabled} onChange={(event) => setTranscript(event.target.value)} placeholder={sessionMode === "listen-type" ? "Type here while the dictation plays…" : "Transcription phase will open here…"} aria-label="Stenography transcript" spellCheck={false} />
+          {!transcriptEnabled && phase !== "result" && <div className="transcript-lock"><LockKeyhole /><strong>{sessionMode === "listen-type" ? "Ready for live typing" : "Locked during dictation"}</strong><span>{sessionMode === "listen-type" ? "The typing pad unlocks and receives focus automatically when the audio begins." : "In exam simulation, shorthand comes first and the typing pad unlocks after dictation ends."}</span></div>}
+          <textarea ref={transcriptRef} value={transcript} disabled={!transcriptEnabled} onChange={(event) => setTranscript(event.target.value)} onPaste={(event) => { if (officialMode) event.preventDefault(); }} placeholder={sessionMode === "listen-type" ? "Type here while the dictation plays…" : "Transcription phase will open here…"} aria-label="Stenography transcript" spellCheck={false} />
           <div className="transcript-footer"><span>{transcriptEnabled ? "Draft stays on this device · submit when ready" : "Exam phases are enforced locally."}</span><Button onClick={finishTranscript} disabled={!transcriptEnabled || !transcript.trim()}><CheckCircle2 /> Submit transcript</Button></div>
         </article>
       </div>

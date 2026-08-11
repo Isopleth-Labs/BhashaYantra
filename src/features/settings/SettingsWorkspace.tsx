@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ChangeEvent, type ReactNode } from "react";
 import {
   AppWindow,
   BellRing,
@@ -7,7 +7,9 @@ import {
   Check,
   ChevronRight,
   Database,
+  Download,
   FileCheck2,
+  FileText,
   Gauge,
   GraduationCap,
   Headphones,
@@ -15,16 +17,25 @@ import {
   Keyboard,
   Languages,
   LockKeyhole,
+  Mail,
   Monitor,
   Palette,
   RotateCcw,
   ShieldCheck,
   Sparkles,
+  Scale,
+  Upload,
   UserRound,
   Volume2,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import {
+  APP_VERSION,
+  createUserDataBackup,
+  restoreUserDataBackup,
+  USER_DATA_SCHEMA_VERSION,
+} from "@/application/beta-data-lifecycle";
 import {
   DEFAULT_INSTITUTE_WORKSPACE,
   DEFAULT_STUDENT_WORKSPACE,
@@ -42,15 +53,24 @@ import { useWorkspaceAuth } from "@/features/settings/useWorkspaceAuth";
 import type { TypingOutputMode } from "@/domain/typing/typing-engine";
 import {
   displayFontsForLanguage,
+  getDisplayFont,
+  getTypingLayoutProfile,
+  LEGACY_ENCODING_PROFILES,
   layoutsForLanguage,
   type ReadyTypingLayoutId,
   type TypingLanguageCode,
   type UnicodeDisplayFontId,
 } from "@/domain/typing/typing-profiles";
 import { useI18n, type InterfaceLanguage } from "@/i18n/I18nProvider";
+import {
+  LEGAL_DOCUMENTS,
+  LEGAL_EFFECTIVE_DATE,
+  SOURCE_REPOSITORY_URL,
+  SUPPORT_ISSUES_URL,
+} from "@/domain/legal/legal-documents";
 
 export type AppTheme = "light" | "dark";
-type SettingsSection = "account" | "appearance" | "typing" | "practice" | "exam" | "stenography" | "direct-typing" | "privacy" | "about";
+type SettingsSection = "account" | "appearance" | "typing" | "practice" | "exam" | "stenography" | "direct-typing" | "privacy" | "legal" | "about";
 
 interface SettingsWorkspaceProps {
   readonly theme: AppTheme;
@@ -94,6 +114,7 @@ const SETTINGS_SECTIONS: readonly { id: SettingsSection; label: string; icon: Re
   { id: "stenography", label: "Stenography", icon: <Headphones /> },
   { id: "direct-typing", label: "Direct Typing & apps", icon: <AppWindow /> },
   { id: "privacy", label: "Data & privacy", icon: <ShieldCheck /> },
+  { id: "legal", label: "Legal & support", icon: <Scale /> },
   { id: "about", label: "About", icon: <Info /> },
 ] as const;
 
@@ -128,6 +149,7 @@ export function SettingsWorkspace({
   const [directTypingAtStartup, setDirectTypingAtStartup] = useState(() => loadBoolean("bhashayantra:direct:start-v1", false));
   const [crashReports, setCrashReports] = useState(() => loadBoolean("bhashayantra:privacy:crash-v1", false));
   const [savedMessage, setSavedMessage] = useState("Preferences are saved automatically on this device.");
+  const backupInputRef = useRef<HTMLInputElement>(null);
 
   function saveBoolean(key: string, value: boolean, setter: (value: boolean) => void) {
     setter(value);
@@ -171,6 +193,33 @@ export function SettingsWorkspace({
     setSavedMessage("Default preferences restored. Account data, drafts, and history were preserved.");
   }
 
+  function exportLocalData() {
+    const backup = createUserDataBackup();
+    const url = URL.createObjectURL(new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `BhashaYantra-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    link.click();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1_000);
+    setSavedMessage(`Local backup exported with ${Object.keys(backup.entries).length} data entries.`);
+  }
+
+  async function importLocalData(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    if (!window.confirm("Restore this backup? Current BhashaYantra drafts, settings, and local attempt history will be replaced.")) return;
+    try {
+      const restored = restoreUserDataBackup(await file.text());
+      setSavedMessage(`${restored} local data entries restored. Reloading safely…`);
+      window.setTimeout(() => window.location.reload(), 250);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Backup restore failed.";
+      window.alert(message);
+      setSavedMessage("Backup was rejected; current local data was preserved.");
+    }
+  }
+
   function renderSection() {
     if (section === "account") return (
       <>
@@ -196,7 +245,27 @@ export function SettingsWorkspace({
 
     if (section === "appearance") return <SettingsCard icon={<Languages />} title="Appearance and language" description="Navigation, labels, and visual theme"><div className="settings-control-grid"><label><span>Interface language</span><small>Language used for navigation and labels.</small><select value={language} onChange={(event) => setLanguage(event.target.value as InterfaceLanguage)}><option value="en">English</option><option value="hi">Hindi</option></select></label><div className="settings-field"><span>Appearance</span><small>Choose the application theme.</small><div className="theme-choice"><button type="button" className={theme === "light" ? "active" : ""} onClick={() => onThemeChange("light")}><Palette /> Light</button><button type="button" className={theme === "dark" ? "active" : ""} onClick={() => onThemeChange("dark")}><Monitor /> Dark</button></div></div></div></SettingsCard>;
 
-    if (section === "typing") return <SettingsCard icon={<Keyboard />} title="Typing engine defaults" description="Language, layout, font, and output"><div className="settings-control-grid"><label><span>Typing language</span><small>Choose the active writing language.</small><select value={typingLanguage} onChange={(event) => onTypingLanguageChange(event.target.value as TypingLanguageCode)}><option value="hi">Hindi</option><option value="en">English</option></select></label><label><span>Keyboard layout</span><small>Physical key mapping and composition rules.</small><select value={typingLayout} onChange={(event) => onTypingLayoutChange(event.target.value as ReadyTypingLayoutId)}>{layoutsForLanguage(typingLanguage).map((profile) => <option key={profile.id} value={profile.id}>{profile.name}</option>)}</select></label><label><span>Display font</span><small>Changes preview only, not Unicode content.</small><select value={displayFont} onChange={(event) => onDisplayFontChange(event.target.value as UnicodeDisplayFontId)}>{displayFontsForLanguage(typingLanguage).map((font) => <option key={font.id} value={font.id}>{font.name}</option>)}</select></label><label><span>Default output</span><small>Unicode is recommended for modern applications.</small><select value={outputMode} onChange={(event) => onOutputModeChange(event.target.value as TypingOutputMode)}><option value="unicode">Unicode</option><option value="legacy" disabled={typingLanguage === "en"}>Legacy / KrutiDev</option></select></label></div></SettingsCard>;
+    if (section === "typing") {
+      const activeLayout = getTypingLayoutProfile(typingLayout);
+      const activeFont = getDisplayFont(displayFont);
+      return <>
+        <SettingsCard icon={<Keyboard />} title="Typing engine defaults" description="Language, layout, font, and output">
+          <div className="settings-control-grid">
+            <label><span>Typing language</span><small>Choose the active writing language.</small><select value={typingLanguage} onChange={(event) => onTypingLanguageChange(event.target.value as TypingLanguageCode)}><option value="hi">Hindi</option><option value="en">English</option></select></label>
+            <label><span>Keyboard layout</span><small>Physical key mapping and composition rules.</small><select value={typingLayout} onChange={(event) => onTypingLayoutChange(event.target.value as ReadyTypingLayoutId)}>{layoutsForLanguage(typingLanguage).map((profile) => <option key={profile.id} value={profile.id}>{profile.name} · {profile.verificationLabel}</option>)}</select></label>
+            <label><span>Display font</span><small>Changes preview only, not Unicode content.</small><select value={displayFont} onChange={(event) => onDisplayFontChange(event.target.value as UnicodeDisplayFontId)}>{displayFontsForLanguage(typingLanguage).map((font) => <option key={font.id} value={font.id}>{font.name}</option>)}</select></label>
+            <label><span>Default output</span><small>Unicode is recommended for modern applications.</small><select value={outputMode} onChange={(event) => onOutputModeChange(event.target.value as TypingOutputMode)}><option value="unicode">Unicode</option><option value="legacy" disabled={typingLanguage === "en"}>Legacy / KrutiDev</option></select></label>
+          </div>
+        </SettingsCard>
+        <SettingsCard icon={<FileCheck2 />} title="Compatibility and verification" description="What is standardized, compatible, or still being validated">
+          <div className="typing-verification-summary">
+            <article className={`verification-state ${activeLayout.verification}`}><span>Selected keyboard</span><strong>{activeLayout.name}</strong><b>{activeLayout.verificationLabel}</b><small>{activeLayout.coverageNote}</small>{activeLayout.referenceUrl && <a href={activeLayout.referenceUrl} target="_blank" rel="noreferrer">Open mapping reference</a>}</article>
+            <article className="verification-state font"><span>Selected display font</span><strong>{activeFont.name}</strong><b>{activeFont.deliveryLabel}</b><small>Fonts change glyph appearance only. Unicode characters remain the same. A CSS fallback is used if the chosen local font is unavailable.</small><a href={activeFont.referenceUrl} target="_blank" rel="noreferrer">Open font reference</a></article>
+          </div>
+          {typingLanguage === "hi" && <div className="legacy-verification-list"><span>Legacy conversion profiles</span>{LEGACY_ENCODING_PROFILES.map((profile) => <div key={profile.id}><strong>{profile.name}</strong><b className={profile.readiness}>{profile.readiness === "ready" ? "Working compatibility map" : profile.coverage === "variant-required" ? "Exact variant required" : "Mapping validation pending"}</b></div>)}</div>}
+        </SettingsCard>
+      </>;
+    }
 
     if (section === "practice") return <SettingsCard icon={<BookOpenCheck />} title="Practice preferences" description="Applied when a lesson starts"><div className="settings-toggle-list"><SettingsToggle checked={soundOnError} onChange={(value) => saveBoolean("bhashayantra:training:sound-v3", value, setSoundOnError)} label="Optional error sound" description="Off by default. Wrong keys are always accepted and marked red." /><SettingsToggle checked={showKeyboard} onChange={(value) => saveBoolean("bhashayantra:training:keyboard-v2", value, setShowKeyboard)} label="Show on-screen keyboard" description="Open lessons with layout and finger guidance visible." /></div><div className="settings-note"><BookOpenCheck /><span><strong>Continuous error marking</strong><small>Practice never blocks a wrong key. The live key stream shows the wrong character in red and keeps the exercise moving.</small></span></div></SettingsCard>;
 
@@ -206,14 +275,31 @@ export function SettingsWorkspace({
 
     if (section === "direct-typing") return <SettingsCard icon={<AppWindow />} title="Direct Typing and Windows apps" description="Word, Excel, browser, and standard text fields"><div className="settings-toggle-list"><SettingsToggle checked={directTypingAtStartup} onChange={(value) => saveBoolean("bhashayantra:direct:start-v1", value, setDirectTypingAtStartup)} label="Enable Direct Typing at startup" description="Off by default so BhashaYantra never captures keys without a clear action." /></div><div className="settings-note"><LockKeyhole /><span><strong>Emergency shortcut</strong><small>Use Ctrl + Alt + F12 to turn Direct Typing off. Password and protected fields are excluded.</small></span></div></SettingsCard>;
 
-    if (section === "privacy") return <SettingsCard icon={<LockKeyhole />} title="Data and privacy" description="Offline-first storage and optional services"><div className="privacy-status-grid"><span><Database /><b>Local workspace</b><small>Drafts, preferences, lessons, and attempts stay on this device.</small></span><span><ShieldCheck /><b>No typing telemetry</b><small>Typing content is not uploaded unless you choose a cloud feature.</small></span><span><Info /><b>Optional cloud</b><small>Translation and institute sync require configured providers.</small></span></div><div className="settings-toggle-list"><SettingsToggle checked={crashReports} onChange={(value) => saveBoolean("bhashayantra:privacy:crash-v1", value, setCrashReports)} label="Anonymous crash reports" description="Disabled by default. This development build does not upload reports." /></div><div className="settings-danger-row"><span><strong>Reset preferences</strong><small>Account workspaces, drafts, and attempt history are not deleted.</small></span><Button variant="outline" onClick={resetPreferences}><RotateCcw /> Reset preferences</Button></div></SettingsCard>;
+    if (section === "privacy") return <SettingsCard icon={<LockKeyhole />} title="Data and privacy" description="Offline-first storage and optional services"><div className="privacy-status-grid"><span><Database /><b>Local workspace</b><small>Drafts, preferences, lessons, and attempts stay on this device.</small></span><span><ShieldCheck /><b>No typing telemetry</b><small>Typing content is not uploaded unless you choose a cloud feature.</small></span><span><Info /><b>Optional cloud</b><small>Translation and institute sync require configured providers.</small></span></div><div className="settings-toggle-list"><SettingsToggle checked={crashReports} onChange={(value) => saveBoolean("bhashayantra:privacy:crash-v1", value, setCrashReports)} label="Anonymous crash reports" description="Disabled by default. This beta build does not upload reports." /></div><div className="settings-backup-row"><span><strong>Backup and restore</strong><small>Export drafts, preferences, workspace profiles, custom mappings, and local results before moving devices or installing a major update. Authentication sessions are never included.</small></span><div><Button variant="outline" onClick={exportLocalData}><Download /> Export backup</Button><Button variant="outline" onClick={() => backupInputRef.current?.click()}><Upload /> Restore backup</Button><input ref={backupInputRef} type="file" accept="application/json,.json" hidden onChange={(event) => void importLocalData(event)} /></div></div><div className="settings-danger-row"><span><strong>Reset preferences</strong><small>Account workspaces, drafts, and attempt history are not deleted.</small></span><Button variant="outline" onClick={resetPreferences}><RotateCcw /> Reset preferences</Button></div></SettingsCard>;
 
-    return <SettingsCard icon={<Info />} title="About BhashaYantra" description="Build and support information"><div className="about-settings"><span><b>Product</b><small>BhashaYantra Desktop</small></span><span><b>Build channel</b><small>Development · no public release</small></span><span><b>Core mode</b><small>Offline-first typing and training</small></span><span><b>Account status</b><small>{auth.identity ? `${auth.identity.role} account authenticated` : auth.configured ? "Sign-in required" : "Supabase Auth configuration required"}</small></span></div></SettingsCard>;
+    if (section === "legal") return <SettingsCard icon={<Scale />} title="Legal and support" description={`Beta documents · effective ${LEGAL_EFFECTIVE_DATE}`}>
+      <div className="legal-document-grid">
+        {LEGAL_DOCUMENTS.map((document) => <details key={document.id} className="legal-document" open={document.id === "privacy"}>
+          <summary><span>{document.id === "privacy" ? <ShieldCheck /> : <FileText />}<b>{document.title}</b><small>{document.summary}</small></span><ChevronRight /></summary>
+          <div className="legal-document-body">{document.sections.map((entry) => <section key={entry.heading}><h3>{entry.heading}</h3><p>{entry.body}</p></section>)}</div>
+        </details>)}
+      </div>
+      <div className="support-contact-card">
+        <span><Mail /><span><strong>Contact & support</strong><small>Report a bug, privacy request, security concern, or account issue without posting passwords, private documents, or API keys.</small></span></span>
+        <a href={SUPPORT_ISSUES_URL} target="_blank" rel="noreferrer">Open GitHub support</a>
+      </div>
+      <p className="legal-review-note"><LockKeyhole /> Beta legal draft. Obtain counsel review and publish a monitored support/privacy email before a public release.</p>
+    </SettingsCard>;
+
+    return <SettingsCard icon={<Info />} title="About BhashaYantra" description="Product, build, and verified support information">
+      <div className="about-settings"><span><b>Product</b><small>BhashaYantra Desktop</small></span><span><b>Version</b><small>{APP_VERSION}</small></span><span><b>Build channel</b><small>Public beta candidate · release gated</small></span><span><b>Data format</b><small>Schema {USER_DATA_SCHEMA_VERSION} · upgrade-safe manifest</small></span><span><b>Core mode</b><small>Offline-first typing and training</small></span><span><b>Account status</b><small>{auth.identity ? `${auth.identity.role} account authenticated` : auth.configured ? "Sign-in required" : "Supabase Auth configuration required"}</small></span></div>
+      <div className="about-links"><a href={SOURCE_REPOSITORY_URL} target="_blank" rel="noreferrer">Source repository</a><button type="button" onClick={() => setSection("legal")}>Privacy, terms & contact</button></div>
+    </SettingsCard>;
   }
 
   return (
     <section className="settings-page">
-      <header className="settings-hero"><div><span className="page-eyebrow"><Monitor /> CONTROL CENTER</span><h1>Settings</h1><p>One category at a time. Account, exam, typing, and privacy controls are kept separate.</p></div><span className="settings-saved"><Check /> {savedMessage}</span></header>
+      <header className="settings-compact-header"><h1>Settings</h1><span className="settings-saved"><Check /> {savedMessage}</span></header>
       <div className="settings-layout detailed-settings-layout">
         <nav className="settings-index" aria-label="Settings sections">{SETTINGS_SECTIONS.map((item) => <button type="button" className={section === item.id ? "active" : ""} onClick={() => setSection(item.id)} key={item.id}>{item.icon}<span>{item.label}</span><ChevronRight /></button>)}<button type="button" className="settings-pro-link" onClick={onOpenPricing}><Sparkles /> <span>BhashaYantra Pro</span><ChevronRight /></button></nav>
         <div className="settings-sections">{renderSection()}</div>

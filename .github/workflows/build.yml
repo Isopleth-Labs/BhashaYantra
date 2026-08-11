@@ -20,15 +20,22 @@ jobs:
     name: Build and test Windows app
     runs-on: windows-latest
     timeout-minutes: 45
+    env:
+      VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
     permissions:
+      attestations: write
       contents: read
+      id-token: write
 
     steps:
       - name: Check out source
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
 
       - name: Set up Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: 24
           cache: npm
@@ -41,7 +48,7 @@ jobs:
           rustup default stable
 
       - name: Restore Rust build cache
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
           path: |
             ~/.cargo/registry
@@ -53,6 +60,12 @@ jobs:
 
       - name: Install locked dependencies
         run: npm ci
+
+      - name: Verify beta version and data contract
+        run: npm run beta:check
+
+      - name: Verify repository security contract
+        run: npm run security:check
 
       - name: Check TypeScript
         run: npm run typecheck
@@ -84,26 +97,94 @@ jobs:
           Get-Item -LiteralPath $portableApp |
             Select-Object Name, Length, LastWriteTime
 
+      - name: Authenticode-sign public beta executable
+        if: startsWith(github.ref, 'refs/tags/v') && vars.BETA_RELEASES_ENABLED == 'true'
+        shell: pwsh
+        env:
+          WINDOWS_CODESIGN_CERTIFICATE_BASE64: ${{ secrets.WINDOWS_CODESIGN_CERTIFICATE_BASE64 }}
+          WINDOWS_CODESIGN_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CODESIGN_CERTIFICATE_PASSWORD }}
+          WINDOWS_TIMESTAMP_URL: ${{ vars.WINDOWS_TIMESTAMP_URL }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:WINDOWS_CODESIGN_CERTIFICATE_BASE64)) {
+            throw "WINDOWS_CODESIGN_CERTIFICATE_BASE64 is required for a public beta tag."
+          }
+          if ([string]::IsNullOrWhiteSpace($env:WINDOWS_CODESIGN_CERTIFICATE_PASSWORD)) {
+            throw "WINDOWS_CODESIGN_CERTIFICATE_PASSWORD is required for a public beta tag."
+          }
+
+          $certificatePath = Join-Path $env:RUNNER_TEMP "bhashayantra-codesign.pfx"
+          [IO.File]::WriteAllBytes($certificatePath, [Convert]::FromBase64String($env:WINDOWS_CODESIGN_CERTIFICATE_BASE64))
+          $signTool = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin\*\x64\signtool.exe" |
+            Sort-Object FullName |
+            Select-Object -Last 1 -ExpandProperty FullName
+          if (-not $signTool) { throw "Windows signtool.exe was not found." }
+
+          $timestampUrl = if ([string]::IsNullOrWhiteSpace($env:WINDOWS_TIMESTAMP_URL)) { "http://timestamp.digicert.com" } else { $env:WINDOWS_TIMESTAMP_URL }
+          try {
+            & $signTool sign /fd SHA256 /td SHA256 /tr $timestampUrl /f $certificatePath /p $env:WINDOWS_CODESIGN_CERTIFICATE_PASSWORD "src-tauri/target/release/bhashayantra.exe"
+            if ($LASTEXITCODE -ne 0) { throw "Authenticode signing failed." }
+            & $signTool verify /pa /v "src-tauri/target/release/bhashayantra.exe"
+            if ($LASTEXITCODE -ne 0) { throw "Authenticode verification failed." }
+          } finally {
+            Remove-Item -LiteralPath $certificatePath -Force -ErrorAction SilentlyContinue
+          }
+
+      - name: Create SHA-256 checksum
+        shell: pwsh
+        run: |
+          $portableApp = "src-tauri/target/release/bhashayantra.exe"
+          $checksum = (Get-FileHash -LiteralPath $portableApp -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$checksum  bhashayantra.exe" | Set-Content -LiteralPath "$portableApp.sha256" -NoNewline
+
+      - name: Generate build provenance
+        if: github.event_name != 'pull_request'
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: src-tauri/target/release/bhashayantra.exe
+
       - name: Store portable Windows app
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: BhashaYantra-Windows
-          path: src-tauri/target/release/bhashayantra.exe
+          path: |
+            src-tauri/target/release/bhashayantra.exe
+            src-tauri/target/release/bhashayantra.exe.sha256
           if-no-files-found: error
           compression-level: 0
           retention-days: 14
 
   publish-release:
     name: Publish tagged release
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v') && contains(github.ref_name, '-beta.') && vars.BETA_RELEASES_ENABLED == 'true'
     needs: build-windows
     runs-on: ubuntu-latest
     permissions:
       contents: write
 
     steps:
+      - name: Check out source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Enforce signed updater and Windows signing gate
+        env:
+          BETA_RELEASES_ENABLED: ${{ vars.BETA_RELEASES_ENABLED }}
+          WINDOWS_CODESIGN_CONFIGURED: ${{ vars.WINDOWS_CODESIGN_CONFIGURED }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        run: npm run beta:check -- --publish
+
       - name: Download Windows packages
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: BhashaYantra-Windows
           path: release-files
@@ -116,4 +197,5 @@ jobs:
           gh release create "${GITHUB_REF_NAME}" "${release_files[@]}" \
             --repo "${GITHUB_REPOSITORY}" \
             --title "BhashaYantra ${GITHUB_REF_NAME}" \
+            --prerelease \
             --generate-notes

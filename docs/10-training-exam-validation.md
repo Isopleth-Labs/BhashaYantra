@@ -1,6 +1,6 @@
 # Training and Exam Validation
 
-Updated: 10 August 2026
+Updated: 11 August 2026
 
 ## Purpose
 
@@ -43,17 +43,34 @@ Word Efficiency provides original document-preparation, correspondence, minutes,
 
 Stenography separates rule profiles from audio provenance. Local system narration is always labeled synthetic. Real-voice sessions accept original/licensed human audio or a microphone recording made against the displayed original script and target WPM. No competitor, leaked exam, or unlicensed courtroom recording is bundled or represented as official audio. Hindi and English profiles remain independently selectable.
 
-Mock papers are assembled from original English and Hindi administrative passages covering public records, recruitment, railways, courts, accounts and audit, public health, rural development, disaster response, education, environment, digital services, and election duty. They reproduce the size and interaction contract of the selected profile without copying a competitor or an authority's test passage.
+Mock papers are assembled from original English and Hindi passages using a separate subject order for SSC clerical/data-entry, RRB railway operations, DDA urban administration, DSSSB education/Delhi administration, CPCT e-governance, Rajasthan courts, and Allahabad courts. They reproduce the size and interaction contract of the selected profile without copying a competitor or an authority's test passage. The workstation labels every built-in paper `Original pattern paper`; an official rule source does not turn original practice copy into an official past paper.
 
 ## Remington validation
 
-- Remington GAIL and CBI are selectable ready layouts with 470 exercises each.
-- The base and Shift keyboard layers are based on SIL Global's MIT-licensed Remington GAIL implementation.
-- The Microsoft Hindi Indic Input 3 guide is the behavioral reference: GAIL enters short-i before the consonant cluster, while CBI enters it after the consonant cluster.
-- Automated acceptance tests assert both short-i orders, all 470 round trips for each layout, zero course conversion warnings, and keyboard-profile readiness.
-- AltGr and escape-key rare-character coverage remains an explicit expansion item; it is not required by the current original training corpus.
+- Remington GAIL and CBI remain selectable operational layouts with 470 original exercises each, but their verification status is deliberately different.
+- Remington GAIL base and Shift behavior follows SIL Global's MIT-licensed Unicode implementation. Its documented order is consonant followed by short-i (`d` + `f` → `कि`), not the visual-order behavior previously claimed by this project.
+- Remington CBI currently uses a round-trip-tested core compatibility map. Public recruitment notices name CBI as an available layout but do not publish a complete authoritative bit-for-bit key corpus, so the UI marks it `Mapping validation required` rather than certified.
+- Automated acceptance tests assert GAIL phonetic-order behavior, CBI core round trips, all generated-course round trips, zero course conversion warnings, and keyboard-profile readiness.
+- GAIL AltGr rare-character coverage and an authoritative CBI corpus remain explicit expansion/validation items; neither is silently described as complete.
 
-References: [Hindi Indic Input 3 user guide](https://mpforest.gov.in/img/files/Hindi_Indic_Input_3_Use_Guide.pdf), [SIL Remington GAIL source](https://github.com/keymanapp/keyboards/tree/master/release/r/remington_gail), and [SIL Remington GAIL help](https://help.keyman.com/keyboard/remington_gail/1.1/remington_gail).
+References: [SIL Remington GAIL source](https://github.com/keymanapp/keyboards/tree/master/release/r/remington_gail), [SIL Remington GAIL help](https://help.keyman.com/keyboard/remington_gail/1.1/remington_gail), and [DDA Circular 29/2025 naming GAIL, InScript, and CBI](https://dda.gov.in/sites/default/files/Personnel/circular_no_2911062025.pdf).
+
+## Layout, encoding, and font truth matrix
+
+| Item | Kind | Current status | Claim boundary |
+|---|---|---|---|
+| BhashaYantra Smart | Keyboard/composition engine | Working, product-owned | Original BhashaYantra input method; not an official exam standard |
+| KrutiDev 010 Keyboard (Classic) | Physical-key compatibility profile | Working common-map round trips | KrutiDev 010 is a legacy encoding/font workflow, not a Unicode keyboard standard |
+| Devanagari INSCRIPT | Keyboard layout | Working base/Shift; BIS-standard reference | Standard layout provenance is official; BhashaYantra's implementation is still software that must be regression-tested |
+| Remington GAIL | Keyboard layout | Working base/Shift against SIL Keyman reference | Extended AltGr coverage is incomplete |
+| Remington CBI | Keyboard layout | Working core compatibility map | Authoritative complete public mapping corpus not yet found; not certified |
+| Kruti Dev 010 converter | Legacy encoding conversion | Working common bidirectional mapping | Coverage is a versioned compatibility corpus, not every historical font variant |
+| DevLys 010 converter | Legacy encoding conversion | Validation pending | Not available as a verified converter profile |
+| Shree-Lipi converter | Legacy encoding conversion | Exact variant required | A family name is insufficient because variants use different mappings |
+| Noto Sans Devanagari | Unicode display font | Uses local installation, then fallback | The current app does not bundle the font file |
+| Mangal / Nirmala UI / Segoe UI | Unicode display fonts | Use Windows/Office installation, then fallback | Display choice never changes the underlying Unicode characters |
+
+Unicode is the text encoding/output model. A keyboard layout decides which physical keys create those Unicode characters. A display font decides how the same Unicode characters look. These are intentionally presented separately in Settings.
 
 ## Official-reference profiles
 
@@ -68,7 +85,7 @@ References: [Hindi Indic Input 3 user guide](https://mpforest.gov.in/img/files/H
 | Rajasthan High Court | Speed-test duration, KDPH target, auto-stop, and referenced correction restrictions | [Subordinate-court rules](https://hcraj.nic.in/hcraj/latestupdates/rulessubcourts08022017.pdf) and [speed-test instructions](https://hcraj.nic.in/hcraj/recruitment/Instructions-ldc-26102017.pdf) |
 | Allahabad High Court | Referenced 300-word English or 250-word Hindi ten-minute paper; InScript/Mangal guard for the cited Hindi instruction | [Computer type-test scheme](https://www.allahabadhighcourt.in/event/Admit_card_notice_Stenographer_GrIII.html) and [Hindi type-test instruction](https://www.allahabadhighcourt.in/event/event_5218_26-02-2019.html) |
 
-Official-reference means the profile records a checked public source and simulates the cited rule set. It is not a guarantee that every future recruitment cycle is identical. The UI therefore shows the authority, checked date, rules, source link, and a current-notice warning.
+Official-reference means the profile records a checked public source and simulates the cited rule set. It does not mean the built-in passage is an official or previously administered question paper, and it is not a guarantee that every future recruitment cycle is identical. The UI therefore separates `Official rule profile` from `Original pattern paper`, and shows the authority, checked date, rules, source link, and a current-notice warning.
 
 ## Scoring contract
 

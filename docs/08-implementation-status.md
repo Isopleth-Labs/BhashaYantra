@@ -1,6 +1,6 @@
 # Implementation Status
 
-Updated: 10 August 2026
+Updated: 11 August 2026
 
 ## Completed
 
@@ -38,7 +38,7 @@ Updated: 10 August 2026
 - Word & Excel Efficiency workspace with functional document-formatting and register-entry simulations, validation, accuracy, workflow, and speed results.
 - Mock-test result report now separates keystroke, word, and error analysis, including aligned colour-coded copy and word-level correct/wrong/omitted/extra rows.
 - Separate Student and Institute Supabase Auth entry screens with signup/sign-in, email-confirmation handling, profile-role verification, mismatch sign-out, and no local authentication bypass.
-- Functional Settings control center with interface/theme controls, typing defaults, persisted training feedback preferences, offline/privacy status, and a safe preference reset that preserves drafts and attempt history.
+- Compact professional Settings control center with interface/theme controls, typing defaults, persisted training feedback preferences, offline/privacy status, safe backup/reset, in-app Privacy Policy, Terms & Conditions, Contact/Support, and About surfaces.
 - Responsive BhashaYantra Pro pricing and order-preview surface with selectable 30-day, 90-day, annual, and institution hypotheses; checkout is intentionally disabled and the development client cannot collect payment.
 - Live bidirectional KrutiDev 010 ↔ Unicode text converter.
 - Converter profile selector exposes verified KrutiDev conversion only; separate coverage cards explain that DevLys requires its own validated corpus and Shree-Lipi requires an exact family variant instead of pretending disabled entries are working support.
@@ -49,7 +49,10 @@ Updated: 10 August 2026
 - Supabase schema migrations, Auth ownership foreign keys, RLS policies, triggers, constraints, seed data, and pgTAP policy tests.
 - Local and Supabase preference repository implementations.
 - Free/Pro/Institution product-entitlement vocabulary and profitability-focused packaging documentation.
-- Strict TypeScript, seventy-four frontend tests, seven native Direct Typing composition/lifecycle tests, production web build, and browser visual/interaction QA including 1600×900, 900×780, and 700×780 layouts.
+- Strict TypeScript, frontend domain/application tests, seven native Direct Typing composition/lifecycle tests, production web build, and browser visual/interaction QA including 1600×900, 900×780, and 700×780 layouts.
+- Public-beta data manifest plus namespaced backup/transactional restore, synchronized prerelease version contract, production CSP, and a CI publication gate that refuses unsigned or updater-less releases.
+- Repository and executable supply-chain hardening: pinned GitHub Actions commits, least-privilege tokens, CodeQL, npm/Rust dependency audits, Dependabot, secret-boundary checks, SHA-256 release checksums, GitHub build provenance, and an Authenticode signing step gated behind protected certificate secrets.
+- Versioned beta Privacy, Terms, Support, Security, and source-available evaluation documents plus a production Supabase login activation runbook.
 - Local Supabase reset, eight pgTAP/RLS tests, and schema linting.
 - Rust formatting and Clippy checks.
 - One local portable development executable; old debug/installer application builds are intentionally not retained.
@@ -60,6 +63,7 @@ Updated: 10 August 2026
 npm run typecheck
 npm run test
 npm run build
+npm run beta:check
 npx tauri build --no-bundle
 npm run db:reset
 npm run db:test
@@ -86,7 +90,7 @@ cargo clippy --manifest-path .\src-tauri\Cargo.toml --all-targets -- -D warnings
 - Complete production KrutiDev mapping validation.
 - Full legacy document-family support.
 - Windows code signing and installer publication.
-- Privacy policy, terms, and final license.
+- Qualified legal review of the beta Privacy/Terms drafts and final commercial license/support jurisdiction.
 - Production Supabase project and environment values.
 - End-to-end automated desktop tests.
 

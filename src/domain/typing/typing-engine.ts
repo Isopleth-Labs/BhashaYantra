@@ -4,8 +4,10 @@ import {
   englishQwertyToUnicode,
   INSCRIPT_KEY_MAP,
   remingtonCbiToUnicode,
+  remingtonGailToUnicode,
   unicodeToDirectLayout,
   unicodeToRemingtonCbi,
+  unicodeToRemingtonGail,
 } from "@/domain/typing/direct-layout-engine";
 import { smartPhoneticToUnicode } from "@/domain/typing/smart-phonetic-engine";
 import type { ReadyTypingLayoutId } from "@/domain/typing/typing-profiles";
@@ -310,14 +312,16 @@ export function typingKeysToUnicode(legacy: string) {
 
 export function typingSourceToUnicode(source: string, layout: ReadyTypingLayoutId) {
   if (layout === "bhashayantra-smart") return smartPhoneticToUnicode(source);
-  if (layout === "classic-hindi" || layout === "remington-gail") return typingKeysToUnicode(source);
+  if (layout === "classic-hindi") return typingKeysToUnicode(source);
+  if (layout === "remington-gail") return remingtonGailToUnicode(source);
   if (layout === "remington-cbi") return remingtonCbiToUnicode(source);
   if (layout === "inscript") return directLayoutToUnicode(source, INSCRIPT_KEY_MAP);
   return englishQwertyToUnicode(source);
 }
 
 export function unicodeToTypingSource(unicode: string, layout: ReadyTypingLayoutId) {
-  if (layout === "classic-hindi" || layout === "remington-gail") return unicodeToTypingKeys(unicode);
+  if (layout === "classic-hindi") return unicodeToTypingKeys(unicode);
+  if (layout === "remington-gail") return unicodeToRemingtonGail(unicode);
   if (layout === "remington-cbi") return unicodeToRemingtonCbi(unicode);
   if (layout === "inscript") return unicodeToDirectLayout(unicode, INSCRIPT_KEY_MAP);
   return englishQwertyToUnicode(unicode);

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { directLayoutToUnicode, englishQwertyToUnicode, INSCRIPT_KEY_MAP, remingtonCbiToUnicode, unicodeToDirectLayout, unicodeToRemingtonCbi } from "./direct-layout-engine";
+import { directLayoutToUnicode, englishQwertyToUnicode, INSCRIPT_KEY_MAP, remingtonCbiToUnicode, remingtonGailToUnicode, unicodeToDirectLayout, unicodeToRemingtonCbi, unicodeToRemingtonGail } from "./direct-layout-engine";
 import { typingSourceToUnicode, unicodeToTypingSource } from "./typing-engine";
 import {
   displayFontsForLanguage,
@@ -27,9 +27,14 @@ describe("typing profile registry", () => {
     expect(unicodeToDirectLayout("बगीचा", INSCRIPT_KEY_MAP).output).toBe("yir;e");
   });
 
-  it("keeps the documented GAIL-before and CBI-after short-i order distinct", () => {
-    expect(typingSourceToUnicode("fd", "remington-gail").output).toBe("कि");
-    expect(unicodeToTypingSource("कि", "remington-gail").output).toBe("fd");
+  it("uses phonetic consonant-then-short-i order for the SIL GAIL reference", () => {
+    expect(remingtonGailToUnicode("df").output).toBe("कि");
+    expect(unicodeToRemingtonGail("कि").output).toBe("df");
+    expect(typingSourceToUnicode("df", "remington-gail").output).toBe("कि");
+    expect(unicodeToTypingSource("कि", "remington-gail").output).toBe("df");
+  });
+
+  it("keeps the current CBI compatibility map round-trippable", () => {
     expect(remingtonCbiToUnicode("df").output).toBe("कि");
     expect(unicodeToRemingtonCbi("कि").output).toBe("df");
   });

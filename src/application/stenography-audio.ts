@@ -93,3 +93,12 @@ export async function testStenographyNarration(language: TypingLanguageCode) {
     : "BhashaYantra voice check is working. You can now start the dictation.";
   return startStenographyNarration(text, language, 80);
 }
+
+export async function openWindowsSpeechSettings() {
+  try {
+    await invoke("open_windows_speech_settings");
+    return true;
+  } catch {
+    return false;
+  }
+}

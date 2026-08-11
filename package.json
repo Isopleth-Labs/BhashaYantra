@@ -1,7 +1,7 @@
 {
   "name": "bhashayantra",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0-beta.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,6 +10,8 @@
     "typecheck": "tsc -b --pretty false",
     "test": "vitest run",
     "test:watch": "vitest",
+    "beta:check": "node scripts/verify-beta-release.mjs",
+    "security:check": "node scripts/security-check.mjs",
     "tauri": "tauri",
     "db:generate": "drizzle-kit generate",
     "db:reset": "supabase db reset",

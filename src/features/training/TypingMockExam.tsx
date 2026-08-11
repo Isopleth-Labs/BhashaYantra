@@ -31,7 +31,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { playTypingFeedback } from "@/application/typing-feedback";
 import { getCurriculumCourse } from "@/domain/training/curriculum-catalog";
-import { getExamPassage, getExamProfilesForLayout, type BackspacePolicy, type ExamProfile } from "@/domain/training/exam-profiles";
+import { getExamPassage, getExamProfilesForLanguage, isExamProfileCompatibleWithLayout, type BackspacePolicy, type ExamProfile } from "@/domain/training/exam-profiles";
+import { PASSAGE_PATTERN_LABELS } from "@/domain/training/exam-passage-bank";
 import {
   applyKeystrokeLimit,
   applyWordLimit,
@@ -70,28 +71,38 @@ const HINDI_EXAM_LAYOUTS: readonly {
   {
     id: "classic-hindi",
     label: "KrutiDev 010 Keyboard (Classic)",
-    description: "Physical KrutiDev key sequences with clean Unicode preview and scoring.",
+    description: "Tested KrutiDev 010 compatibility sequences with Unicode preview and scoring.",
+    badge: "Compatibility",
   },
   {
     id: "remington-gail",
     label: "Remington GAIL",
-    description: "Common Remington-style Unicode Hindi workflow. Confirm the current exam notice.",
-    badge: "Recommended",
+    description: "Unicode base and Shift behavior aligned to the open-source SIL Keyman reference.",
+    badge: "SIL reference",
   },
   {
     id: "inscript",
     label: "Devanagari INSCRIPT",
-    description: "Government-standard Unicode keyboard layout required by some recruitment tests.",
+    description: "BIS-standardized Unicode keyboard layout required by some recruitment tests.",
+    badge: "BIS standard",
   },
   {
     id: "remington-cbi",
     label: "Remington CBI",
-    description: "Select when the recruitment notice or training profile specifically requires CBI.",
+    description: "Core compatibility map; exact public reference-corpus validation is still required.",
+    badge: "Validation",
   },
 ];
 
 function getDefaultHindiExamLayout(layout: ReadyTypingLayoutId) {
   return HINDI_EXAM_LAYOUTS.some((item) => item.id === layout) ? layout : "remington-gail";
+}
+
+function getRecommendedExamLayout(profile: ExamProfile, currentLayout: ReadyTypingLayoutId) {
+  if (isExamProfileCompatibleWithLayout(profile, currentLayout)) return currentLayout;
+  if (profile.requiredLayoutId) return profile.requiredLayoutId;
+  const allowed = profile.allowedLayoutIds?.find((layoutId) => HINDI_EXAM_LAYOUTS.some((item) => item.id === layoutId));
+  return allowed ?? "remington-gail";
 }
 
 const EXAM_CATEGORY_LABELS = {
@@ -127,7 +138,8 @@ function profileKeystrokeLimit(profile?: ExamProfile) {
 export function TypingMockExam({ layout, displayFont, onExit, onLayoutChange }: TypingMockExamProps) {
   const { language, t } = useI18n();
   const course = useMemo(() => getCurriculumCourse(layout), [layout]);
-  const examProfiles = useMemo(() => getExamProfilesForLayout(layout), [layout]);
+  const typingLanguage = layout === "english-qwerty" ? "en" : "hi";
+  const examProfiles = useMemo(() => getExamProfilesForLanguage(typingLanguage), [typingLanguage]);
   const [examProfileId, setExamProfileId] = useState(examProfiles[0]?.id ?? "");
   const [paperIndex, setPaperIndex] = useState(0);
   const [testDuration, setTestDuration] = useState(examProfiles[0]?.durationSeconds ?? 300);
@@ -147,7 +159,7 @@ export function TypingMockExam({ layout, displayFont, onExit, onLayoutChange }: 
   const [autoScroll, setAutoScroll] = useState(() => loadBoolean("bhashayantra:exam:auto-scroll-v1", true));
   const [applyLimit, setApplyLimit] = useState(true);
   const [wordLimit, setWordLimit] = useState(600);
-  const [applyKeyLimit, setApplyKeyLimit] = useState(() => Boolean(examProfiles[0]?.targetKdph));
+  const [applyKeyLimit, setApplyKeyLimit] = useState(() => examProfiles[0]?.scoringModel === "kdph");
   const [keystrokeLimit, setKeystrokeLimit] = useState(() => profileKeystrokeLimit(examProfiles[0]));
   const [allowParagraphs, setAllowParagraphs] = useState(true);
   const [allowTabs, setAllowTabs] = useState(false);
@@ -163,6 +175,23 @@ export function TypingMockExam({ layout, displayFont, onExit, onLayoutChange }: 
   const passageRef = useRef<HTMLDivElement>(null);
 
   const selectedProfile = examProfiles.find((profile) => profile.id === examProfileId) ?? examProfiles[0];
+  useEffect(() => {
+    if (examProfiles.some((profile) => profile.id === examProfileId)) return;
+    const profile = examProfiles[0];
+    if (!profile) return;
+    setExamProfileId(profile.id);
+    setTestDuration(profile.durationSeconds);
+    setBackspacePolicy(profile.backspacePolicy);
+    setApplyLimit(true);
+    setWordLimit(profile.expectedWords);
+    setApplyKeyLimit(profile.scoringModel === "kdph");
+    setKeystrokeLimit(profileKeystrokeLimit(profile));
+    setAllowCorrection(profile.backspacePolicy !== "disabled");
+    setStatus("ready");
+    setSource("");
+    setElapsedSeconds(0);
+    elapsedBeforeRun.current = 0;
+  }, [examProfileId, examProfiles]);
   const builtInPassage = useMemo(
     () => getExamPassage(selectedProfile, layout, paperIndex),
     [layout, paperIndex, selectedProfile],
@@ -213,8 +242,7 @@ export function TypingMockExam({ layout, displayFont, onExit, onLayoutChange }: 
   const requiredFontName = selectedProfile.requiredDisplayFontId
     ? getDisplayFont(selectedProfile.requiredDisplayFontId).name
     : undefined;
-  const profileEnvironmentReady = (!selectedProfile.requiredLayoutId || selectedProfile.requiredLayoutId === layout)
-    && (!selectedProfile.allowedLayoutIds || selectedProfile.allowedLayoutIds.includes(layout))
+  const profileEnvironmentReady = isExamProfileCompatibleWithLayout(selectedProfile, layout)
     && (!selectedProfile.requiredDisplayFontId || selectedProfile.requiredDisplayFontId === displayFont);
   const profileGroups = useMemo(() => {
     const groups = new Map<string, typeof examProfiles>();
@@ -264,7 +292,7 @@ export function TypingMockExam({ layout, displayFont, onExit, onLayoutChange }: 
     setBackspacePolicy(profile?.backspacePolicy ?? "full");
     setApplyLimit(true);
     setWordLimit(profile?.expectedWords ?? 600);
-    setApplyKeyLimit(Boolean(profile?.targetKdph));
+    setApplyKeyLimit(profile?.scoringModel === "kdph");
     setKeystrokeLimit(profileKeystrokeLimit(profile));
     setAllowCorrection(profile?.backspacePolicy !== "disabled");
     setPaperIndex(0);
@@ -345,6 +373,10 @@ export function TypingMockExam({ layout, displayFont, onExit, onLayoutChange }: 
     setKeystrokeLimit(profileKeystrokeLimit(profile));
     setAllowCorrection(profile.backspacePolicy !== "disabled");
     resetToReady();
+    if (profile.language === "hi" && !isExamProfileCompatibleWithLayout(profile, layout)) {
+      setPendingExamLayout(getRecommendedExamLayout(profile, layout));
+      setLayoutPromptOpen(true);
+    }
   }
 
   function choosePaper(nextIndex: number) {
@@ -485,7 +517,7 @@ export function TypingMockExam({ layout, displayFont, onExit, onLayoutChange }: 
           </section>
 
           <section className="official-rule-strip" aria-label="Exam rule reference">
-            <div><Landmark aria-hidden="true" /><span>{selectedProfile.verification === "official-reference" ? "Official-reference profile" : "Practice profile"}</span><strong>{selectedProfile.authority}</strong><small>Checked {selectedProfile.verifiedOn}</small></div>
+            <div><Landmark aria-hidden="true" /><span>{selectedProfile.verification === "official-reference" ? "Official rule profile" : "Practice rule profile"}</span><strong>{selectedProfile.authority}</strong><small>Rules checked {selectedProfile.verifiedOn}</small></div>
             <ul>{selectedProfile.rules.map((rule) => <li key={rule}>{rule}</li>)}</ul>
             {selectedProfile.requiredLayoutLabel && <p><strong>Layout:</strong> {selectedProfile.requiredLayoutLabel}</p>}
             {selectedProfile.officialSourceUrl && <a href={selectedProfile.officialSourceUrl} target="_blank" rel="noreferrer">{selectedProfile.officialSourceLabel ?? "Open official notice"} <ExternalLink aria-hidden="true" /></a>}
@@ -496,14 +528,14 @@ export function TypingMockExam({ layout, displayFont, onExit, onLayoutChange }: 
               <AlertTriangle aria-hidden="true" />
               <div>
                 <strong>Exam environment mismatch</strong>
-                <span>Select {requiredLayoutName}{requiredFontName ? ` with ${requiredFontName}` : ""} from the top bar before starting this official simulation.</span>
+                <span>Select {requiredLayoutName ?? "a compatible exam keyboard"}{requiredFontName ? ` with ${requiredFontName}` : ""} before starting this official simulation.</span>
               </div>
             </div>
           )}
 
           <section className="mock-passage-card">
             <div className="mock-card-header">
-              <div><FileText aria-hidden="true" /><span>{t("passage")}</span><small>{countWords(expected)} {t("words")}</small></div>
+              <div><FileText aria-hidden="true" /><span>{t("passage")}</span><small>{countWords(expected)} {t("words")}</small><em className="passage-origin">Original pattern paper · {PASSAGE_PATTERN_LABELS[selectedProfile.category]}</em></div>
               <div className="mock-font-controls"><button type="button" aria-label={t("fontSmaller")} onClick={() => setFontSize((size) => Math.max(18, size - 2))}><Minus aria-hidden="true" /></button><strong>{fontSize}</strong><button type="button" aria-label={t("fontLarger")} onClick={() => setFontSize((size) => Math.min(36, size + 2))}><Plus aria-hidden="true" /></button></div>
             </div>
             <div ref={passageRef} className={`mock-passage ${showScrollbar ? "" : "hide-scrollbar"}`} style={{ fontFamily: fontStack, fontSize }}>
@@ -606,17 +638,19 @@ export function TypingMockExam({ layout, displayFont, onExit, onLayoutChange }: 
             <p>The selected layout controls physical keys, Unicode conversion, passages, scoring and the on-screen keyboard.</p>
           </header>
           <div className="exam-layout-options" role="radiogroup" aria-label="Hindi keyboard layouts">
-            {HINDI_EXAM_LAYOUTS.map((item) => (
-              <label key={item.id} className={pendingExamLayout === item.id ? "selected" : ""}>
-                <input type="radio" name="exam-layout" value={item.id} checked={pendingExamLayout === item.id} onChange={() => setPendingExamLayout(item.id)} />
+            {HINDI_EXAM_LAYOUTS.map((item) => {
+              const compatible = isExamProfileCompatibleWithLayout(selectedProfile, item.id);
+              return (
+              <label key={item.id} className={`${pendingExamLayout === item.id ? "selected" : ""} ${compatible ? "" : "unavailable"}`.trim()}>
+                <input type="radio" name="exam-layout" value={item.id} checked={pendingExamLayout === item.id} disabled={!compatible} onChange={() => setPendingExamLayout(item.id)} />
                 <span><strong>{item.label}</strong><small>{item.description}</small></span>
-                {item.badge && <em>{item.badge}</em>}
+                <em>{compatible ? selectedProfile.requiredLayoutId === item.id ? "Required" : item.badge ?? "Compatible" : "Not allowed"}</em>
               </label>
-            ))}
+            )})}
           </div>
           <footer>
             <p>Always verify the keyboard requirement in the latest official recruitment notice.</p>
-            <div><Button variant="outline" onClick={onExit}>Cancel</Button><Button onClick={() => { onLayoutChange(pendingExamLayout); setLayoutPromptOpen(false); }}>Continue to test</Button></div>
+            <div><Button variant="outline" onClick={onExit}>Cancel</Button><Button disabled={!isExamProfileCompatibleWithLayout(selectedProfile, pendingExamLayout)} onClick={() => { onLayoutChange(pendingExamLayout); setLayoutPromptOpen(false); }}>Continue to test</Button></div>
           </footer>
         </section>
       </div>

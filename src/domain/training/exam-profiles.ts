@@ -1,10 +1,10 @@
 import { getCurriculumCourse, type CurriculumExercise } from "@/domain/training/curriculum-catalog";
-import { buildOfficialStylePassage } from "@/domain/training/exam-passage-bank";
+import { buildOfficialStylePassage, PASSAGE_PATTERN_LABELS, type ExamPassagePattern } from "@/domain/training/exam-passage-bank";
 import { typingSourceToUnicode, unicodeToTypingSource } from "@/domain/typing/typing-engine";
 import type { ReadyTypingLayoutId, TypingLanguageCode, UnicodeDisplayFontId } from "@/domain/typing/typing-profiles";
 
 export type BackspacePolicy = "full" | "current-word" | "disabled";
-export type ExamCategory = "general" | "ssc" | "rrb" | "dda" | "dsssb" | "cpct" | "rajasthan-court" | "allahabad-court";
+export type ExamCategory = ExamPassagePattern;
 export type ExamScoringModel = "correct-wpm" | "net-wpm" | "kdph" | "rrb-wpm";
 export type ExamVerification = "practice" | "official-reference";
 
@@ -202,17 +202,27 @@ export const EXAM_PROFILES: readonly ExamProfile[] = [
   },
 ] as const;
 
-export function getExamProfilesForLayout(layoutId: ReadyTypingLayoutId) {
-  const language: TypingLanguageCode = layoutId === "english-qwerty" ? "en" : "hi";
-  return EXAM_PROFILES.filter((profile) => (
-    profile.language === language
-    && (layoutId !== "bhashayantra-smart" || profile.verification === "practice")
-    && (!profile.allowedLayoutIds || profile.allowedLayoutIds.includes(layoutId))
-    && (!profile.requiredLayoutId || profile.requiredLayoutId === layoutId)
-  )).sort((left, right) => {
+function sortExamProfiles(profiles: readonly ExamProfile[]) {
+  return [...profiles].sort((left, right) => {
     if (left.verification !== right.verification) return left.verification === "official-reference" ? -1 : 1;
     return EXAM_PROFILES.indexOf(left) - EXAM_PROFILES.indexOf(right);
   });
+}
+
+export function isExamProfileCompatibleWithLayout(profile: ExamProfile, layoutId: ReadyTypingLayoutId) {
+  const language: TypingLanguageCode = layoutId === "english-qwerty" ? "en" : "hi";
+  return profile.language === language
+    && (layoutId !== "bhashayantra-smart" || profile.verification === "practice")
+    && (!profile.allowedLayoutIds || profile.allowedLayoutIds.includes(layoutId))
+    && (!profile.requiredLayoutId || profile.requiredLayoutId === layoutId);
+}
+
+export function getExamProfilesForLanguage(language: TypingLanguageCode) {
+  return sortExamProfiles(EXAM_PROFILES.filter((profile) => profile.language === language));
+}
+
+export function getExamProfilesForLayout(layoutId: ReadyTypingLayoutId) {
+  return sortExamProfiles(EXAM_PROFILES.filter((profile) => isExamProfileCompatibleWithLayout(profile, layoutId)));
 }
 
 export function getExamPassage(profile: ExamProfile, layoutId: ReadyTypingLayoutId, attemptIndex = 0): CurriculumExercise {
@@ -223,7 +233,7 @@ export function getExamPassage(profile: ExamProfile, layoutId: ReadyTypingLayout
   const seed = paragraphs[(profile.passageOffset + attemptIndex) % paragraphs.length];
 
   if (layoutId !== "bhashayantra-smart") {
-    const rawTarget = buildOfficialStylePassage(profile.language, profile.passageOffset + attemptIndex, requiredWords);
+    const rawTarget = buildOfficialStylePassage(profile.language, profile.passageOffset + attemptIndex, requiredWords, profile.category);
     // KrutiDev-derived key maps use the physical comma key for ए. Keep official
     // practice copy limited to punctuation the selected layout can reproduce.
     const target = layoutId === "classic-hindi" || layoutId === "remington-gail"
@@ -240,8 +250,8 @@ export function getExamPassage(profile: ExamProfile, layoutId: ReadyTypingLayout
       keys,
       target,
       drillBlocks: [{
-        label: "Official-style screen copy",
-        purpose: "Practise an original administrative passage using the selected public exam rule profile.",
+        label: `${PASSAGE_PATTERN_LABELS[profile.category]} pattern paper`,
+        purpose: "Original BhashaYantra practice content shaped to the selected public exam rule profile; it is not a past official question paper.",
         keys,
         target,
       }],

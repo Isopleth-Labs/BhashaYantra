@@ -1,5 +1,18 @@
 import type { TypingLanguageCode } from "@/domain/typing/typing-profiles";
 
+export type ExamPassagePattern = "general" | "ssc" | "rrb" | "dda" | "dsssb" | "cpct" | "rajasthan-court" | "allahabad-court";
+
+export const PASSAGE_PATTERN_LABELS: Readonly<Record<ExamPassagePattern, string>> = {
+  general: "General office",
+  ssc: "SSC clerical and data-entry",
+  rrb: "Railway operations and records",
+  dda: "Urban administration and office records",
+  dsssb: "Delhi administration and education",
+  cpct: "E-governance and data processing",
+  "rajasthan-court": "Rajasthan court and registry",
+  "allahabad-court": "Allahabad court and judicial office",
+};
+
 const ENGLISH_OFFICIAL_STYLE_BLOCKS = [
   "A public office must preserve every application, receipt, register, and approval in a clear sequence. The receiving clerk records the date and reference number before forwarding the file to the responsible section. The reviewing officer checks names, addresses, certificates, and supporting records before making a recommendation. If information is missing, the applicant receives a precise notice explaining what must be supplied. This orderly process protects citizens from delay, helps supervisors trace each decision, and creates a reliable record for inspection or appeal.",
   "Recruitment work begins with an authorised notice that describes the post, qualification, age limit, reservation, examination stages, and closing date. Candidates should compare every entry in the application with their certificates before final submission. The commission may verify identity, category, education, and experience at different stages. A provisional admission card does not remove the duty to satisfy eligibility conditions. Careful reading is therefore essential because an incorrect date, incomplete document, or unsupported claim can affect candidature even after a written examination has been completed.",
@@ -34,17 +47,29 @@ function wordCount(value: string) {
   return value.trim().split(/\s+/u).length;
 }
 
-export function buildOfficialStylePassage(language: TypingLanguageCode, paperIndex: number, minimumWords: number) {
+const PATTERN_BLOCK_ORDER: Readonly<Record<ExamPassagePattern, readonly number[]>> = {
+  general: [0, 1, 4, 8, 10, 11, 5, 7, 6, 9, 2, 3],
+  ssc: [1, 0, 4, 8, 10, 11, 5, 7],
+  rrb: [2, 7, 10, 4, 0, 11, 5, 9],
+  dda: [0, 4, 6, 9, 10, 7, 11, 1],
+  dsssb: [8, 0, 1, 10, 5, 11, 6, 9],
+  cpct: [10, 0, 4, 5, 8, 7, 9, 1],
+  "rajasthan-court": [3, 0, 4, 11, 10, 7, 1, 6],
+  "allahabad-court": [3, 0, 1, 4, 10, 11, 8, 7],
+};
+
+export function buildOfficialStylePassage(language: TypingLanguageCode, paperIndex: number, minimumWords: number, pattern: ExamPassagePattern = "general") {
   const blocks = language === "en" ? ENGLISH_OFFICIAL_STYLE_BLOCKS : HINDI_OFFICIAL_STYLE_BLOCKS;
-  const steps = [1, 5, 7, 11] as const;
+  const order = PATTERN_BLOCK_ORDER[pattern];
+  const steps = [1, 3, 5, 7] as const;
   const step = steps[Math.abs(paperIndex) % steps.length];
-  const start = Math.abs(paperIndex * 5) % blocks.length;
+  const start = Math.abs(paperIndex * 3) % order.length;
   const selected: string[] = [];
   let totalWords = 0;
   let cursor = 0;
 
-  while (totalWords < minimumWords && cursor < blocks.length * 2) {
-    const block = blocks[(start + cursor * step) % blocks.length];
+  while (totalWords < minimumWords && cursor < order.length * 3) {
+    const block = blocks[order[(start + cursor * step) % order.length]];
     selected.push(block);
     totalWords += wordCount(block);
     cursor += 1;

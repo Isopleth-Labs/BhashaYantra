@@ -52,6 +52,7 @@ import {
 } from "@/domain/typing/typing-engine";
 import {
   getDisplayFont,
+  TYPING_LAYOUT_PROFILES,
   type UnicodeDisplayFontId,
 } from "@/domain/typing/typing-profiles";
 import { looksLikeNaturalEnglish } from "@/domain/typing/input-guard";
@@ -121,7 +122,16 @@ export function TypingWorkspace({
   const isEnglish = layout === "english-qwerty";
   const isSmart = layout === "bhashayantra-smart";
   const isInscript = layout === "inscript";
-  const [status, setStatus] = useState(() => t(isEnglish ? "readyEnglishTyping" : isSmart ? "readySmartTyping" : isInscript ? "readyInscriptTyping" : "readyTyping"));
+  const layoutName = TYPING_LAYOUT_PROFILES.find((profile) => profile.id === layout)?.name ?? layout;
+  const physicalHindiLayout = !isEnglish && !isSmart;
+  const readyStatus = isEnglish
+    ? t("readyEnglishTyping")
+    : isSmart
+      ? t("readySmartTyping")
+      : isInscript
+        ? t("readyInscriptTyping")
+        : `Ready — type with ${layoutName} physical keys`;
+  const [status, setStatus] = useState(readyStatus);
   const [startedAt, setStartedAt] = useState<number>();
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [shortcutKey, setShortcutKey] = useState("");
@@ -157,8 +167,8 @@ export function TypingWorkspace({
   }, [startedAt]);
 
   useEffect(() => {
-    setStatus(t(isEnglish ? "readyEnglishTyping" : isSmart ? "readySmartTyping" : isInscript ? "readyInscriptTyping" : "readyTyping"));
-  }, [isEnglish, isInscript, isSmart, layout, t]);
+    setStatus(readyStatus);
+  }, [readyStatus]);
 
   function updateSource(value: string) {
     if (!startedAt && value.length > 0) setStartedAt(Date.now());
@@ -409,7 +419,7 @@ export function TypingWorkspace({
       <div className="typing-heading">
         <div>
           <h1 id="typing-workspace-title">{t("startTyping")}</h1>
-          <p>{t(isEnglish ? "englishTypingIntro" : isSmart ? "smartTypingIntro" : isInscript ? "inscriptTypingIntro" : "typingIntro")}</p>
+          <p>{physicalHindiLayout ? `Type with ${layoutName} physical keys and get clean Unicode instantly.` : t(isEnglish ? "englishTypingIntro" : "smartTypingIntro")}</p>
         </div>
         <div className="typing-status-chip">
           <CheckCircle2 aria-hidden="true" />
@@ -441,9 +451,9 @@ export function TypingWorkspace({
           <div className="typing-panel-heading">
             <span>
               <Keyboard aria-hidden="true" />
-              <strong>{isEnglish ? t("englishQwerty") : isSmart ? t("smartPhoneticKeys") : isInscript ? t("inscriptKeys") : t("familiarKeys")}</strong>
+              <strong>{physicalHindiLayout ? `${layoutName} Keys` : isEnglish ? t("englishQwerty") : t("smartPhoneticKeys")}</strong>
             </span>
-            <small>{isEnglish ? t("directEnglishInput") : isSmart ? t("smartPhoneticInput") : isInscript ? t("inscriptInput") : t("krutidevInput")}</small>
+            <small>{physicalHindiLayout ? `Physical ${layoutName} input` : isEnglish ? t("directEnglishInput") : t("smartPhoneticInput")}</small>
           </div>
           <textarea
             ref={sourceRef}
@@ -451,7 +461,7 @@ export function TypingWorkspace({
             value={source}
             onChange={(event) => updateSource(event.target.value)}
             onKeyDown={handleTypingKeyDown}
-            placeholder={isEnglish ? t("englishTypingPlaceholder") : isSmart ? t("smartTypingPlaceholder") : isInscript ? t("inscriptTypingPlaceholder") : t("typingPlaceholder")}
+            placeholder={physicalHindiLayout ? `Start typing with ${layoutName} physical keys…` : isEnglish ? t("englishTypingPlaceholder") : t("smartTypingPlaceholder")}
             spellCheck={false}
             autoFocus
           />
@@ -563,9 +573,9 @@ export function TypingWorkspace({
       )}
 
       {keyboardVisible && (
-          <div className="virtual-keyboard" aria-label={isEnglish ? t("englishKeyboard") : isSmart ? t("smartKeyboard") : isInscript ? t("inscriptKeyboard") : t("classicKeyboard")}>
+          <div className="virtual-keyboard" aria-label={physicalHindiLayout ? `${layoutName} Keyboard` : isEnglish ? t("englishKeyboard") : t("smartKeyboard")}>
           <div className="virtual-keyboard-toolbar">
-            <span><Keyboard aria-hidden="true" /> {isEnglish ? t("englishKeyboard") : isSmart ? t("smartKeyboard") : isInscript ? t("inscriptKeyboard") : t("classicKeyboard")}</span>
+            <span><Keyboard aria-hidden="true" /> {physicalHindiLayout ? `${layoutName} Keyboard` : isEnglish ? t("englishKeyboard") : t("smartKeyboard")}</span>
             <button
               type="button"
               className={shifted ? "shift-toggle active" : "shift-toggle"}

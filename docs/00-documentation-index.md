@@ -14,6 +14,8 @@ This folder is the initial source of truth for BhashaYantra before application c
 8. [Implementation Status](08-implementation-status.md) — what is runnable now and what remains.
 9. [Business Model](09-business-model.md) — product tiers, monetization boundaries, pricing hypotheses, and launch gates.
 10. [Training and Exam Validation](10-training-exam-validation.md) — curriculum depth, competitive-behavior audit, official rule sources, and release checks.
+11. [Public Beta Release Policy](11-public-beta-release-policy.md) — permanent app identity, user-data continuity, versioning, signing, updater, and publication gates.
+12. [Supabase Login Activation](12-supabase-login-activation.md) — production project, migrations, public client variables, Auth, SMTP, and verification steps.
 
 ## Document ownership
 
@@ -28,6 +30,8 @@ This folder is the initial source of truth for BhashaYantra before application c
 | Roadmap | Technical lead | Entire delivery team |
 | Business model | Product owner | Finance, engineering, support |
 | Training and exam validation | Domain engineer | Product owner, QA, legal |
+| Public beta release policy | Release engineer | Product owner, security, support |
+| Supabase login activation | Backend engineer | Release engineer, security, product owner |
 
 ## Change rule
 

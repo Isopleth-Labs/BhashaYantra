@@ -6,7 +6,7 @@ import {
 } from "@/domain/conversion/krutidev-map";
 import {
   INSCRIPT_KEY_MAP,
-  REMINGTON_CBI_KEY_MAP,
+  REMINGTON_GAIL_KEY_MAP,
 } from "@/domain/typing/direct-layout-engine";
 import { SMART_PHONETIC_DICTIONARY } from "@/domain/typing/smart-phonetic-engine";
 import {
@@ -56,8 +56,8 @@ export function createDirectTypingProfile(
 ): DirectTypingProfile {
   const keyMap = layout === "inscript"
     ? INSCRIPT_KEY_MAP
-    : layout === "remington-cbi"
-      ? REMINGTON_CBI_KEY_MAP
+    : layout === "remington-gail" || layout === "remington-cbi"
+      ? REMINGTON_GAIL_KEY_MAP
       : {};
 
   return {
