@@ -4,6 +4,8 @@ import { createRoot } from "react-dom/client";
 import App from "@/app/App";
 import { APP_VERSION, createUserDataBackup, initializeBetaDataLifecycle } from "@/application/beta-data-lifecycle";
 import { I18nProvider } from "@/i18n/I18nProvider";
+import { AppEntryGate } from "@/features/auth/AppEntryGate";
+import { WorkspaceAuthProvider } from "@/features/settings/useWorkspaceAuth";
 import "@/styles/globals.css";
 
 const lifecycle = initializeBetaDataLifecycle();
@@ -24,7 +26,9 @@ if (lifecycle.status === "newer-schema") {
   root.render(
     <StrictMode>
       <I18nProvider>
-        <App />
+        <WorkspaceAuthProvider>
+          <AppEntryGate><App /></AppEntryGate>
+        </WorkspaceAuthProvider>
       </I18nProvider>
     </StrictMode>,
   );

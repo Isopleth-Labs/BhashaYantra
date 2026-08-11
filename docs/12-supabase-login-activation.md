@@ -11,6 +11,8 @@ Student and Institute authentication is implemented, but a production build rema
    npx supabase login
    npx supabase link --project-ref YOUR_PROJECT_REF
    npx supabase db push
+   npx supabase functions deploy login-with-username --no-verify-jwt
+   npx supabase functions deploy account-me
    ```
 
 3. Run the local database verification before applying production changes:
@@ -21,7 +23,7 @@ Student and Institute authentication is implemented, but a production build rema
    npx supabase db lint --local
    ```
 
-The migrations create the Student/Institute role trigger, account tables, constraints, and Row Level Security policies.
+The migrations create the Student/Institute role trigger, account/trial tables, constraints, JWT claim hook, and Row Level Security policies. After deployment, open **Authentication → Hooks** and select `public.custom_access_token_hook` for the Custom Access Token hook.
 
 ## 2. Configure the desktop client
 
@@ -44,6 +46,10 @@ For GitHub builds, create repository **Actions variables** named `VITE_SUPABASE_
 - Configure custom SMTP before public testing; the default Supabase mail service is not a production delivery channel.
 - Review Auth rate limits and enable CAPTCHA for signup/sign-in abuse protection.
 - Test a Student signup and an Institute signup. Confirm each user receives the matching `profiles.account_role`, and verify that attempting the other login role signs the session out.
+
+The desktop client accepts email or username plus password. Email login goes directly to Supabase Password Auth. Username login uses the `login-with-username` Edge Function, which privately resolves the server-managed login address and delegates password verification back to Supabase Auth. Never expose `SUPABASE_SERVICE_ROLE_KEY` to the desktop app.
+
+Supabase issues the access-token JWT and refresh token. The app verifies claims with `supabase.auth.getClaims()`, persists and refreshes the session, and sends `Authorization: Bearer <token>` for protected Edge Function calls. JWT metadata reduces repeated profile lookups; RLS and fresh server-side entitlement checks remain mandatory.
 
 ## 4. Production checklist
 

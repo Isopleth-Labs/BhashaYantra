@@ -1,6 +1,6 @@
 # Implementation Status
 
-Updated: 11 August 2026
+Updated: 12 August 2026
 
 ## Completed
 
@@ -37,7 +37,8 @@ Updated: 11 August 2026
 - Non-blocking practice feedback: wrong keys advance, appear red in a live physical-key stream, and are retained in scoring; error sound is opt-in.
 - Word & Excel Efficiency workspace with functional document-formatting and register-entry simulations, validation, accuracy, workflow, and speed results.
 - Mock-test result report now separates keystroke, word, and error analysis, including aligned colour-coded copy and word-level correct/wrong/omitted/extra rows.
-- Separate Student and Institute Supabase Auth entry screens with signup/sign-in, email-confirmation handling, profile-role verification, mismatch sign-out, and no local authentication bypass.
+- Premium product-owned startup animation followed by a mandatory Supabase Student/Institute entry gate, email-or-username login, verified signup, email-confirmation handling, mismatch sign-out, 14-day trial access, expired/suspended access handling, and no local authentication bypass.
+- Supabase Custom Access Token hook with server-managed username, role, status, plan, and trial claims; automatic access-token refresh; a protected username-login Edge Function; explicit Bearer-token API adapter; and an authenticated no-profile-query account endpoint.
 - Compact professional Settings control center with interface/theme controls, typing defaults, persisted training feedback preferences, offline/privacy status, safe backup/reset, in-app Privacy Policy, Terms & Conditions, Contact/Support, and About surfaces.
 - Responsive BhashaYantra Pro pricing and order-preview surface with selectable 30-day, 90-day, annual, and institution hypotheses; checkout is intentionally disabled and the development client cannot collect payment.
 - Live bidirectional KrutiDev 010 ↔ Unicode text converter.
@@ -52,7 +53,7 @@ Updated: 11 August 2026
 - Strict TypeScript, frontend domain/application tests, seven native Direct Typing composition/lifecycle tests, production web build, and browser visual/interaction QA including 1600×900, 900×780, and 700×780 layouts.
 - Public-beta data manifest plus namespaced backup/transactional restore, synchronized prerelease version contract, production CSP, and a CI publication gate that refuses unsigned or updater-less releases.
 - Repository and executable supply-chain hardening: pinned GitHub Actions commits, least-privilege tokens, CodeQL, npm/Rust dependency audits, Dependabot, secret-boundary checks, SHA-256 release checksums, GitHub build provenance, and an Authenticode signing step gated behind protected certificate secrets.
-- Versioned beta Privacy, Terms, Support, Security, and source-available evaluation documents plus a production Supabase login activation runbook.
+- Versioned beta Privacy, Terms, Support, Security, and source-available evaluation documents plus a production Supabase login activation runbook and a repository-synchronized GitHub Wiki documentation hub.
 - Local Supabase reset, eight pgTAP/RLS tests, and schema linting.
 - Rust formatting and Clippy checks.
 - One local portable development executable; old debug/installer application builds are intentionally not retained.
@@ -83,7 +84,7 @@ cargo clippy --manifest-path .\src-tauri\Cargo.toml --all-targets -- -D warnings
 | Shortcut manager | Built-in shortcuts, custom creation/deletion, conflict validation, persistence, import/export, and reset | Editing existing custom entries in place and cloud sync |
 | Typing practice/test | 2,860 professional exercises with alphabetic, numeric/data-entry, and domain progression, multi-round patterns, mastery gates, depth checks, a distraction-free fixed-height workstation, 60 original papers/layout, 18 profiles including 16 official-reference profiles, WPM/NWPM/KDPH/RRB practice scoring, weak-key analysis, and local history | Independently validate remaining recruitment-specific deduction rules, then add adaptive lessons and exportable reports |
 | Stenography | Fourteen original audio profiles, native/browser narration, strict exam and Listen & Type workflows, deterministic evaluation, and history | Licensed publisher partnerships, more validated recruitment profiles, and exportable reports |
-| Supabase | Schema, RLS, role-aware signup trigger, separate Student/Institute Auth UI, repositories, and local configuration | Production project values, institute onboarding transactions, and opt-in result sync |
+| Supabase | Schema, RLS, role-aware signup trigger, JWT claim hook, username/email sign-in, trial gate, protected Edge Functions, separate Student/Institute Auth UI, repositories, and local verification | Production project values, dashboard hook activation, SMTP/CAPTCHA, institute onboarding transactions, billing webhook, and opt-in result sync |
 
 ## Not yet release-ready
 

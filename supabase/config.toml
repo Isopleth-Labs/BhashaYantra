@@ -23,6 +23,16 @@ additional_redirect_urls = ["http://localhost:1420"]
 jwt_expiry = 3600
 enable_signup = true
 
+[auth.hook.custom_access_token]
+enabled = true
+uri = "pg-functions://postgres/public/custom_access_token_hook"
+
 [storage]
 enabled = true
 file_size_limit = "25MiB"
+
+[functions.login-with-username]
+verify_jwt = false
+
+[functions.account-me]
+verify_jwt = true

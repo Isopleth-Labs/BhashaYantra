@@ -1,5 +1,7 @@
 # Documentation Index
 
+The public, reader-friendly documentation is published in the [BhashaYantra GitHub Wiki](https://github.com/Isopleth-Labs/BhashaYantra/wiki). Files in this directory remain the versioned engineering source of truth.
+
 This folder is the initial source of truth for BhashaYantra before application code is created.
 
 ## Reading order

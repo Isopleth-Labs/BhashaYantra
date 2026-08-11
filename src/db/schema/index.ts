@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import {
   boolean,
   index,
@@ -26,6 +27,8 @@ export const conversionStatus = pgEnum("conversion_status", [
 export const accountWorkspaceRole = pgEnum("account_workspace_role", ["student", "institute"]);
 export const institutionMemberRole = pgEnum("institution_member_role", ["owner", "admin", "instructor", "student"]);
 export const institutionMemberStatus = pgEnum("institution_member_status", ["invited", "active", "suspended"]);
+export const accountStatus = pgEnum("account_status", ["trialing", "active", "expired", "suspended"]);
+export const planTier = pgEnum("plan_tier", ["free", "pro", "institution"]);
 
 const timestamps = {
   createdAt: timestamp("created_at", { withTimezone: true })
@@ -38,11 +41,17 @@ const timestamps = {
 
 export const profiles = pgTable("profiles", {
   userId: uuid("user_id").primaryKey(),
+  username: text("username").notNull(),
+  loginEmail: text("login_email").notNull(),
   displayName: text("display_name"),
   accountRole: accountWorkspaceRole("account_role").default("student").notNull(),
+  accountStatus: accountStatus("account_status").default("trialing").notNull(),
+  planTier: planTier("plan_tier").default("free").notNull(),
+  trialStartedAt: timestamp("trial_started_at", { withTimezone: true }).defaultNow().notNull(),
+  trialEndsAt: timestamp("trial_ends_at", { withTimezone: true }),
   preferredLanguage: text("preferred_language").default("hi").notNull(),
   ...timestamps,
-});
+}, (table) => [uniqueIndex("profiles_username_lower_uidx").on(sql`lower(${table.username})`)]);
 
 export const institutions = pgTable(
   "institutions",

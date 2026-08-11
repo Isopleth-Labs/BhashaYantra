@@ -1,5 +1,5 @@
 begin;
-select plan(14);
+select plan(20);
 
 select has_table('public', 'profiles', 'profiles table exists');
 select has_table('public', 'keyboard_layouts', 'keyboard layouts table exists');
@@ -8,12 +8,18 @@ select has_table('public', 'practice_attempts', 'practice attempts table exists'
 select has_table('public', 'institutions', 'institutions table exists');
 select has_table('public', 'institution_members', 'institution members table exists');
 select has_table('public', 'student_profiles', 'student profiles table exists');
+select has_column('public', 'profiles', 'username', 'profiles include a unique login username');
+select has_column('public', 'profiles', 'login_email', 'profiles include a server-managed username lookup address');
+select has_column('public', 'profiles', 'account_status', 'profiles include server-managed account status');
+select has_column('public', 'profiles', 'trial_ends_at', 'profiles include trial expiry');
+select has_function('public', 'custom_access_token_hook', array['jsonb'], 'JWT custom-claims hook exists');
+select has_function('public', 'has_product_access', array[]::text[], 'JWT entitlement helper exists');
 
 select policies_are(
   'public',
   'profiles',
-  array['profiles_select_own', 'profiles_update_own'],
-  'profiles exposes only owner policies'
+  array['profiles_auth_hook_read', 'profiles_select_own', 'profiles_update_own'],
+  'profiles exposes owner policies plus the isolated Auth hook policy'
 );
 
 select policies_are(
