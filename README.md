@@ -97,7 +97,7 @@ The model combines individual subscriptions with higher-value institution contra
 - Clean-machine `beta.1 → beta.2` install/update/restore test.
 - Final privacy policy, licence, support route, and beta feedback consent.
 
-See the [Public Beta Release Policy](docs/11-public-beta-release-policy.md) for the durable-user contract and release gates.
+The repository release workflow enforces these gates so an unsigned, updater-less build cannot be published accidentally.
 
 ## Roadmap
 
@@ -151,7 +151,6 @@ Supabase is optional for offline typing and training. Copy `.env.example` to `.e
 - [System architecture](docs/02-system-architecture.md)
 - [Business model](docs/09-business-model.md)
 - [Training and exam validation](docs/10-training-exam-validation.md)
-- [Public beta release policy](docs/11-public-beta-release-policy.md)
 
 </details>
 
