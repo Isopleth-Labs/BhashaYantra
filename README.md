@@ -33,7 +33,7 @@ Hindi and English learners currently move between disconnected typing tutors, le
 | Exam preparation | 18 configurable profiles and detailed result analysis |
 | Professional workflows | Unicode/KrutiDev conversion, Direct Typing, Word and Excel practice |
 | Stenography | Hindi/English dictation, transcription phases and scoring |
-| Accounts | Supabase Auth/JWT/RLS, 14-day trial and server-enforced device licensing |
+| Accounts | Supabase Auth/JWT/RLS, email OTP verification, 14-day trial and server-enforced device licensing |
 | Trust | Offline deterministic engines, pinned CI, CodeQL, audits, checksums and provenance |
 
 ## Business direction
