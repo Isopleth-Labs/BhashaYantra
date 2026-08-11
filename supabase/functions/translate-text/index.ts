@@ -22,6 +22,12 @@ Deno.serve(async (request) => {
   if (request.method === "OPTIONS") return new Response("ok", { headers: CORS_HEADERS });
   if (request.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
+  // The Edge gateway validates this bearer token because verify_jwt=true. An
+  // API key alone represents an anonymous client and must never spend provider
+  // quota or access a server-side translation credential.
+  const authorization = request.headers.get("Authorization") ?? "";
+  if (!authorization.startsWith("Bearer ")) return json({ error: "Authentication required" }, 401);
+
   const apiKey = Deno.env.get("GOOGLE_CLOUD_TRANSLATE_KEY");
   if (!apiKey) return json({ error: "Translation provider is not configured" }, 503);
 
