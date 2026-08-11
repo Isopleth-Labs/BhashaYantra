@@ -15,6 +15,8 @@ Sensitive `profiles` fields are server-managed. Authenticated users may update o
 
 Users can read only their own registered devices. Direct client inserts, updates, and deletes are revoked. The security-definer `register_current_device` function serializes registrations under the profile row lock so concurrent launches cannot exceed the limit.
 
+Trigger and RLS helper functions live in a non-exposed `private` schema. The authenticated device RPC remains public by design, validates `auth.uid()`, and is the only client-callable security-definer function required by the desktop licensing flow.
+
 ## Migration workflow
 
 ```powershell

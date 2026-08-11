@@ -26,6 +26,8 @@ Student and Institute authentication is implemented, but a production build rema
 
 The migrations create the Student/Institute role trigger, account/trial tables, one-device default allowance, privacy-safe device registry, JWT claim hook, and Row Level Security policies. After deployment, open **Authentication → Hooks** and select `public.custom_access_token_hook` for the Custom Access Token hook.
 
+Trigger and RLS helper functions are kept in a non-exposed `private` schema. The public device-registration RPC is the deliberate exception: it derives the user from `auth.uid()`, validates the privacy-safe digest, locks the profile row, and enforces the server-managed device limit atomically.
+
 ## 2. Configure the desktop client
 
 Copy `.env.example` to `.env.local` and add only public client values from the Supabase **Connect** dialog:

@@ -1,5 +1,5 @@
 begin;
-select plan(24);
+select plan(27);
 
 select has_table('public', 'profiles', 'profiles table exists');
 select has_table('public', 'keyboard_layouts', 'keyboard layouts table exists');
@@ -17,6 +17,9 @@ select has_table('public', 'registered_devices', 'registered devices table exist
 select has_function('public', 'custom_access_token_hook', array['jsonb'], 'JWT custom-claims hook exists');
 select has_function('public', 'has_product_access', array[]::text[], 'JWT entitlement helper exists');
 select has_function('public', 'register_current_device', array['text', 'text'], 'atomic device registration function exists');
+select has_function('private', 'handle_new_user', array[]::text[], 'signup trigger is outside the exposed API schema');
+select has_function('private', 'is_institution_owner', array['uuid'], 'institute owner helper is private');
+select has_function('private', 'is_active_institution_member', array['uuid', 'uuid'], 'membership helper is private');
 
 select policies_are(
   'public',
@@ -42,14 +45,24 @@ select policies_are(
 select policies_are(
   'public',
   'institution_members',
-  array['institution_members_manage_owner', 'institution_members_read_self_or_owner'],
+  array[
+    'institution_members_delete_owner',
+    'institution_members_insert_owner',
+    'institution_members_select',
+    'institution_members_update_owner'
+  ],
   'institution membership is owner managed'
 );
 
 select policies_are(
   'public',
   'student_profiles',
-  array['student_profiles_manage_own', 'student_profiles_read_own_or_institute_owner'],
+  array[
+    'student_profiles_delete_own',
+    'student_profiles_insert_own',
+    'student_profiles_select',
+    'student_profiles_update_own'
+  ],
   'student profiles are private except verified institute reporting'
 );
 
