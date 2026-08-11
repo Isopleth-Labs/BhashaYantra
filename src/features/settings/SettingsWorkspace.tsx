@@ -65,6 +65,7 @@ import { useI18n, type InterfaceLanguage } from "@/i18n/I18nProvider";
 import {
   LEGAL_DOCUMENTS,
   LEGAL_EFFECTIVE_DATE,
+  SECURITY_REPORT_URL,
   SOURCE_REPOSITORY_URL,
   SUPPORT_ISSUES_URL,
 } from "@/domain/legal/legal-documents";
@@ -285,8 +286,8 @@ export function SettingsWorkspace({
         </details>)}
       </div>
       <div className="support-contact-card">
-        <span><Mail /><span><strong>Contact & support</strong><small>Report a bug, privacy request, security concern, or account issue without posting passwords, private documents, or API keys.</small></span></span>
-        <a href={SUPPORT_ISSUES_URL} target="_blank" rel="noreferrer">Open GitHub support</a>
+        <span><Mail /><span><strong>Contact & support</strong><small>Use public support for bugs and account help. Send vulnerability details only through GitHub's private security reporting.</small></span></span>
+        <div className="support-contact-actions"><a href={SUPPORT_ISSUES_URL} target="_blank" rel="noreferrer">Public support</a><a href={SECURITY_REPORT_URL} target="_blank" rel="noreferrer">Private security report</a></div>
       </div>
       <p className="legal-review-note"><LockKeyhole /> Beta legal draft. Obtain counsel review and publish a monitored support/privacy email before a public release.</p>
     </SettingsCard>;

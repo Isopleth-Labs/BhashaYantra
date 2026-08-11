@@ -6825,11 +6825,12 @@ body:has(.mock-exam-page.session-active) .mock-exam-page {
 .support-contact-card > span > span { display: flex; flex-direction: column; gap: 3px; }
 .support-contact-card strong { font-size: 11px; }
 .support-contact-card small { color: var(--muted-foreground); font-size: 9px; line-height: 1.5; }
-.support-contact-card > a,
+.support-contact-actions a,
 .about-links a,
 .about-links button { min-height: 34px; display: inline-flex; align-items: center; justify-content: center; padding: 0 12px; border: 1px solid var(--border); border-radius: 8px; color: var(--primary); background: var(--surface); font-size: 10px; font-weight: 750; text-decoration: none; white-space: nowrap; }
 .legal-review-note { display: flex; align-items: center; gap: 7px; margin: 0; padding: 11px 16px; border-top: 1px solid var(--border); color: #a16207; background: color-mix(in srgb, #f59e0b 8%, var(--surface)); font-size: 9px; line-height: 1.5; }
 .legal-review-note svg { width: 14px; height: 14px; flex: 0 0 auto; }
+.support-contact-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; flex: 0 0 auto; }
 .about-links { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 16px 16px; }
 .about-links button { cursor: pointer; }
 .settings-pro-panel { position: sticky; top: calc(var(--app-topbar-height) + 18px); padding: 22px; overflow: hidden; background: linear-gradient(150deg, #0b63f6, #123b87 72%, #0b214b); color: white; box-shadow: 0 18px 45px rgb(11 99 246 / 20%); }
@@ -6956,7 +6957,7 @@ body:has(.mock-exam-page.session-active) .mock-exam-page {
   .legal-document-body { grid-template-columns: 1fr; }
   .legal-document-body section { border-right: 0; }
   .support-contact-card { align-items: stretch; flex-direction: column; }
-  .support-contact-card > a { align-self: flex-start; }
+  .support-contact-actions { justify-content: flex-start; }
   .settings-danger-row { align-items: stretch; flex-direction: column; }
   .settings-pro-panel { display: flex; flex-direction: column; align-items: stretch; }
   .settings-pro-panel .pro-orbit { margin-bottom: 8px; }

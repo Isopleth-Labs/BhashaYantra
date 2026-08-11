@@ -1,5 +1,6 @@
 export const LEGAL_EFFECTIVE_DATE = "11 August 2026";
 export const SUPPORT_ISSUES_URL = "https://github.com/Isopleth-Labs/BhashaYantra/issues";
+export const SECURITY_REPORT_URL = "https://github.com/Isopleth-Labs/BhashaYantra/security/advisories";
 export const SOURCE_REPOSITORY_URL = "https://github.com/Isopleth-Labs/BhashaYantra";
 
 export interface LegalDocumentSection {
